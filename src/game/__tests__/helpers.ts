@@ -47,10 +47,7 @@ export function startedRoom(ctx: GameCtx, now: number = T0): RoomState {
 }
 
 /** Writes the solution letters of a clue straight into the state (mutates). */
-/**
- * A two-player room (multiplayer rules: cooldowns, rotation warning). Needs a ctx whose config
- * allows 2 players, e.g. makeCtx(GAME1, { maxPlayers: 2 }).
- */
+/** A two-player room (multiplayer rules: cooldowns, rotation warning, one guess each). */
 export function startedDuo(ctx: GameCtx, now: number = T0): RoomState {
   let s = createRoomState({
     rid: "DUO",

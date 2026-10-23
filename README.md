@@ -12,10 +12,11 @@ Some clues stay hidden until a letter on another board is confirmed, enough rota
 enough words are solved. Circled cells spell the meta words; the game ends when all are obtained, by
 completing their tiles or by guessing. Alone, you can guess until a guess is wrong; with others, each
 player gets one guess and a wrong one knocks them out. The 6× meta words come from the themed answers
-of the sibling crossword app. The results show scorecards, an MVP per board and a tiles leaderboard.
-Light, dark or automatic theme.
+of the sibling crossword app. The results show scorecards (with the wrong letters each player passed
+on at rotations), an MVP per board and a tiles leaderboard. The Capt. can end a round and restart
+it. Portrait phones only; light, dark or automatic theme; normal, cosy or compact display size.
 
-One to three players, one per board, ten pre-built games per mode. The server keeps all state
+Up to one player per board (three in both modes), ten pre-built games per mode. The server keeps all state
 (seats, the Capt., versioned polling). Choices made where the spec was silent, and the rule changes
 made since V1, are listed in [`DECISIONS.md`](DECISIONS.md).
 

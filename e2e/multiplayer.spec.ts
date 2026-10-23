@@ -76,11 +76,14 @@ test("two players: join, ready, Capt. hand-off, results with MVPs and leaderboar
   // Round 1: each fills the board at their seat (Clem board 0, Kris board 1); Clem rotates.
   await fillMyBoard(clem);
   await fillMyBoard(kris);
-  // Clem spends his single guess on a word whose letters are not even shown yet.
+  // Clem spends his single guess on a word whose letters are not even shown yet, typed on the
+  // panel's own keyboard.
   await clem.page.getByRole("button", { name: /Open meta panel/ }).click();
-  await clem.page.keyboard.type("corn");
-  await clem.page.keyboard.press("Enter");
-  await expect(clem.page.getByText(/Meta word 2 solved: \+7 pts/)).toBeVisible();
+  const panel = clem.page.getByRole("dialog");
+  for (const l of "CORN") await panel.getByRole("button", { name: l, exact: true }).click();
+  await expect(clem.page.getByLabel("Meta guess")).toHaveValue("CORN");
+  await panel.getByRole("button", { name: "Guess", exact: true }).click();
+  await expect(clem.page.getByText(/Meta word B solved: \+7 pts/)).toBeVisible();
   await expect(clem.page.getByLabel("Meta guess")).toBeDisabled();
   await clem.page.keyboard.press("Escape");
   await captRotates(clem, kris);
@@ -90,7 +93,7 @@ test("two players: join, ready, Capt. hand-off, results with MVPs and leaderboar
   await expect.poll(() => kris.latest.view?.you.isMaster).toBe(true);
   expect(kris.latest.view!.board!.index).toBe(2);
   await expect(clem.page.getByText("No board at your seat this rotation.")).toBeVisible();
-  await expect(kris.page.getByText("Capt.").first()).toBeVisible();
+  await expect(kris.page.getByRole("button", { name: /^Rotate left/ })).toBeVisible();
   await fillMyBoard(kris);
   await captRotates(kris, clem);
 
@@ -104,7 +107,7 @@ test("two players: join, ready, Capt. hand-off, results with MVPs and leaderboar
   await expect(board.locator("li").nth(0)).toHaveText(/1\. Kris\s*40/);
   await expect(board.locator("li").nth(1)).toHaveText(/2\. Clem Leung\s*19/);
   await expect(clem.page.getByRole("region", { name: "Scorecard: Clem Leung" })).toContainText(
-    "CORN ✓ word 2, +7",
+    "CORN ✓ word B, +7",
   );
   await expect(kris.page.getByRole("region", { name: "Scorecard: Kris" })).toContainText(
     "Meta guessnot used",
@@ -160,4 +163,11 @@ test("two players: a wrong guess knocks a player out; the game ends when both ar
     "knocked out",
   );
   await expect(clem.page.getByText("not obtained").first()).toBeVisible();
+
+  // Once it is over, anyone can put the same game back in the lobby.
+  await kris.page.getByRole("button", { name: "Play this game again" }).click();
+  for (const p of [clem, kris]) {
+    await expect(p.page.getByRole("button", { name: "I'm ready" })).toBeVisible();
+    await expect.poll(() => p.latest.view?.status).toBe("lobby");
+  }
 });

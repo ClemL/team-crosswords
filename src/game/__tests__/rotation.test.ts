@@ -18,7 +18,7 @@ import {
 } from "./helpers";
 
 const ctx = makeCtx();
-const duoCtx = makeCtx(GAME1, { maxPlayers: 2 });
+const duoCtx = makeCtx(GAME1);
 const rng = mulberry32(3);
 
 describe("lobby", () => {

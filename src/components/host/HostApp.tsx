@@ -7,6 +7,7 @@ import { formatClock, usePoll, useServerNow } from "@/client/usePoll";
 import type { HostView } from "@/game/views";
 import { MetaWordList } from "../MetaBar";
 import { boardEmojis, Results } from "../Results";
+import { DensityToggle } from "../DensityToggle";
 import { ThemeToggle } from "../ThemeToggle";
 import ui from "../ui.module.css";
 import h from "./host.module.css";
@@ -50,7 +51,7 @@ function Ring({ view }: { view: HostView }) {
               {seat.emoji || "—"}
             </div>
             <div className={h.tileName}>
-              {idle ? "idle" : seat.playerName}
+              {idle ? "Empty" : seat.playerName}
               {seat.isMaster && <span className={ui.capt}> Capt.</span>}
               {seat.out && <span className={ui.muted}> · out</span>}
             </div>
@@ -120,6 +121,7 @@ export function HostApp({ rid }: { rid: string }) {
           {view.rid}
         </h1>
         <ThemeToggle />
+        <DensityToggle />
         {view.status !== "lobby" && (
           <div className={h.stats}>
             <span className={h.stat}>

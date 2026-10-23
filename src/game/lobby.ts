@@ -3,18 +3,40 @@ import type { GameCtx } from "./context";
 import { fail, type Result } from "./errors";
 import { guardMaster, guardPlayer } from "./guards";
 import { assignMaster, initialMasterCount } from "./master";
-import { cloneState, cooldownFor, emptyPlayerStats, initialsOf, isActive } from "./state";
+import {
+  cloneState,
+  cooldownFor,
+  createRoomState,
+  emptyPlayerStats,
+  initialsOf,
+  isActive,
+} from "./state";
 import type { RoomState } from "./types";
 
 export function sanitizeName(name: unknown): string {
   return typeof name === "string" ? name.replace(/\s+/g, " ").trim().slice(0, NAME_MAX_LENGTH) : "";
 }
 
-/** Next free seat for a new player, or null when the room is full. V1: seat 0. */
+/**
+ * Seat for a new player, or null when the room is full (one player per board). Players are
+ * spread around the ring: the new player takes the free seat farthest from every taken seat,
+ * the lowest such seat on a tie, so empty seats end up between players where the ring allows.
+ */
 export function seatForNewPlayer(state: RoomState, ctx: GameCtx): number | null {
-  if (Object.keys(state.players).length >= ctx.cfg.maxPlayers) return null;
-  const seat = state.seats.findIndex((s) => s === null);
-  return seat === -1 ? null : seat;
+  const n = state.seats.length;
+  if (Object.keys(state.players).length >= ctx.puzzle.boards.length) return null;
+  const taken = state.seats.flatMap((pid, i) => (pid === null ? [] : [i]));
+  let best: number | null = null;
+  let bestGap = -1;
+  state.seats.forEach((pid, seat) => {
+    if (pid !== null) return;
+    const gap = Math.min(
+      n,
+      ...taken.map((t) => Math.min(Math.abs(seat - t), n - Math.abs(seat - t))),
+    );
+    if (gap > bestGap) [best, bestGap] = [seat, gap];
+  });
+  return best;
 }
 
 /**
@@ -100,5 +122,43 @@ export function masterStart(
   if (state.status === "playing") return { ok: true, state };
   const next = cloneState(state);
   startTimer(next, ctx, now);
+  return { ok: true, state: next };
+}
+
+/**
+ * Ends the round and starts the same puzzle again: empty boards, no rotations, no meta words, back
+ * in the lobby with the same players in the same seats, the same Capt. and the same board emojis.
+ * While a game is on, only the Capt. may do it; once it has ended, anyone may.
+ */
+export function restartRoom(
+  state: RoomState,
+  ctx: GameCtx,
+  pid: string,
+  now: number,
+): Result<{ state: RoomState }> {
+  const g = guardPlayer(state, pid) ?? (state.status === "ended" ? null : guardMaster(state, pid));
+  if (g) return g;
+  const fresh = createRoomState({
+    rid: state.rid,
+    puzzle: ctx.puzzle,
+    now,
+    rng: () => 0, // the emojis are kept below
+    cfg: ctx.cfg,
+  });
+  const next: RoomState = {
+    ...fresh,
+    version: state.version,
+    createdAt: state.createdAt,
+    boardEmojis: state.boardEmojis,
+    seats: [...state.seats],
+    players: Object.fromEntries(
+      Object.entries(state.players).map(([id, p]) => [id, { ...p, activeSeconds: 0 }]),
+    ),
+    playerStats: Object.fromEntries(
+      Object.keys(state.players).map((id) => [id, emptyPlayerStats()]),
+    ),
+    masterPid: state.masterPid,
+    masterCounts: { ...state.masterCounts },
+  };
   return { ok: true, state: next };
 }

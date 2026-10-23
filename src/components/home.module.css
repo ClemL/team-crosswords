@@ -12,6 +12,11 @@
   flex-wrap: wrap;
 }
 
+.display {
+  display: flex;
+  gap: 8px;
+}
+
 .title {
   margin: 0 0 4px;
   font-size: 1.7rem;

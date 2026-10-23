@@ -47,6 +47,11 @@ export type BoardView = {
   suspects: Record<string, string>;
   /** Cells that belong to a meta word: `meta` is the word's 1-based number, `slot` its position. */
   metaCells: Array<{ r: number; c: number; meta: number; slot: number }>;
+  /**
+   * Cells whose correct letter unlocks a still-hidden clue on another board, with the emojis of
+   * the boards it helps. The other board's clue already names the cell ("Needs 🦊 r1c3").
+   */
+  helperCells: Array<{ r: number; c: number; boards: string[] }>;
   clues: ClueView[];
   percent: number;
   lockedCount: number;
@@ -170,6 +175,23 @@ export function conditionText(state: RoomState, clue: PublicClue): string | unde
   }
 }
 
+function helperCells(state: RoomState, ctx: GameCtx, boardIndex: number): BoardView["helperCells"] {
+  const byCell = new Map<string, { r: number; c: number; boards: string[] }>();
+  ctx.puzzle.boards.forEach((b, bi) => {
+    for (const clue of b.clues) {
+      const u = clue.unlock;
+      if (u.type !== "crossLetter" || u.board !== boardIndex) continue;
+      if (state.unlocked.includes(clue.id) || state.locked.includes(clue.id)) continue;
+      const [r, c] = u.cell;
+      const hit = byCell.get(`${r},${c}`) ?? { r, c, boards: [] };
+      const emoji = state.boardEmojis[bi]?.e ?? "";
+      if (!hit.boards.includes(emoji)) hit.boards.push(emoji);
+      byCell.set(`${r},${c}`, hit);
+    }
+  });
+  return [...byCell.values()].sort((a, b) => a.r - b.r || a.c - b.c);
+}
+
 export function buildBoardView(state: RoomState, ctx: GameCtx, boardIndex: number): BoardView {
   const pb = ctx.puzzle.boards[boardIndex];
   const b = state.boards[boardIndex];
@@ -209,6 +231,7 @@ export function buildBoardView(state: RoomState, ctx: GameCtx, boardIndex: numbe
         .filter((x) => x.b === boardIndex)
         .map(({ r, c, meta, slot }) => ({ r, c, meta, slot })),
     ),
+    helperCells: helperCells(state, ctx, boardIndex),
     clues,
     percent: boardPercent(state, ctx, boardIndex),
     lockedCount: boardLockedCount(state, ctx, boardIndex),

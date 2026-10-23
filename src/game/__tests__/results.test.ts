@@ -11,7 +11,7 @@ import type { GameCtx } from "../context";
 import type { RoomState } from "../types";
 import { GAME1, makeCtx, PID, PID2, startedDuo, T0, unwrap } from "./helpers";
 
-const ctx = makeCtx(GAME1, { maxPlayers: 2 });
+const ctx = makeCtx(GAME1);
 const rng = mulberry32(11);
 
 /** Types the solution of `board` as `pid` through the real rule function. */

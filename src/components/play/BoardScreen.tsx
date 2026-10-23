@@ -83,19 +83,65 @@ function ScreenHeader({ view, rid, pid, offset, actions, onMap }: ScreenProps) {
   const left = view.seating.nextIfLeft?.emoji ?? "—";
   const right = view.seating.nextIfRight?.emoji ?? "—";
 
+  // The Capt.'s phone is tinted red (screen class) instead of saying "Capt.", and the rotation
+  // controls take the top row in place of the progress and the clock (both are on the map).
+  const controls = (
+    <>
+      <button
+        type="button"
+        className={s.rotateBtn}
+        disabled={!canRotate}
+        onClick={() => rotate("L")}
+        aria-label={`Rotate left: you receive ${view.seating.nextIfLeft?.emoji ?? "no board"}`}
+      >
+        ⟲ <span className={s.rotateEmoji}>{left}</span>
+      </button>
+      <button
+        type="button"
+        className={s.rotateBtn}
+        disabled={!canRotate}
+        onClick={() => rotate("R")}
+        aria-label={`Rotate right: you receive ${view.seating.nextIfRight?.emoji ?? "no board"}`}
+      >
+        ⟳ <span className={s.rotateEmoji}>{right}</span>
+      </button>
+      {(pending || cooling) && (
+        <span className={s.cooldown} aria-live="off">
+          {pending ? "rotating…" : formatClock(view.rotation.cooldownUntil - now)}
+        </span>
+      )}
+      {view.rotation.canFinalCheck && (
+        <button type="button" className={s.finalBtn} disabled={!canRotate} onClick={finalCheck}>
+          Final Check
+        </button>
+      )}
+    </>
+  );
+
   return (
     <header className={s.header}>
       <div className={s.headerRow}>
         <span className={s.boardEmoji} aria-label="Your board">
           {board?.emoji ?? "—"}
         </span>
-        <span className={s.progress}>
-          {board ? `${board.lockedCount}/${board.totalCount} · ${board.percent}%` : "no board"}
-        </span>
-        <span className={s.timer} aria-label="Game time">
-          ⏱ {formatClock(elapsed)}
-        </span>
-        <button type="button" className={s.iconBtn} onClick={onMap} aria-label="Seating map">
+        {view.you.isMaster ? (
+          controls
+        ) : (
+          <>
+            <span className={s.progress}>
+              {board ? `${board.lockedCount}/${board.totalCount} · ${board.percent}%` : "no board"}
+            </span>
+            <span className={s.timer} aria-label="Game time">
+              ⏱ {formatClock(elapsed)}
+            </span>
+          </>
+        )}
+        <button
+          type="button"
+          className={`${s.iconBtn} ${s.mapBtn}`}
+          onClick={onMap}
+          aria-label="Seating map"
+        >
           <MapIcon />
         </button>
       </div>
@@ -104,45 +150,8 @@ function ScreenHeader({ view, rid, pid, offset, actions, onMap }: ScreenProps) {
           Knocked out by a wrong guess. You can watch, but not type, mark or guess.
         </div>
       ) : (
-        <div className={s.controlRow}>
-          {view.you.isMaster ? (
-            <>
-              <button
-                type="button"
-                className={s.rotateBtn}
-                disabled={!canRotate}
-                onClick={() => rotate("L")}
-                aria-label={`Rotate left: you receive ${view.seating.nextIfLeft?.emoji ?? "no board"}`}
-              >
-                ⟲ <span className={s.rotateEmoji}>{left}</span>
-              </button>
-              <button
-                type="button"
-                className={s.rotateBtn}
-                disabled={!canRotate}
-                onClick={() => rotate("R")}
-                aria-label={`Rotate right: you receive ${view.seating.nextIfRight?.emoji ?? "no board"}`}
-              >
-                ⟳ <span className={s.rotateEmoji}>{right}</span>
-              </button>
-              <span className={ui.capt}>Capt.</span>
-              {(pending || cooling) && (
-                <span className={s.cooldown} aria-live="off">
-                  {pending ? "rotating…" : formatClock(view.rotation.cooldownUntil - now)}
-                </span>
-              )}
-              {view.rotation.canFinalCheck && (
-                <button
-                  type="button"
-                  className={s.finalBtn}
-                  disabled={!canRotate}
-                  onClick={finalCheck}
-                >
-                  Final Check
-                </button>
-              )}
-            </>
-          ) : (
+        !view.you.isMaster && (
+          <div className={s.controlRow}>
             <span className={s.cooldown}>
               Rotation #{view.rotation.count} ·{" "}
               {cooling
@@ -150,8 +159,8 @@ function ScreenHeader({ view, rid, pid, offset, actions, onMap }: ScreenProps) {
                 : "waiting on the "}
               {!cooling && <span className={ui.capt}>Capt.</span>}
             </span>
-          )}
-        </div>
+          </div>
+        )
       )}
     </header>
   );
@@ -189,13 +198,7 @@ function GuessBar({
   );
   return (
     <div className={s.metaWrap}>
-      <MetaBar
-        meta={view.meta}
-        onGuess={guess}
-        canGuess={view.you.canGuess}
-        yourGuesses={view.you.guesses}
-        out={view.you.out}
-      />
+      <MetaBar meta={view.meta} onGuess={guess} canGuess={view.you.canGuess} out={view.you.out} />
     </div>
   );
 }
@@ -204,7 +207,7 @@ function GuessBar({
 function NoBoard(props: ScreenProps) {
   const done = props.view.seating.boards.filter((b) => b.done);
   return (
-    <div className={s.screen}>
+    <div className={`${s.screen} ${props.view.you.isMaster ? s.captScreen : ""}`}>
       <ScreenHeader {...props} />
       <div className={s.noBoard} role="status">
         <p>
@@ -459,7 +462,10 @@ function BoardPlay({
   }, []);
 
   return (
-    <div className={s.screen} style={{ "--board-color": board.color } as React.CSSProperties}>
+    <div
+      className={`${s.screen} ${view.you.isMaster ? s.captScreen : ""}`}
+      style={{ "--board-color": board.color } as React.CSSProperties}
+    >
       <ScreenHeader
         view={view}
         rid={rid}

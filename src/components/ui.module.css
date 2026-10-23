@@ -1,8 +1,8 @@
 /* Shared building blocks: buttons, cards, modals, meta bar, results. */
 
 .btn {
-  min-height: 44px;
-  min-width: 44px;
+  min-height: var(--tap);
+  min-width: var(--tap);
   padding: 0 16px;
   border-radius: var(--radius);
   border: 1px solid var(--line-strong);
@@ -22,6 +22,20 @@
   background: var(--accent);
   border-color: var(--accent);
   color: var(--accent-ink);
+}
+
+.danger {
+  background: var(--red);
+  border-color: var(--red);
+  color: #ffffff;
+}
+
+.clockRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .card {
@@ -119,6 +133,21 @@
 }
 
 /* Meta words. Each word has a number and color; the color is never the only cue. */
+.guessForm {
+  position: sticky;
+  bottom: 0;
+  padding: 12px 0 0;
+  background: var(--card);
+  border-top: 1px solid var(--line);
+}
+
+.guessForm > input,
+.guessForm > p {
+  margin-left: 12px;
+  margin-right: 12px;
+  width: calc(100% - 24px);
+}
+
 .m1 {
   --meta: var(--meta-1);
 }
@@ -143,7 +172,7 @@
   align-items: center;
   gap: 8px;
   width: 100%;
-  min-height: 48px;
+  min-height: calc(var(--tap) + 4px);
   padding: 4px 8px;
   border: 0;
   background: transparent;
@@ -397,7 +426,7 @@
 
 .input {
   width: 100%;
-  min-height: 44px;
+  min-height: var(--tap);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
   padding: 0 12px;

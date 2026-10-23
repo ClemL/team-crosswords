@@ -117,6 +117,8 @@ export type PlayerStats = {
   accurateSuspects: number;
   /** In the order they were made. */
   guesses: PlayerGuess[];
+  /** Wrong letters this player had typed on the board at their seat when it rotated away. */
+  wrongLeft: number;
 };
 
 /** How and when a meta word was obtained. */
@@ -160,6 +162,8 @@ export type PlayerCard = {
   guesses: Array<{ text: string; correct: boolean; metaNumber: number | null; points: number }>;
   /** Knocked out by a wrong guess in multiplayer. */
   knockedOut: boolean;
+  /** Wrong letters of theirs on the board they passed on, summed over every rotation. */
+  wrongLeft: number;
 };
 
 export type BoardMvp = {
@@ -180,6 +184,8 @@ export type GameResult = {
     parSeconds: number;
     effPlayers: number;
     falseSuspects: number;
+    /** Wrong letters passed on at rotations, all players together. */
+    wrongLeft: number;
     metas: MetaResult[];
   };
   players: PlayerCard[];

@@ -1,8 +1,8 @@
 # Decisions
 
 Choices made where the V1 spec was silent, and rules implemented as written but flagged for review.
-Section numbers refer to the V1 spec. Sections H, I and J list rule changes requested after V1;
-where they conflict with the spec or with an earlier entry here, the later section wins (J over I
+Section numbers refer to the V1 spec. Sections H to K list rule changes requested after V1; where
+they conflict with the spec or with an earlier entry here, the later section wins (K over J over I
 over H).
 
 ## A. Rules implemented as written, flagged for review
@@ -339,3 +339,51 @@ These supersede the spec's §3.10, §4, §3.6 cooldown and the `meta`/`shaded` f
    mode's boards, meta count and par spelled out; the choice is remembered per device
    (`localStorage["xw:mode"]`). The lobby and host titles show the board size. The rules on the
    home page describe both modes, the guess rules and board removal.
+
+## K. Changes requested after V1 (fourth round)
+
+1. **Unlock helper cells.** A cell whose correct letter would unlock a still-hidden clue on another
+   board has a dashed amber outline and, in its bottom-left corner, the emoji of the board it helps.
+   The marker goes once that clue unlocks (or its word locks). This reveals nothing new: the other
+   board's clue already names the cell ("Needs 🦊 r1c3"). Views carry it as `board.helperCells`.
+2. **Meta words are lettered A, B, C…** on the grid, in the meta bar and panel, and in the results,
+   so they never read as clue numbers. The API still numbers them (`metaNumber`, `meta`); the letter
+   is display only.
+3. **Meta panel:** the help paragraph and the "(n)" under each unsolved word are gone. A disabled
+   guess field says why in its placeholder ("No guesses left", "Knocked out").
+4. **The guess field uses the on-screen keyboard** (letters, ⌫ and a Guess key in place of the
+   suspect key). The field has `inputMode="none"`, so phones never raise their own keyboard, and a
+   physical keyboard still types into it.
+5. **Portrait only.** The web manifest declares `orientation: "portrait"` (honored when the game is
+   added to a home screen). In a browser, a phone turned sideways (landscape and under 520 px tall)
+   sees a "Turn your phone upright" cover on the play page; desktop windows and the host screen are
+   unaffected.
+6. **The Capt.'s phone:** the rotate buttons, cooldown and Final Check take the top row instead of
+   the board progress and the clock, and the header and the area around the grid are tinted red
+   instead of showing the word "Capt.". Other phones keep progress and clock. The seating map now
+   shows the clock and the rotation count for everyone.
+7. **Display density:** a Normal / Cosy / Compact button next to the theme button (home, host,
+   lobby, seating map). It scales text through the root font size (100%, 93.75%, 87.5%) and controls
+   through `--tap`, `--key-h` and `--cell-min` (44/46/46 px, 40/42/42, 36/38/38). Compact goes below
+   the 44 px tap target of F.1, by choice. Stored per device (`localStorage["xw:density"]`) and
+   applied before the first paint, like the theme.
+8. **Players: up to one per board, the board count coming from the mode.** `MODES` has `boards`
+   (3 in both modes today), the validator checks it, and a room seats at most as many players as its
+   puzzle has boards. `maxPlayers` is gone from the config. The ring size is no longer fixed in the
+   engine; the Redis layout reads `cfg.seats` boards first and re-reads with the room's own count if
+   it differs, so a mode with another board count costs one more read per load.
+9. **Spaced seating** (the V2 spacing idea of D.4, generalized): a new player takes the free seat
+   farthest from every taken seat, the lowest on a tie. In a three-seat ring every seat is next to
+   every other, so this changes nothing today; it starts to matter at four boards or more. Seats with
+   no player are labeled "Empty" instead of "idle".
+10. **Wrong letters passed on.** At every rotation, each player still in the game is charged the
+    wrong letters they typed that sit on the board leaving their seat. A letter left wrong through
+    several rotations counts each time; letters typed by someone else, or on a board at an empty
+    seat, are not charged. Counted before the pulse, so a rotation that ends the game is included.
+    Shown on each scorecard and as a team total in the results; not scored.
+11. **End round & restart.** `POST /api/rooms/[rid]/restart` puts the same puzzle back in the lobby
+    with the same players, seats, Capt. and board emojis, and wipes everything else (letters, locks,
+    unlocks, meta words, stats, knock-outs, the timer). While a game is on only the Capt. may do it,
+    from the seating map, with a confirm step; once it has ended anyone may ("Play this game again"
+    on the results screen). The version keeps increasing, so every phone and the host pick it up on
+    their next poll.

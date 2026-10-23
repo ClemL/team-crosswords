@@ -79,9 +79,9 @@ test("single player: seed → room → join → ready → solve → grade", asyn
       await page.keyboard.type("Bet");
       await page.waitForTimeout(1_500); // at least one poll re-render
       await page.keyboard.type("ter");
-      await expect(field).toHaveValue("Better");
+      await expect(field).toHaveValue("BETTER");
       await page.keyboard.press("Enter");
-      await expect(page.getByText(/Meta word 4 solved: \+5\.6 pts/)).toBeVisible();
+      await expect(page.getByText(/Meta word D solved: \+5\.6 pts/)).toBeVisible();
       // Alone, a right guess leaves the field open; the first wrong one closes it.
       await expect(field).toBeEnabled();
       await field.fill("zebra");
@@ -106,7 +106,8 @@ test("single player: seed → room → join → ready → solve → grade", asyn
   await expect(page.getByRole("heading", { name: "Your scorecard" })).toBeVisible();
   const card = page.getByRole("region", { name: "Scorecard: Clem Leung" });
   await expect(card).toContainText("Tiles filled59"); // 19 + 19 + 21 open cells
-  await expect(card).toContainText("BETTER ✓ word 4, +5.6 · ZEBRA ✗");
+  await expect(card).toContainText("BETTER ✓ word D, +5.6 · ZEBRA ✗");
+  await expect(card).toContainText("Wrong letters passed on0");
   await expect(page.getByText(/guessed by Clem Leung, after 2 rotations/)).toBeVisible();
   await expect(page.getByText("Check", { exact: false })).toHaveCount(0);
   await expect(host.getByLabel(/^Grade /)).toBeVisible({ timeout: 20_000 });

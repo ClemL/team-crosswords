@@ -1,6 +1,7 @@
 import type { GameResult, PlayerCard } from "@/game/types";
 import type { SeatingView } from "@/game/views";
 import { formatClock } from "@/client/usePoll";
+import { metaLabel } from "./MetaBar";
 import ui from "./ui.module.css";
 
 /** Board emoji by board index, from the seating view. */
@@ -9,6 +10,8 @@ export function boardEmojis(seating: SeatingView): string[] {
 }
 
 function Scorecard({ card, emojis, you }: { card: PlayerCard; emojis: string[]; you: boolean }) {
+  // Results are frozen when a game ends; ones frozen by an older build lack the newer fields.
+  const guesses = card.guesses ?? [];
   return (
     <section
       className={`${ui.scorecard} ${you ? ui.scorecardYou : ""}`}
@@ -31,15 +34,20 @@ function Scorecard({ card, emojis, you }: { card: PlayerCard; emojis: string[]; 
         <dd>{card.lettersTyped}</dd>
         <dt>Rotations as Capt.</dt>
         <dd>{card.rotations}</dd>
+        <dt>Wrong letters passed on</dt>
+        <dd>{card.wrongLeft ?? 0}</dd>
         <dt>Suspect marks</dt>
         <dd>
           {card.accurateSuspects} accurate · {card.falseSuspects} false
         </dd>
-        <dt>Meta {card.guesses.length > 1 ? "guesses" : "guess"}</dt>
+        <dt>Meta {guesses.length > 1 ? "guesses" : "guess"}</dt>
         <dd>
-          {card.guesses.length > 0 ? (
-            card.guesses
-              .map((g) => `${g.text} ${g.correct ? `✓ word ${g.metaNumber}, +${g.points}` : "✗"}`)
+          {guesses.length > 0 ? (
+            guesses
+              .map(
+                (g) =>
+                  `${g.text} ${g.correct && g.metaNumber ? `✓ word ${metaLabel(g.metaNumber)}, +${g.points}` : "✗"}`,
+              )
               .join(" · ")
           ) : (
             <span className={ui.muted}>not used</span>
@@ -99,7 +107,7 @@ export function Results({
           {d.metas.map((m, i) => (
             <tr key={m.id}>
               <th scope="row" style={{ paddingLeft: 16 }}>
-                <span className={ui.muted}>{i + 1}.</span> {m.answer}{" "}
+                <span className={ui.muted}>{metaLabel(i + 1)}.</span> {m.answer}{" "}
                 <span className={ui.muted}>
                   {m.by === "guess"
                     ? `guessed${m.guessedBy ? ` by ${m.guessedBy}` : ""}`
@@ -113,6 +121,13 @@ export function Results({
               <td className={ui.muted}>{m.points}</td>
             </tr>
           ))}
+          <tr>
+            <th scope="row">
+              Wrong letters passed on at rotations: {d.wrongLeft ?? 0}{" "}
+              <span className={ui.muted}>(not scored)</span>
+            </th>
+            <td />
+          </tr>
           <tr>
             <th scope="row">False suspects: {d.falseSuspects}</th>
             <td>{result.breakdown.suspects} / 15</td>

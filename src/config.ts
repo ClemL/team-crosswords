@@ -1,7 +1,8 @@
 // Game configuration. All rule code reads from this object (§5). No magic numbers elsewhere.
 export const CONFIG_V1 = {
+  // Boards per game in every current mode. Rooms are read assuming this ring size; a room with
+  // another board count costs one more read (room-repo). Players: up to one per board.
   seats: 3,
-  maxPlayers: 3, // one per board
   cooldownMs: 20_000, // multiplayer only; single player has no cooldown
   rotationWarningMs: 3_000,
   seatingFlashMs: 2_000,
@@ -22,11 +23,12 @@ export const CONFIG_V1 = {
 
 /**
  * Game modes. Board size, number of meta words (lengths 3 to metaWords + 2) and par scale
- * together; the mode of a game is read from its boardSize.
+ * together; the mode of a game is read from its boardSize. `boards` is the ring size, which is
+ * also the most players a room of that mode seats (one per board).
  */
 export const MODES = {
-  "5x": { boardSize: 5, metaWords: 5, parMinutes: 5 },
-  "6x": { boardSize: 6, metaWords: 6, parMinutes: 6 },
+  "5x": { boardSize: 5, metaWords: 5, parMinutes: 5, boards: 3 },
+  "6x": { boardSize: 6, metaWords: 6, parMinutes: 6, boards: 3 },
 } as const;
 export type Mode = keyof typeof MODES;
 

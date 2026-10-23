@@ -233,20 +233,18 @@ export function simulateSolve(game: PuzzleGame, cfg: GameConfig = { ...CONFIG_V1
   return null;
 }
 
-export function validateGame(
-  game: PuzzleGame,
-  expectedBoards: number = CONFIG_V1.seats,
-): ValidationReport {
+export function validateGame(game: PuzzleGame): ValidationReport {
   const errors: string[] = [];
   const warnings: string[] = [];
   const id = typeof game?.id === "string" ? game.id : "(missing id)";
-  if (!Array.isArray(game?.boards) || game.boards.length !== expectedBoards) {
-    errors.push(`expected ${expectedBoards} boards`);
+  const mode = modeForSize(game?.boardSize);
+  if (!mode) {
+    errors.push(`no game mode has ${game?.boardSize}×${game?.boardSize} boards`);
     return { id, errors, warnings, solvedAtRotation: null };
   }
-  const mode = modeForSize(game.boardSize);
-  if (!mode) {
-    errors.push(`no game mode has ${game.boardSize}×${game.boardSize} boards`);
+  const expectedBoards = MODES[mode].boards;
+  if (!Array.isArray(game.boards) || game.boards.length !== expectedBoards) {
+    errors.push(`expected ${expectedBoards} boards`);
     return { id, errors, warnings, solvedAtRotation: null };
   }
   if (game.parMinutes !== MODES[mode].parMinutes)

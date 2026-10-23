@@ -32,12 +32,8 @@ export function createRoomState(args: {
   rng: () => number;
   cfg: GameConfig;
 }): RoomState {
-  const { rid, puzzle, now, rng, cfg } = args;
-  if (puzzle.boards.length !== cfg.seats) {
-    throw new Error(
-      `Puzzle ${puzzle.id} has ${puzzle.boards.length} boards; config expects ${cfg.seats}`,
-    );
-  }
+  const { rid, puzzle, now, rng } = args;
+  const n = puzzle.boards.length;
   const baseClues = puzzle.boards.flatMap((b) =>
     b.clues.filter((c) => c.unlock.type === "base").map((c) => c.id),
   );
@@ -57,8 +53,8 @@ export function createRoomState(args: {
     boardEmojis: pickBoardEmojis(puzzle.boards.length, rng),
     finalCheckAt: null,
     result: null,
-    seats: Array.from({ length: cfg.seats }, () => null),
-    boardAtSeat: Array.from({ length: cfg.seats }, (_, i) => i),
+    seats: Array.from({ length: n }, () => null),
+    boardAtSeat: Array.from({ length: n }, (_, i) => i),
     players: {},
     masterCounts: {},
     ready: [],
@@ -165,7 +161,14 @@ export function boardLockedCount(state: RoomState, ctx: GameCtx, board: number):
 }
 
 export function emptyPlayerStats(): PlayerStats {
-  return { lettersTyped: 0, rotations: 0, falseSuspects: 0, accurateSuspects: 0, guesses: [] };
+  return {
+    lettersTyped: 0,
+    rotations: 0,
+    falseSuspects: 0,
+    accurateSuspects: 0,
+    guesses: [],
+    wrongLeft: 0,
+  };
 }
 
 /** The player's stats record, created on first use (mutates `state`). */

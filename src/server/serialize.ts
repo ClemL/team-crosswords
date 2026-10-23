@@ -69,11 +69,14 @@ export function parseMetaLite(meta: Record<string, string>) {
   };
 }
 
-/** Player stats as stored; rooms saved before multiple guesses held a single `guess`. */
+/**
+ * Player stats as stored. Rooms saved before multiple guesses held a single `guess`, and none
+ * before wrong-letter counting have `wrongLeft`.
+ */
 function parsePlayerStats(json: string): PlayerStats {
   const raw = JSON.parse(json) as PlayerStats & { guess?: PlayerStats["guesses"][number] | null };
   const { guess, ...rest } = raw;
-  return { ...rest, guesses: raw.guesses ?? (guess ? [guess] : []) };
+  return { ...rest, guesses: raw.guesses ?? (guess ? [guess] : []), wrongLeft: raw.wrongLeft ?? 0 };
 }
 
 export function parsePlayers(raw: Record<string, string>): Record<string, PlayerRecord> {

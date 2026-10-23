@@ -21,7 +21,7 @@ import {
 
 // Game 1 meta words: M1 APE, M2 CORN, M3 WATER, M4 BETTER, M5 GALLERY.
 const ctx = makeCtx();
-const duo = makeCtx(GAME1, { maxPlayers: 2 });
+const duo = makeCtx(GAME1);
 const rng = mulberry32(3);
 
 describe("meta guesses", () => {

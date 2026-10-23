@@ -45,7 +45,7 @@ export function SeatingCard({
                 {s.emoji || "—"}
               </span>
               <span>
-                <strong>{idle ? "idle" : s.playerName}</strong>{" "}
+                <strong>{idle ? "Empty" : s.playerName}</strong>{" "}
                 <span className={ui.muted}>
                   {s.isYou ? "(you)" : `(seat ${s.seat + 1})`}
                   {s.isMaster && (

@@ -11,9 +11,10 @@ import {
   rememberJoined,
   storeName,
 } from "@/client/identity";
-import { usePoll, useServerNow } from "@/client/usePoll";
+import { formatClock, usePoll, useServerNow } from "@/client/usePoll";
 import type { PlayerView } from "@/game/views";
 import { Modal } from "../Modal";
+import { DensityToggle } from "../DensityToggle";
 import { boardEmojis, Results } from "../Results";
 import { SeatingCard } from "../SeatingCard";
 import { ThemeToggle } from "../ThemeToggle";
@@ -31,6 +32,7 @@ export function PlayApp({ rid }: { rid: string }) {
   const [joinError, setJoinError] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [showMap, setShowMap] = useState(false);
+  const [confirmRestart, setConfirmRestart] = useState(false);
   const enqueue = useMemo(() => createQueue(), []);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -101,6 +103,16 @@ export function PlayApp({ rid }: { rid: string }) {
     refresh();
   };
 
+  // End the round and start the same puzzle again (Capt. during a game, anyone after it).
+  const restart = async () => {
+    if (!pid) return;
+    const res = await enqueue(() => post(`/api/rooms/${rid}/restart`, { pid }));
+    if (!res.ok) toast(res.message);
+    setShowMap(false);
+    setConfirmRestart(false);
+    refresh();
+  };
+
   if (poll.error?.code === "NOT_IN_ROOM" && joined) {
     // The room no longer knows this player (e.g. it expired): back to the join form.
     return (
@@ -160,6 +172,7 @@ export function PlayApp({ rid }: { rid: string }) {
   }
 
   const masterName = view.seating.seats.find((x) => x.isMaster)?.playerName ?? null;
+  const elapsed = view.timer.startedAt ? (view.timer.endedAt ?? now) - view.timer.startedAt : 0;
 
   if (view.status === "lobby") {
     return (
@@ -189,6 +202,7 @@ export function PlayApp({ rid }: { rid: string }) {
               </button>
             )}
             <ThemeToggle />
+            <DensityToggle />
           </div>
         </div>
         {toastMsg && <div className={ui.toast}>{toastMsg}</div>}
@@ -210,7 +224,10 @@ export function PlayApp({ rid }: { rid: string }) {
             <MetaWordList meta={view.meta} />
           </div>
           <div className={`${ui.section} ${ui.actions}`}>
-            <Link className={`${ui.btn} ${ui.primary}`} href="/">
+            <button type="button" className={`${ui.btn} ${ui.primary}`} onClick={restart}>
+              Play this game again
+            </button>
+            <Link className={ui.btn} href="/">
               Play another game
             </Link>
           </div>
@@ -232,7 +249,19 @@ export function PlayApp({ rid }: { rid: string }) {
       <RotationBanner view={view} now={now} />
       {flash && now < flash.until && <SeatingFlash seating={view.seating} />}
       {showMap && (
-        <Modal title="Seating" onClose={() => setShowMap(false)}>
+        <Modal
+          title="Seating"
+          onClose={() => {
+            setShowMap(false);
+            setConfirmRestart(false);
+          }}
+        >
+          <div className={`${ui.section} ${ui.clockRow}`}>
+            <span aria-label="Game time">
+              ⏱ <strong>{formatClock(elapsed)}</strong>
+            </span>
+            <span className={ui.muted}>Rotation #{view.rotation.count}</span>
+          </div>
           <SeatingCard
             seating={view.seating}
             isMaster={view.you.isMaster}
@@ -243,8 +272,30 @@ export function PlayApp({ rid }: { rid: string }) {
             style={{ justifyContent: "space-between" }}
           >
             <span className={ui.muted}>Display</span>
-            <ThemeToggle />
+            <span className={ui.actions}>
+              <ThemeToggle />
+              <DensityToggle />
+            </span>
           </div>
+          {view.you.isMaster && (
+            <div className={`${ui.section} ${ui.actions}`}>
+              {confirmRestart ? (
+                <>
+                  <span>Throw away this round and start over?</span>
+                  <button type="button" className={`${ui.btn} ${ui.danger}`} onClick={restart}>
+                    Restart
+                  </button>
+                  <button type="button" className={ui.btn} onClick={() => setConfirmRestart(false)}>
+                    Keep playing
+                  </button>
+                </>
+              ) : (
+                <button type="button" className={ui.btn} onClick={() => setConfirmRestart(true)}>
+                  End round &amp; restart
+                </button>
+              )}
+            </div>
+          )}
         </Modal>
       )}
       {toastMsg && (

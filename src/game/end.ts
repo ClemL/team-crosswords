@@ -98,6 +98,7 @@ function playerCards(state: RoomState, ctx: GameCtx): PlayerCard[] {
           points: g.metaId ? metaPoints(g.rotations, ctx.cfg, words) : 0,
         })),
         knockedOut: state.knockedOut[pid] !== undefined,
+        wrongLeft: st?.wrongLeft ?? 0,
       };
     })
     .sort((a, b) => a.seat - b.seat);
@@ -160,6 +161,7 @@ export function computeResult(state: RoomState, ctx: GameCtx): GameResult {
       parSeconds: Math.round(score.parSeconds),
       effPlayers: Math.round(effPlayers * 100) / 100,
       falseSuspects: state.stats.falseSuspects,
+      wrongLeft: players.reduce((sum, p) => sum + p.wrongLeft, 0),
       metas,
     },
     players,
