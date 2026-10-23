@@ -1,6 +1,6 @@
 import type { GameCtx } from "./context";
 import { maskClue } from "./mask";
-import { metaWords, type MetaWordState } from "./meta";
+import { hasGuessLeft, metaWords, type MetaWordState } from "./meta";
 import { metaPoints } from "./score";
 import { boardReceived } from "./ring";
 import { allCellsFilled, boardLockedCount, boardPercent, lockedCellKeys } from "./state";
@@ -36,7 +36,6 @@ export type BoardView = {
   layout: string[];
   entries: Record<string, string>;
   lockedCells: string[];
-  red: string[];
   suspects: Record<string, string>;
   /** Cells that belong to a meta word: `meta` is the word's 1-based number, `slot` its position. */
   metaCells: Array<{ r: number; c: number; meta: number; slot: number }>;
@@ -81,9 +80,9 @@ export type MetaWordView = Omit<MetaWordState, "slots"> & {
 
 export type MetaView = {
   words: MetaWordView[];
-  /** Wrong guesses left, shared by all words. */
-  guessesLeft: number;
   solvedCount: number;
+  /** Seats of players who still have their one guess. */
+  guessesLeftBySeat: number[];
   /** Points a correct guess would earn now (each word), given the current rotation count. */
   pointsNow: number;
   maxPointsPerWord: number;
@@ -95,11 +94,19 @@ export type PlayerView = {
   now: number;
   rid: string;
   puzzleTitle: string;
-  you: { pid: string; name: string; seat: number; isMaster: boolean; ready: boolean };
+  you: {
+    pid: string;
+    name: string;
+    seat: number;
+    isMaster: boolean;
+    ready: boolean;
+    /** False once this player has used their single meta guess. */
+    canGuess: boolean;
+    guess: { text: string; correct: boolean; metaNumber: number | null } | null;
+  };
   board: BoardView;
   seating: SeatingView;
   rotation: RotationView;
-  tokens: { left: number; issued: number };
   meta: MetaView;
   timer: { startedAt: number | null; endedAt: number | null };
   result?: GameResult;
@@ -108,7 +115,13 @@ export type PlayerView = {
 export type HostView = Omit<PlayerView, "you" | "board"> & {
   joinUrl: string;
   masterName: string | null;
-  players: Array<{ name: string; seat: number; ready: boolean; isMaster: boolean }>;
+  players: Array<{
+    name: string;
+    seat: number;
+    ready: boolean;
+    isMaster: boolean;
+    hasGuess: boolean;
+  }>;
 };
 
 function boardRef(state: RoomState, boardIndex: number): BoardRef {
@@ -162,7 +175,6 @@ export function buildBoardView(state: RoomState, ctx: GameCtx, boardIndex: numbe
     layout: pb.layout,
     entries: { ...b.entries },
     lockedCells: [...lockedCellKeys(state, ctx, boardIndex)].sort(),
-    red: [...b.red],
     suspects,
     metaCells: ctx.puzzle.metas.flatMap((m, mi) =>
       m.cells
@@ -223,8 +235,11 @@ function buildShared(
   }));
   const meta: MetaView = {
     words,
-    guessesLeft: state.metaGuessesLeft,
     solvedCount: words.filter((w) => w.solved).length,
+    guessesLeftBySeat: Object.entries(state.players)
+      .filter(([id]) => hasGuessLeft(state, id))
+      .map(([, p]) => p.seat)
+      .sort((a, b) => a - b),
     pointsNow: metaPoints(state.rotations, ctx.cfg),
     maxPointsPerWord: ctx.cfg.metaWordPoints,
   };
@@ -252,11 +267,17 @@ function buildShared(
     puzzleTitle: ctx.puzzle.title,
     seating: buildSeating(state, ctx, viewerSeat, viewerPid),
     rotation,
-    tokens: { left: state.tokensLeft, issued: state.tokensIssued },
     meta,
     timer: { startedAt: state.timerStartedAt, endedAt: state.endedAt },
   } satisfies Omit<PlayerView, "you" | "board">;
   return state.result ? { ...view, result: state.result } : view;
+}
+
+function yourGuess(state: RoomState, ctx: GameCtx, pid: string): PlayerView["you"]["guess"] {
+  const g = state.playerStats[pid]?.guess;
+  if (!g) return null;
+  const i = g.metaId ? ctx.puzzle.metas.findIndex((m) => m.id === g.metaId) : -1;
+  return { text: g.text, correct: g.metaId !== null, metaNumber: i >= 0 ? i + 1 : null };
 }
 
 export function buildPlayerView(
@@ -275,6 +296,8 @@ export function buildPlayerView(
       seat: p.seat,
       isMaster: state.masterPid === pid,
       ready: state.ready.includes(pid),
+      canGuess: state.status === "playing" && hasGuessLeft(state, pid),
+      guess: yourGuess(state, ctx, pid),
     },
     board: buildBoardView(state, ctx, state.boardAtSeat[p.seat]),
   };
@@ -298,6 +321,7 @@ export function buildHostView(
         seat: p.seat,
         ready: state.ready.includes(id),
         isMaster: id === state.masterPid,
+        hasGuess: hasGuessLeft(state, id),
       }))
       .sort((a, b) => a.seat - b.seat),
   };

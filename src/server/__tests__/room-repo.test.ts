@@ -20,7 +20,6 @@ const norm = (s: RoomState): RoomState => ({
   ready: [...s.ready].sort(),
   locked: [...s.locked].sort(),
   unlocked: [...s.unlocked].sort(),
-  boards: s.boards.map((b) => ({ ...b, red: [...b.red].sort() })),
 });
 const ctx = makeCtx();
 const PID = "pid-repo-test";
@@ -54,7 +53,12 @@ for (const { name, make } of storesUnderTest()) {
       expect(again.boards[0].entries["2,0"]).toBe("T");
       expect(again.boards[0].suspects).toEqual({ "2,0": PID });
       expect(again.locked).toEqual(["B0-4A"]);
-      expect(again.metaSolved).toEqual({ M3: { at: now, rotations: 0 } });
+      expect(again.metaSolved).toEqual({ M3: { at: now, rotations: 0, by: "guess", seat: 0 } });
+      expect(again.boards[0].authors["2,0"]).toBe(PID);
+      expect(again.playerStats[PID]).toMatchObject({
+        lettersTyped: 1,
+        guess: { text: "WATER", metaId: "M3" },
+      });
 
       // A save without changes does not bump the version.
       const noop = await saveRoom(store, again, structuredClone(again), cfg);

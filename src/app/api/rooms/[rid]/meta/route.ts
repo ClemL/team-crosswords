@@ -3,8 +3,9 @@ import { handle, json, readBody, str } from "@/server/http";
 import { mutateRoom } from "@/server/room-service";
 
 /**
- * POST /api/rooms/[rid]/meta { pid, guess } → { correct, metaId, points, guessesLeft }
- * One guess is checked against every unsolved meta word; `metaId` and `points` are null on a miss.
+ * POST /api/rooms/[rid]/meta { pid, guess } → { correct, metaId, points }
+ * Each player's single guess is checked against every meta word not yet obtained; `metaId` and
+ * `points` are null on a miss. Either way the player's guess is used up.
  */
 export async function POST(req: Request, { params }: { params: Promise<{ rid: string }> }) {
   return handle(async () => {
@@ -17,7 +18,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ rid: st
       correct: res.correct,
       metaId: res.metaId,
       points: res.points,
-      guessesLeft: res.guessesLeft,
       version: res.state.version,
     });
   });

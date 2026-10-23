@@ -14,8 +14,9 @@ import {
 import { usePoll, useServerNow } from "@/client/usePoll";
 import type { PlayerView } from "@/game/views";
 import { Modal } from "../Modal";
-import { Results } from "../Results";
+import { boardEmojis, Results } from "../Results";
 import { SeatingCard } from "../SeatingCard";
+import { ThemeToggle } from "../ThemeToggle";
 import { MetaWordList } from "../MetaBar";
 import ui from "../ui.module.css";
 import { BoardScreen, type Actions } from "./BoardScreen";
@@ -186,6 +187,7 @@ export function PlayApp({ rid }: { rid: string }) {
                 Start now
               </button>
             )}
+            <ThemeToggle />
           </div>
         </div>
         {toastMsg && <div className={ui.toast}>{toastMsg}</div>}
@@ -198,7 +200,11 @@ export function PlayApp({ rid }: { rid: string }) {
       <main className={s.centered}>
         <h1 className={s.title}>{view.puzzleTitle} complete</h1>
         <div className={`${ui.card} ${s.panel}`}>
-          <Results result={view.result} />
+          <Results
+            result={view.result}
+            yourSeat={view.you.seat}
+            emojis={boardEmojis(view.seating)}
+          />
           <div className={ui.section}>
             <MetaWordList meta={view.meta} />
           </div>
@@ -231,6 +237,13 @@ export function PlayApp({ rid }: { rid: string }) {
             isMaster={view.you.isMaster}
             masterName={masterName}
           />
+          <div
+            className={`${ui.section} ${ui.actions}`}
+            style={{ justifyContent: "space-between" }}
+          >
+            <span className={ui.muted}>Display</span>
+            <ThemeToggle />
+          </div>
         </Modal>
       )}
       {toastMsg && (

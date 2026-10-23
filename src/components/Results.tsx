@@ -1,11 +1,82 @@
-import type { GameResult } from "@/game/types";
+import type { GameResult, PlayerCard } from "@/game/types";
+import type { SeatingView } from "@/game/views";
 import { formatClock } from "@/client/usePoll";
 import ui from "./ui.module.css";
 
-/** §9.7 results: time vs par, meta words, false suspects, components, total, grade. */
-export function Results({ result }: { result: GameResult }) {
+/** Board emoji by board index, from the seating view. */
+export function boardEmojis(seating: SeatingView): string[] {
+  const out: string[] = [];
+  for (const s of seating.seats) out[s.boardIndex] = s.emoji;
+  return out;
+}
+
+function Scorecard({ card, emojis, you }: { card: PlayerCard; emojis: string[]; you: boolean }) {
+  const g = card.guess;
+  return (
+    <section
+      className={`${ui.scorecard} ${you ? ui.scorecardYou : ""}`}
+      aria-label={`Scorecard: ${card.name}`}
+    >
+      <h3 className={ui.scorecardTitle}>
+        {card.name}
+        {you && <span className={ui.muted}> (you)</span>}
+      </h3>
+      <dl className={ui.stats}>
+        <dt>Tiles filled</dt>
+        <dd>
+          {card.tiles}{" "}
+          <span className={ui.muted}>
+            ({card.tilesByBoard.map((n, i) => `${emojis[i] ?? ""} ${n}`).join(" · ")})
+          </span>
+        </dd>
+        <dt>Letters typed</dt>
+        <dd>{card.lettersTyped}</dd>
+        <dt>Rotations as Capt.</dt>
+        <dd>{card.rotations}</dd>
+        <dt>Suspect marks</dt>
+        <dd>
+          {card.accurateSuspects} accurate · {card.falseSuspects} false
+        </dd>
+        <dt>Meta guess</dt>
+        <dd>
+          {g ? (
+            <>
+              {g.text} {g.correct ? `✓ word ${g.metaNumber}, +${g.points}` : "✗"}
+            </>
+          ) : (
+            <span className={ui.muted}>not used</span>
+          )}
+        </dd>
+        <dt>Active time</dt>
+        <dd>{formatClock(card.activeSeconds * 1000)}</dd>
+      </dl>
+    </section>
+  );
+}
+
+/**
+ * Results (§9.7, revised): team score and grade, then per-player scorecards; with more than one
+ * player, the MVP of each board and the tile leaderboard.
+ */
+export function Results({
+  result,
+  yourSeat,
+  emojis,
+}: {
+  result: GameResult;
+  /** Seat of the viewing player; omit on the host screen to show every scorecard. */
+  yourSeat?: number;
+  /** Board emoji by board index. */
+  emojis: string[];
+}) {
   const d = result.details;
-  const guessed = d.metas.filter((m) => m.rotations !== null).length;
+  const multi = result.players.length > 1;
+  const cards =
+    yourSeat === undefined
+      ? result.players
+      : [...result.players].sort(
+          (a, b) => Number(b.seat === yourSeat) - Number(a.seat === yourSeat),
+        );
   return (
     <div className={ui.results}>
       <p className={ui.grade} aria-label={`Grade ${result.grade}`}>
@@ -24,9 +95,7 @@ export function Results({ result }: { result: GameResult }) {
             <td>{result.breakdown.time} / 50</td>
           </tr>
           <tr>
-            <th scope="row">
-              Meta words guessed: {guessed} of {d.metas.length}
-            </th>
+            <th scope="row">Meta words</th>
             <td>{result.breakdown.metas} / 35</td>
           </tr>
           {d.metas.map((m, i) => (
@@ -34,9 +103,9 @@ export function Results({ result }: { result: GameResult }) {
               <th scope="row" style={{ paddingLeft: 16 }}>
                 <span className={ui.muted}>{i + 1}.</span> {m.answer}{" "}
                 <span className={ui.muted}>
-                  {m.rotations === null
-                    ? "auto-completed"
-                    : `after ${m.rotations} rotation${m.rotations === 1 ? "" : "s"}`}
+                  {m.by === "guess" ? `guessed${m.guessedBy ? ` by ${m.guessedBy}` : ""}` : "tiles"}
+                  {m.rotations !== null &&
+                    `, after ${m.rotations} rotation${m.rotations === 1 ? "" : "s"}`}
                 </span>
               </th>
               <td className={ui.muted}>{m.points}</td>
@@ -46,14 +115,47 @@ export function Results({ result }: { result: GameResult }) {
             <th scope="row">False suspects: {d.falseSuspects}</th>
             <td>{result.breakdown.suspects} / 15</td>
           </tr>
-          <tr>
-            <th scope="row" className={ui.muted}>
-              Checks used: {d.tokensSpent} of {d.tokensIssued} (not scored)
-            </th>
-            <td />
-          </tr>
         </tbody>
       </table>
+
+      {multi && (
+        <>
+          <h2 className={ui.resultsHeading}>Board MVPs</h2>
+          <ul className={ui.plainList}>
+            {result.mvps.map((m) => (
+              <li key={m.boardIndex}>
+                <span aria-hidden="true">{m.emoji}</span>{" "}
+                {m.names.length > 0 ? (
+                  <>
+                    <strong>{m.names.join(" & ")}</strong>{" "}
+                    <span className={ui.muted}>
+                      {m.tiles} tile{m.tiles === 1 ? "" : "s"}
+                    </span>
+                  </>
+                ) : (
+                  <span className={ui.muted}>no tiles</span>
+                )}
+              </li>
+            ))}
+          </ul>
+          <h2 className={ui.resultsHeading}>Tiles leaderboard</h2>
+          <ol className={ui.leaderboard}>
+            {result.leaderboard.map((p, i) => (
+              <li key={p.seat} className={p.seat === yourSeat ? ui.leaderYou : undefined}>
+                <span>
+                  {i + 1}. {p.name}
+                </span>
+                <strong>{p.tiles}</strong>
+              </li>
+            ))}
+          </ol>
+        </>
+      )}
+
+      <h2 className={ui.resultsHeading}>{multi ? "Scorecards" : "Your scorecard"}</h2>
+      {cards.map((c) => (
+        <Scorecard key={c.seat} card={c} emojis={emojis} you={c.seat === yourSeat} />
+      ))}
     </div>
   );
 }

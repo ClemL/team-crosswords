@@ -2,7 +2,7 @@ import type { GameCtx } from "./context";
 import { fail, type Result } from "./errors";
 import { guardBoardAtSeat, guardPlayer, guardPlaying } from "./guards";
 import { cellKey, isOpen } from "./puzzle";
-import { cloneState, isCellLocked } from "./state";
+import { cloneState, isCellLocked, statsFor } from "./state";
 import type { RoomState } from "./types";
 
 /** Type or clear one cell (§3.3). `letter` is A–Z (case-insensitive) or "" to clear. */
@@ -30,9 +30,14 @@ export function applyEntry(
   if (current === value) return { ok: true, state };
   const next = cloneState(state);
   const b = next.boards[board];
-  if (value === "") delete b.entries[key];
-  else b.entries[key] = value;
-  // §3.8.2: a red mark clears when its cell is edited.
-  b.red = b.red.filter((k) => k !== key);
+  if (value === "") {
+    delete b.entries[key];
+    delete b.authors[key];
+  } else {
+    b.entries[key] = value;
+    // The typist gets the tile credit if this letter is still there when the cell locks.
+    b.authors[key] = pid;
+    statsFor(next, pid).lettersTyped += 1;
+  }
   return { ok: true, state: next };
 }

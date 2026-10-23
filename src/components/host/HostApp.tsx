@@ -6,7 +6,8 @@ import { CONFIG_V1 } from "@/config";
 import { formatClock, usePoll, useServerNow } from "@/client/usePoll";
 import type { HostView } from "@/game/views";
 import { MetaWordList } from "../MetaBar";
-import { Results } from "../Results";
+import { boardEmojis, Results } from "../Results";
+import { ThemeToggle } from "../ThemeToggle";
 import ui from "../ui.module.css";
 import h from "./host.module.css";
 
@@ -100,6 +101,7 @@ export function HostApp({ rid }: { rid: string }) {
         <h1 className={h.title}>
           {view.puzzleTitle} · Room {view.rid}
         </h1>
+        <ThemeToggle />
         {view.status !== "lobby" && (
           <div className={h.stats}>
             <span className={h.stat}>
@@ -117,9 +119,6 @@ export function HostApp({ rid }: { rid: string }) {
                     : "Ready to rotate"}
               </span>
             )}
-            <span className={h.stat}>
-              🎟 <strong>{view.tokens.left}</strong>/{view.tokens.issued}
-            </span>
           </div>
         )}
       </div>
@@ -175,15 +174,23 @@ export function HostApp({ rid }: { rid: string }) {
 
       {view.status === "ended" && view.result && (
         <div className={ui.card} style={{ maxWidth: 520, width: "100%", margin: "0 auto" }}>
-          <Results result={view.result} />
+          <Results result={view.result} emojis={boardEmojis(view.seating)} />
         </div>
       )}
 
       <div className={`${ui.card} ${h.metaWrap}`}>
         <h2 className={h.metaTitle}>
-          Meta words · {view.meta.solvedCount}/{view.meta.words.length} solved ·{" "}
-          {view.meta.guessesLeft} wrong {view.meta.guessesLeft === 1 ? "guess" : "guesses"} left
+          Meta words · {view.meta.solvedCount}/{view.meta.words.length} obtained
         </h2>
+        {view.status === "playing" && view.players.length > 0 && (
+          <p className={ui.muted} style={{ marginTop: 0 }}>
+            Guesses left (one each):{" "}
+            {view.players
+              .filter((p) => p.hasGuess)
+              .map((p) => p.name)
+              .join(", ") || "none"}
+          </p>
+        )}
         <MetaWordList meta={view.meta} />
       </div>
     </main>

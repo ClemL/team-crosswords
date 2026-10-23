@@ -12,7 +12,7 @@ export function roomKeys(rid: string, boards: number) {
   const perBoard = Array.from({ length: boards }, (_, n) => ({
     entries: `${p}:b:${n}:entries`,
     suspects: `${p}:b:${n}:suspects`,
-    red: `${p}:b:${n}:red`,
+    authors: `${p}:b:${n}:authors`,
   }));
   return {
     meta: `${p}:meta`,
@@ -21,6 +21,7 @@ export function roomKeys(rid: string, boards: number) {
     boardAtSeat: `${p}:boardAtSeat`,
     players: `${p}:players`,
     masterCounts: `${p}:masterCounts`,
+    playerStats: `${p}:pstats`,
     ready: `${p}:ready`,
     boards: perBoard,
     locked: `${p}:locked`,
@@ -41,8 +42,9 @@ export function allRoomStateKeys(k: RoomKeys): string[] {
     k.boardAtSeat,
     k.players,
     k.masterCounts,
+    k.playerStats,
     k.ready,
-    ...k.boards.flatMap((b) => [b.entries, b.suspects, b.red]),
+    ...k.boards.flatMap((b) => [b.entries, b.authors, b.suspects]),
     k.locked,
     k.unlocked,
     k.stats,

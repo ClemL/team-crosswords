@@ -50,15 +50,17 @@ describe("applyEntry", () => {
     });
   });
 
-  it("clears the red mark of an edited cell only when the letter changes", () => {
-    const s = startedRoom(ctx);
-    s.boards[0].entries["2,0"] = "X";
-    s.boards[0].red = ["2,0", "2,1"];
-    expect(unwrap(applyEntry(s, ctx, PID, 0, 2, 0, "X", T0)).state.boards[0].red).toEqual([
-      "2,0",
-      "2,1",
-    ]);
-    expect(unwrap(applyEntry(s, ctx, PID, 0, 2, 0, "T", T0)).state.boards[0].red).toEqual(["2,1"]);
+  it("records who typed each letter and counts letters typed", () => {
+    let s = startedRoom(ctx);
+    s = unwrap(applyEntry(s, ctx, PID, 0, 2, 0, "X", T0)).state;
+    s = unwrap(applyEntry(s, ctx, PID, 0, 2, 0, "T", T0)).state;
+    s = unwrap(applyEntry(s, ctx, PID, 0, 2, 1, "A", T0)).state;
+    expect(s.boards[0].authors).toEqual({ "2,0": PID, "2,1": PID });
+    expect(s.playerStats[PID].lettersTyped).toBe(3);
+    // Retyping the same letter changes nothing; clearing removes the credit.
+    expect(unwrap(applyEntry(s, ctx, PID, 0, 2, 0, "T", T0)).state).toBe(s);
+    s = unwrap(applyEntry(s, ctx, PID, 0, 2, 0, "", T0)).state;
+    expect(s.boards[0].authors).toEqual({ "2,1": PID });
   });
 
   it("is allowed during the multiplayer rotation countdown but not once the rotation is due", () => {

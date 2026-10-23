@@ -2,7 +2,7 @@ import type { GameCtx } from "./context";
 import { fail, type Result } from "./errors";
 import { guardBoardAtSeat, guardPlayer, guardPlaying } from "./guards";
 import { cellKey, isOpen, solutionLetter } from "./puzzle";
-import { cloneState, isCellLocked } from "./state";
+import { cloneState, isCellLocked, statsFor } from "./state";
 import type { RoomState } from "./types";
 
 /**
@@ -38,7 +38,13 @@ export function toggleSuspect(
   b.suspects[key] = pid;
   const entry = b.entries[key] ?? "";
   const falseSuspect = entry !== "" && entry === solutionLetter(ctx.solution, board, r, c);
-  if (falseSuspect) next.stats.falseSuspects += 1;
-  else if (entry !== "") next.stats.accurateSuspects += 1;
+  const mine = statsFor(next, pid);
+  if (falseSuspect) {
+    next.stats.falseSuspects += 1;
+    mine.falseSuspects += 1;
+  } else if (entry !== "") {
+    next.stats.accurateSuspects += 1;
+    mine.accurateSuspects += 1;
+  }
   return { ok: true, state: next, falseSuspect };
 }

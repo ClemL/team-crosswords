@@ -37,7 +37,7 @@ export default defineConfig({
     env: {
       XW_STORE: "memory",
       ADMIN_SEED_SECRET: "e2e-secret",
-      XW_CONFIG_OVERRIDES: JSON.stringify({ cooldownMs: 1_500, rotationWarningMs: 700 }),
+      XW_CONFIG_OVERRIDES: JSON.stringify({ cooldownMs: 1_500, rotationWarningMs: 1_500 }),
     },
   },
 });

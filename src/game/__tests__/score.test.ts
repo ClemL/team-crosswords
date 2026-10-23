@@ -10,9 +10,8 @@ const perfect: ScoreInput = {
   effPlayers: 1,
   falseSuspects: 0,
   metaPoints: 35,
-  allMetasSolved: true,
 };
-const clean = { falseSuspects: 0, allMetasSolved: true };
+const clean = { falseSuspects: 0 };
 
 describe("scoreGame components", () => {
   it("gives full time points at or under par and none at 3× par or beyond", () => {
@@ -24,7 +23,7 @@ describe("scoreGame components", () => {
   });
 
   it("scores meta points and suspects; Check tokens are not an input", () => {
-    const r = scoreGame({ ...perfect, metaPoints: 20.3, falseSuspects: 2, allMetasSolved: false });
+    const r = scoreGame({ ...perfect, metaPoints: 20.3, falseSuspects: 2 });
     expect(r.breakdown).toEqual({ time: 50, metas: 20.3, suspects: 9 });
     expect(r.total).toBe(79.3);
     expect(scoreGame({ ...perfect, falseSuspects: 9 }).breakdown.suspects).toBe(0);
@@ -69,9 +68,9 @@ describe("grade boundaries", () => {
     expect(gradeFor(total, clean)).toBe(grade);
   });
 
-  it("requires 0 false suspects and every meta word guessed for S*", () => {
-    expect(gradeFor(96, { ...clean, falseSuspects: 1 })).toBe("S");
-    expect(gradeFor(96, { ...clean, allMetasSolved: false })).toBe("S");
+  it("requires 0 false suspects for S*", () => {
+    expect(gradeFor(96, { falseSuspects: 1 })).toBe("S");
+    expect(gradeFor(96, { falseSuspects: 0 })).toBe("S*");
   });
 
   it("reaches each boundary through scoreGame", () => {
@@ -86,9 +85,7 @@ describe("grade boundaries", () => {
     expect(at(20)).toMatchObject({ total: 70, grade: "B" });
     expect(at(10)).toMatchObject({ total: 60, grade: "C" });
     expect(at(0)).toMatchObject({ total: 50, grade: "D" });
-    expect(
-      scoreGame({ ...perfect, gameSeconds: 3 * PAR, metaPoints: 0, allMetasSolved: false }),
-    ).toMatchObject({
+    expect(scoreGame({ ...perfect, gameSeconds: 3 * PAR, metaPoints: 0 })).toMatchObject({
       total: 15,
       grade: "F",
     });

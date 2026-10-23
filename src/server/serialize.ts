@@ -2,6 +2,7 @@ import type {
   BoardStyle,
   GameResult,
   PlayerRecord,
+  PlayerStats,
   RoomState,
   RoomStatus,
   RotationDir,
@@ -15,8 +16,13 @@ export type RedisShape = {
   boardAtSeat: string;
   players: Record<string, string>;
   masterCounts: Record<string, string>;
+  playerStats: Record<string, string>;
   ready: string[];
-  boards: { entries: Record<string, string>; suspects: Record<string, string>; red: string[] }[];
+  boards: {
+    entries: Record<string, string>;
+    authors: Record<string, string>;
+    suspects: Record<string, string>;
+  }[];
   locked: string[];
   unlocked: string[];
   stats: Record<string, string>;
@@ -36,12 +42,9 @@ export function serializeMeta(s: RoomState): Record<string, string> {
     masterPid: s.masterPid ?? "",
     pendingRotationDir: s.pendingRotation?.dir ?? "",
     pendingRotationAt: s.pendingRotation ? String(s.pendingRotation.at) : "",
-    tokensIssued: String(s.tokensIssued),
-    tokensLeft: String(s.tokensLeft),
     timerStartedAt: num(s.timerStartedAt),
     endedAt: num(s.endedAt),
     metaSolved: JSON.stringify(s.metaSolved),
-    metaGuessesLeft: String(s.metaGuessesLeft),
     boardEmojis: JSON.stringify(s.boardEmojis),
     finalCheckAt: num(s.finalCheckAt),
     result: s.result ? JSON.stringify(s.result) : "",
@@ -82,16 +85,18 @@ export function toRedis(s: RoomState): RedisShape {
     boardAtSeat: JSON.stringify(s.boardAtSeat),
     players,
     masterCounts,
+    playerStats: Object.fromEntries(
+      Object.entries(s.playerStats).map(([pid, st]) => [pid, JSON.stringify(st)]),
+    ),
     ready: [...s.ready],
     boards: s.boards.map((b) => ({
       entries: { ...b.entries },
+      authors: { ...b.authors },
       suspects: { ...b.suspects },
-      red: [...b.red],
     })),
     locked: [...s.locked],
     unlocked: [...s.unlocked],
     stats: {
-      tokensSpent: String(s.stats.tokensSpent),
       falseSuspects: String(s.stats.falseSuspects),
       accurateSuspects: String(s.stats.accurateSuspects),
       metaWrong: String(s.stats.metaWrong),
@@ -114,12 +119,9 @@ export function fromRedis(rid: string, r: RedisShape): RoomState {
     cooldownUntil: lite.cooldownUntil,
     masterPid: lite.masterPid,
     pendingRotation: lite.pendingRotation,
-    tokensIssued: parseNum(r.meta.tokensIssued) ?? 0,
-    tokensLeft: parseNum(r.meta.tokensLeft) ?? 0,
     timerStartedAt: lite.timerStartedAt,
     endedAt: lite.endedAt,
     metaSolved: r.meta.metaSolved ? (JSON.parse(r.meta.metaSolved) as RoomState["metaSolved"]) : {},
-    metaGuessesLeft: parseNum(r.meta.metaGuessesLeft) ?? 0,
     boardEmojis: JSON.parse(r.meta.boardEmojis || "[]") as BoardStyle[],
     finalCheckAt: parseNum(r.meta.finalCheckAt),
     result: r.meta.result ? (JSON.parse(r.meta.result) as GameResult) : null,
@@ -127,16 +129,18 @@ export function fromRedis(rid: string, r: RedisShape): RoomState {
     boardAtSeat: JSON.parse(r.boardAtSeat) as number[],
     players: parsePlayers(r.players),
     masterCounts,
+    playerStats: Object.fromEntries(
+      Object.entries(r.playerStats).map(([pid, json]) => [pid, JSON.parse(json) as PlayerStats]),
+    ),
     ready: [...r.ready].sort(),
     boards: r.boards.map((b) => ({
       entries: { ...b.entries },
+      authors: { ...b.authors },
       suspects: { ...b.suspects },
-      red: [...b.red].sort(),
     })),
     locked: [...r.locked].sort(),
     unlocked: [...r.unlocked].sort(),
     stats: {
-      tokensSpent: Number(r.stats.tokensSpent ?? 0),
       falseSuspects: Number(r.stats.falseSuspects ?? 0),
       accurateSuspects: Number(r.stats.accurateSuspects ?? 0),
       metaWrong: Number(r.stats.metaWrong ?? 0),

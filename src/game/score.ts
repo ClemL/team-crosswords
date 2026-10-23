@@ -8,10 +8,8 @@ export type ScoreInput = {
   /** Σ(active seconds of each player) / game seconds. */
   effPlayers: number;
   falseSuspects: number;
-  /** Sum of the points of meta words solved by guessing (see metaPoints). */
+  /** Sum of the points of the meta words (see metaPoints). */
   metaPoints: number;
-  /** True when every meta word was solved by guessing. */
-  allMetasSolved: boolean;
 };
 
 export type ScoreOutput = {
@@ -31,7 +29,7 @@ export function parSeconds(parMinutes: number, refPlayers: number, effPlayers: n
 }
 
 /**
- * Points for one meta word guessed after `rotations` rotations: full value before any rotation,
+ * Points for one meta word obtained after `rotations` rotations: full value before any rotation,
  * minus `decay` of it per rotation, never below `minFraction` of it.
  */
 export function metaPoints(
@@ -42,11 +40,8 @@ export function metaPoints(
   return round1(cfg.metaWordPoints * fraction);
 }
 
-export function gradeFor(
-  total: number,
-  input: Pick<ScoreInput, "falseSuspects" | "allMetasSolved">,
-): Grade {
-  if (total >= 95 && input.falseSuspects === 0 && input.allMetasSolved) return "S*";
+export function gradeFor(total: number, input: Pick<ScoreInput, "falseSuspects">): Grade {
+  if (total >= 95 && input.falseSuspects === 0) return "S*";
   if (total >= 90) return "S";
   if (total >= 80) return "A";
   if (total >= 70) return "B";
@@ -56,7 +51,7 @@ export function gradeFor(
 }
 
 /**
- * Time 50 + meta words 35 + suspect accuracy 15. Check tokens are not scored.
+ * Time 50 + meta words 35 + suspect accuracy 15.
  * Components are rounded to one decimal; the grade is computed from the rounded total.
  */
 export function scoreGame(input: ScoreInput): ScoreOutput {

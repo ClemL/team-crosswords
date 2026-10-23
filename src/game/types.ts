@@ -84,17 +84,45 @@ export type PlayerRecord = {
 export type BoardState = {
   /** "r,c" -> letter */
   entries: Record<string, string>;
+  /** "r,c" -> playerId who typed the current letter (tile credit once the cell locks) */
+  authors: Record<string, string>;
   /** "r,c" -> playerId */
   suspects: Record<string, string>;
-  /** "r,c" cells marked wrong by Check Cells */
-  red: string[];
 };
 
 export type RoomStats = {
-  tokensSpent: number;
   falseSuspects: number;
   accurateSuspects: number;
   metaWrong: number;
+};
+
+/** A player's meta guess: each player gets exactly one per game. */
+export type PlayerGuess = {
+  text: string;
+  /** The meta word it matched, or null when wrong. */
+  metaId: string | null;
+  at: number;
+  rotations: number;
+};
+
+/** Per-player game stats. Written only under the room lock (unlike PlayerRecord, see DECISIONS.md). */
+export type PlayerStats = {
+  lettersTyped: number;
+  /** Rotations this player made as Capt. */
+  rotations: number;
+  falseSuspects: number;
+  accurateSuspects: number;
+  guess: PlayerGuess | null;
+};
+
+/** How and when a meta word was obtained. */
+export type MetaObtained = {
+  at: number;
+  /** Rotations made before it was obtained (drives its points). */
+  rotations: number;
+  by: "guess" | "tiles";
+  /** Seat of the player whose guess obtained it. */
+  seat?: number;
 };
 
 export type Grade = "S*" | "S" | "A" | "B" | "C" | "D" | "F";
@@ -104,9 +132,37 @@ export type ScoreBreakdown = { time: number; metas: number; suspects: number };
 export type MetaResult = {
   id: string;
   answer: string;
-  /** Rotations made before the correct guess; null when auto-completed at the end. */
+  by: "guess" | "tiles" | null;
   rotations: number | null;
   points: number;
+  /** Name of the player whose guess obtained it. */
+  guessedBy?: string;
+};
+
+/** A player's scorecard. Players are identified by seat and name, never by player id. */
+export type PlayerCard = {
+  seat: number;
+  name: string;
+  initials: string;
+  /** Locked cells whose letter this player typed. */
+  tiles: number;
+  /** Same, per board index. */
+  tilesByBoard: number[];
+  lettersTyped: number;
+  rotations: number;
+  falseSuspects: number;
+  accurateSuspects: number;
+  activeSeconds: number;
+  guess: { text: string; correct: boolean; metaNumber: number | null; points: number } | null;
+};
+
+export type BoardMvp = {
+  boardIndex: number;
+  emoji: string;
+  /** Seats of the players with the most tiles on this board (ties share it); empty if none. */
+  seats: number[];
+  names: string[];
+  tiles: number;
 };
 
 export type GameResult = {
@@ -117,16 +173,14 @@ export type GameResult = {
     gameSeconds: number;
     parSeconds: number;
     effPlayers: number;
-    /** Reported for information only: Check tokens are not scored. */
-    tokensSpent: number;
-    tokensIssued: number;
     falseSuspects: number;
     metas: MetaResult[];
   };
+  players: PlayerCard[];
+  mvps: BoardMvp[];
+  /** Tiles filled per player, most first. */
+  leaderboard: Array<{ seat: number; name: string; tiles: number }>;
 };
-
-/** A meta word solved by a correct guess. */
-export type MetaSolve = { at: number; rotations: number };
 
 export type RoomState = {
   rid: string;
@@ -138,14 +192,10 @@ export type RoomState = {
   cooldownUntil: number;
   masterPid: string | null;
   pendingRotation: { dir: RotationDir; at: number } | null;
-  tokensIssued: number;
-  tokensLeft: number;
   timerStartedAt: number | null;
   endedAt: number | null;
-  /** Meta word id -> when it was guessed. Auto-completed words at the end are not recorded. */
-  metaSolved: Record<string, MetaSolve>;
-  /** Wrong guesses left, shared by all meta words. */
-  metaGuessesLeft: number;
+  /** Meta word id -> how it was obtained. The game ends when every word is obtained. */
+  metaSolved: Record<string, MetaObtained>;
   boardEmojis: BoardStyle[];
   finalCheckAt: number | null;
   /** Frozen at the moment the game ends. */
@@ -155,6 +205,8 @@ export type RoomState = {
   /** seat index -> board index. */
   boardAtSeat: number[];
   players: Record<string, PlayerRecord>;
+  /** playerId -> game stats (separate from PlayerRecord, which polls rewrite). */
+  playerStats: Record<string, PlayerStats>;
   masterCounts: Record<string, number>;
   ready: string[];
   boards: BoardState[];

@@ -7,7 +7,6 @@ import {
   defaultSelection,
   firstEmptyInWord,
   isOpenCell,
-  isWordFilled,
   key,
   moveBy,
   nextInWord,
@@ -17,11 +16,11 @@ import {
 } from "@/client/board-nav";
 import { formatClock, useServerNow } from "@/client/usePoll";
 import type { ClueView, PlayerView } from "@/game/views";
-import type { Cell, RotationDir } from "@/game/types";
+import type { RotationDir } from "@/game/types";
 import { MapIcon } from "../MapIcon";
 import { MetaBar } from "../MetaBar";
 import ui from "../ui.module.css";
-import { ClueBarText, ClueList, clueLabel } from "./ClueList";
+import { ClueBarText, ClueList } from "./ClueList";
 import { Grid } from "./Grid";
 import { Keyboard } from "./Keyboard";
 import s from "./play.module.css";
@@ -231,36 +230,6 @@ export function BoardScreen({
     });
   }, [board.index, enqueue, locked, pid, playing, refresh, rid, sel, suspectHere, toast]);
 
-  const canCheck =
-    playing &&
-    !!clue &&
-    clue.state === "pending" &&
-    isWordFilled(clue, entries) &&
-    view.tokens.left > 0;
-  const check = useCallback(() => {
-    if (!clue || !canCheck) return;
-    const label = `${board.emoji} ${clueLabel(clue)}`;
-    void enqueue(() =>
-      post<{ wrong: Cell[]; locked: boolean; tokensLeft: number }>(`/api/rooms/${rid}/check`, {
-        pid,
-        board: board.index,
-        clueId: clue.id,
-      }),
-    ).then((res) => {
-      if (res.ok) {
-        const n = res.data.wrong.length;
-        toast(
-          res.data.locked
-            ? `${label} is correct and locked ✓`
-            : `${label}: ${n} wrong ${n === 1 ? "cell" : "cells"}`,
-        );
-      } else {
-        toast(res.message);
-      }
-      refresh();
-    });
-  }, [board.emoji, board.index, canCheck, clue, enqueue, pid, refresh, rid, toast]);
-
   const rotate = useCallback(
     (dir: RotationDir) => {
       void enqueue(() => post(`/api/rooms/${rid}/rotate`, { pid, dir })).then((res) => {
@@ -283,7 +252,6 @@ export function BoardScreen({
       const res = await enqueue(() =>
         post<{
           correct: boolean;
-          guessesLeft: number;
           metaId: string | null;
           points: number | null;
         }>(`/api/rooms/${rid}/meta`, {
@@ -449,15 +417,6 @@ export function BoardScreen({
         >
           ›
         </button>
-        <button
-          type="button"
-          className={`${ui.btn} ${ui.primary}`}
-          disabled={!canCheck}
-          onClick={check}
-          aria-label={`Check this word: ${view.tokens.left} ${view.tokens.left === 1 ? "check" : "checks"} left`}
-        >
-          Check 🎟{view.tokens.left}
-        </button>
       </div>
 
       <ClueList board={board} activeId={clue?.id} onPick={pickClue} />
@@ -471,7 +430,12 @@ export function BoardScreen({
       />
 
       <div className={s.metaWrap}>
-        <MetaBar meta={view.meta} onGuess={guess} canGuess={playing} />
+        <MetaBar
+          meta={view.meta}
+          onGuess={guess}
+          canGuess={view.you.canGuess}
+          yourGuess={view.you.guess}
+        />
       </div>
     </div>
   );

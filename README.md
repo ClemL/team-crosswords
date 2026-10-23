@@ -2,13 +2,14 @@
 
 A ring of three 5×5 mini crosswords that rotate around the table. Words lock green only when the
 ring rotates; some clues stay hidden until a letter on another board is confirmed, enough rotations
-happen, or enough words are solved. Circled cells spell 5 meta words (3–7 letters); guessing one early
-scores more. Par is 5 minutes.
+happen, or enough words are solved. Circled cells spell 5 meta words (3–7 letters); the game ends when
+all 5 are obtained, by completing their tiles or by guessing (one guess per player). Par is 5
+minutes. Play alone or with up to 3 players; the results show scorecards, an MVP per board and a
+tiles leaderboard. Light, dark or automatic theme.
 
-V1 is single player: one player in seat 0, three boards, ten pre-built games
-(`data/puzzles-v1.json`). The server keeps all state (seats, board master, versioned polling), so
-V1.5 multiplayer can build on it. Choices made where the spec was silent are listed in
-[`DECISIONS.md`](DECISIONS.md).
+One to three players, one per board, ten pre-built games (`data/puzzles-v1.json`). The server keeps
+all state (seats, the Capt., versioned polling). Choices made where the spec was silent, and the rule
+changes made since V1, are listed in [`DECISIONS.md`](DECISIONS.md).
 
 ## Quick start (no Redis needed)
 
@@ -83,7 +84,7 @@ data/puzzles-v1.json        10 games (server only: contains answers)
 src/config.ts               CONFIG_V1 — every rule reads from it
 src/game/                   Pure, synchronous rule engine (no I/O) and its tests
   pulse.ts rotation.ts      Validation pulse, rotation, Final Check
-  entry.ts check.ts         Typing, Check Cells
+  entry.ts end.ts           Typing (with tile authorship), game end, scorecards, MVPs
   suspect.ts meta.ts        Suspect marks, meta word
   master.ts transitions.ts  Board master selection, lazy transitions (§7.2)
   score.ts mask.ts          Scoring and grades, clue masking

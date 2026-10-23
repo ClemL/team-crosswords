@@ -4,7 +4,7 @@ import { guardMaster, guardPlayer, guardPlaying } from "./guards";
 import { assignMaster, pickNextMaster } from "./master";
 import { runPulse } from "./pulse";
 import { shiftRing } from "./ring";
-import { allCellsFilled, cloneState, cooldownFor, isSinglePlayer } from "./state";
+import { allCellsFilled, cloneState, cooldownFor, isSinglePlayer, statsFor } from "./state";
 import type { RoomState, RotationDir } from "./types";
 
 function guardCooldown(state: RoomState, now: number) {
@@ -52,7 +52,10 @@ export function completeRotation(
 ): RoomState {
   const pending = state.pendingRotation;
   if (!pending) return state;
-  const next = runPulse(state, ctx, now).state;
+  // Credit the Capt. before the pulse: a pulse that ends the game freezes the scorecards.
+  const credited = cloneState(state);
+  if (credited.masterPid) statsFor(credited, credited.masterPid).rotations += 1;
+  const next = runPulse(credited, ctx, now).state;
   next.boardAtSeat = shiftRing(next.boardAtSeat, pending.dir);
   next.rotations += 1;
   next.cooldownUntil = now + cooldownFor(next, ctx.cfg);

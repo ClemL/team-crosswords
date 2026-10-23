@@ -1,6 +1,6 @@
 import { CONFIG_V1, type GameConfig } from "@/config";
 import type { GameCtx } from "./context";
-import { cellKey, splitPuzzle } from "./puzzle";
+import { cellKey, indexPuzzle, splitPuzzle } from "./puzzle";
 import { runPulse } from "./pulse";
 import { mulberry32 } from "./rng";
 import { createRoomState } from "./state";
@@ -220,7 +220,8 @@ export function simulateSolve(game: PuzzleGame, cfg: GameConfig = { ...CONFIG_V1
     const pulse = runPulse(state, ctx, rotation);
     state = pulse.state;
     state.rotations += 1;
-    if (pulse.ended) return rotation;
+    // The game itself ends once every meta word is obtained; solvability still requires every clue.
+    if (state.locked.length === indexPuzzle(pub).totalClues) return rotation;
   }
   return null;
 }

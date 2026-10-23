@@ -8,10 +8,10 @@ import ui from "./ui.module.css";
 const metaClass = (n: number) => ui[`m${((n - 1) % 5) + 1}`];
 
 function statusText(w: MetaWordView): string {
-  if (w.solved)
-    return `Solved after ${w.rotations} rotation${w.rotations === 1 ? "" : "s"}: +${w.points} pts`;
-  if (w.autoCompleted) return "Revealed at the end: 0 pts";
-  return `${w.enumeration}`;
+  if (!w.solved) return w.enumeration;
+  const how =
+    w.by === "guess" ? `guessed${w.guessedBy ? ` by ${w.guessedBy}` : ""}` : "completed by tiles";
+  return `${how} after ${w.rotations} rotation${w.rotations === 1 ? "" : "s"}: +${w.points} pts`;
 }
 
 /** Every meta word with its letter slots (labeled by board emoji) and status. */
@@ -28,11 +28,7 @@ export function MetaWordList({ meta }: { meta: MetaView }) {
               <div key={i} className={ui.metaSlot}>
                 <span aria-hidden="true">{s.emoji}</span>
                 <span
-                  className={[
-                    ui.metaLetter,
-                    s.letter && w.solved && ui.metaLetterOn,
-                    s.letter && w.autoCompleted && ui.metaLetterAuto,
-                  ]
+                  className={[ui.metaLetter, s.letter && w.solved && ui.metaLetterOn]
                     .filter(Boolean)
                     .join(" ")}
                   aria-label={`Letter ${i + 1}: ${s.letter ?? "unknown"}`}
@@ -58,12 +54,7 @@ export function MetaChips({ meta }: { meta: MetaView }) {
       {meta.words.map((w) => (
         <span
           key={w.id}
-          className={[
-            ui.metaChip,
-            metaClass(w.number),
-            w.solved && ui.metaChipSolved,
-            w.autoCompleted && ui.metaChipAuto,
-          ]
+          className={[ui.metaChip, metaClass(w.number), w.solved && ui.metaChipSolved]
             .filter(Boolean)
             .join(" ")}
           aria-label={`Meta word ${w.number}: ${w.slots.map((s) => s.letter ?? "blank").join(" ")}${w.solved ? ", solved" : ""}`}
@@ -75,32 +66,31 @@ export function MetaChips({ meta }: { meta: MetaView }) {
   );
 }
 
-type GuessResult = {
-  correct: boolean;
-  guessesLeft: number;
-  metaId: string | null;
-  points: number | null;
-};
+type GuessResult = { correct: boolean; metaId: string | null; points: number | null };
+type YourGuess = { text: string; correct: boolean; metaNumber: number | null } | null;
 
 /**
  * Phone meta bar (§3.10, revised): a compact row of the 5 words. Tapping it opens the meta panel
- * with every word and a single guess box that is checked against all unsolved words.
+ * with every word and the player's single guess, checked against every word not yet obtained.
  */
 export function MetaBar({
   meta,
   onGuess,
   canGuess,
+  yourGuess = null,
 }: {
   meta: MetaView;
   onGuess?: (guess: string) => Promise<GuessResult | null>;
+  /** False once this player has used their one guess (or the game is not running). */
   canGuess: boolean;
+  yourGuess?: YourGuess;
 }) {
   const [open, setOpen] = useState(false);
   const [guess, setGuess] = useState("");
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
   const allSolved = meta.solvedCount === meta.words.length;
-  const guessable = canGuess && !!onGuess && !allSolved && meta.guessesLeft > 0;
+  const guessable = canGuess && !!onGuess && !allSolved;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,10 +103,7 @@ export function MetaBar({
     setFeedback(
       r.correct
         ? { ok: true, text: `✓ Meta word ${word?.number ?? ""} solved: +${r.points} pts` }
-        : {
-            ok: false,
-            text: `Not a meta word. ${r.guessesLeft} wrong ${r.guessesLeft === 1 ? "guess" : "guesses"} left.`,
-          },
+        : { ok: false, text: "Not a meta word. Your guess is used." },
     );
     setGuess("");
   };
@@ -134,7 +121,7 @@ export function MetaBar({
       >
         <span className={ui.metaLabel}>META</span>
         <MetaChips meta={meta} />
-        {onGuess && <span className={ui.metaGuessLabel}>{guessable ? "Guess ›" : "View ›"}</span>}
+        {onGuess && <span className={ui.metaGuessLabel}>{guessable ? "Guess ›" : "Metas ›"}</span>}
       </button>
       {open && (
         <Modal
@@ -147,9 +134,11 @@ export function MetaBar({
           {onGuess && (
             <form className={ui.section} onSubmit={submit}>
               <p className={ui.muted} style={{ marginTop: 0 }}>
-                One guess is checked against every unsolved word. A correct guess now earns{" "}
-                {meta.pointsNow} of {meta.maxPointsPerWord} points (10% less per rotation). The team
-                has {meta.guessesLeft} wrong {meta.guessesLeft === 1 ? "guess" : "guesses"} left.
+                {yourGuess
+                  ? `You guessed ${yourGuess.text}: ${
+                      yourGuess.correct ? `right (word ${yourGuess.metaNumber})` : "not a meta word"
+                    }. Each player gets one guess per game.`
+                  : `You get one guess for the whole game, checked against every unsolved word; right or wrong, it is then used. Each word is worth ${meta.pointsNow} of ${meta.maxPointsPerWord} points now (10% less per rotation), whether it is guessed or its tiles are completed.`}
               </p>
               <input
                 className={ui.input}
@@ -165,7 +154,10 @@ export function MetaBar({
               {feedback && (
                 <p
                   role="status"
-                  style={{ color: feedback.ok ? "var(--green)" : "var(--red)", fontWeight: 600 }}
+                  style={{
+                    color: feedback.ok ? "var(--green-text)" : "var(--red)",
+                    fontWeight: 600,
+                  }}
                 >
                   {feedback.text}
                 </p>

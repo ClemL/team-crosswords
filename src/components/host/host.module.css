@@ -103,7 +103,7 @@
 
 .bar {
   height: 10px;
-  background: #ebe7de;
+  background: var(--track);
   border-radius: 999px;
   overflow: hidden;
   margin-top: 6px;
@@ -115,8 +115,8 @@
 }
 
 .banner {
-  background: var(--ink);
-  color: #fff;
+  background: var(--inverse-bg);
+  color: var(--inverse-ink);
   padding: 14px;
   border-radius: 12px;
   text-align: center;

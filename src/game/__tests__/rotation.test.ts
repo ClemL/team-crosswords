@@ -34,8 +34,6 @@ describe("lobby", () => {
     expect(s).toMatchObject({
       status: "playing",
       timerStartedAt: T0 + 5,
-      tokensIssued: 2,
-      tokensLeft: 2,
     });
     expect(s.cooldownUntil).toBe(T0 + 5);
   });
@@ -43,16 +41,21 @@ describe("lobby", () => {
   it("starts a multiplayer game with one full cooldown", () => {
     const s = startedDuo(duoCtx);
     expect(s.cooldownUntil).toBe(T0 + duoCtx.cfg.cooldownMs);
-    expect(s.tokensIssued).toBe(4);
   });
 
-  it("reclaims the seat for a known player id and rejects a second player in V1", () => {
+  it("reclaims the seat for a known player id, seats up to 3 players, then is full", () => {
     let s = startedRoom(ctx);
     const again = unwrap(joinRoom(s, ctx, PID, "", T0 + 10));
     expect(again).toMatchObject({ seat: 0, rejoined: true });
     expect(again.state.players[PID].name).toBe("Clem Leung");
     s = again.state;
-    expect(joinRoom(s, ctx, "other", "Kris", T0)).toMatchObject({ error: { code: "ROOM_FULL" } });
+    const second = unwrap(joinRoom(s, ctx, "p-2", "Kris", T0));
+    expect(second.seat).toBe(1);
+    const third = unwrap(joinRoom(second.state, ctx, "p-3", "Srini", T0));
+    expect(third.seat).toBe(2);
+    expect(joinRoom(third.state, ctx, "p-4", "Teja", T0)).toMatchObject({
+      error: { code: "ROOM_FULL" },
+    });
   });
 
   it("lets only the Capt. start", () => {
@@ -183,10 +186,10 @@ describe("finalCheck", () => {
     s.players[PID].lastSeen = t - 500;
     s = unwrap(finalCheck(s, ctx, PID, t)).state;
     expect(s.status).toBe("ended");
-    // Under par: 50 time + 0 metas (none guessed) + 15 suspects.
+    // Under par: 50 time + 35 metas (all 5 obtained by tiles before any rotation) + 15 suspects.
     expect(s.result).toMatchObject({
-      grade: "C",
-      total: 65,
+      grade: "S*",
+      total: 100,
       details: { gameSeconds: 240, effPlayers: 1 },
     });
   });

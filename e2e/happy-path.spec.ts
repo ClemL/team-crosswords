@@ -1,39 +1,6 @@
-import { expect, test, type Page, type Response } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { V1_01 } from "./fixtures/v1-01";
-
-type StateView = {
-  status: string;
-  board: { index: number; lockedCount: number; entries: Record<string, string> };
-  rotation: { count: number; cooldownUntil: number };
-  seating: { nextIfLeft: { emoji: string } };
-  now: number;
-};
-
-/** Records every API response body so the test can assert nothing secret was sent. */
-function recordApi(
-  page: Page,
-  sink: { url: string; body: string }[],
-  latest: { view: StateView | null },
-) {
-  page.on("response", async (res: Response) => {
-    if (!res.url().includes("/api/") || res.status() === 304) return;
-    const body = await res.text().catch(() => "");
-    sink.push({ url: res.url(), body });
-    if (res.url().includes("/state") && res.status() === 200)
-      latest.view = JSON.parse(body) as StateView;
-  });
-}
-
-async function typeBoard(page: Page, board: number) {
-  for (const word of V1_01.across[board]) {
-    await page.locator(`[data-clue="${word.id}"]`).click();
-    const cell = page.getByRole("button", {
-      name: new RegExp(`^Row ${word.r + 1}, column ${word.c + 1},`),
-    });
-    if ((await cell.getAttribute("aria-pressed")) !== "true") await cell.click();
-    await page.keyboard.type(word.answer);
-  }
-}
+import { recordApi, typeBoard, type Recorded, type StateView } from "./helpers";
 
 test("single player: seed → room → join → ready → solve → grade", async ({
   page,
@@ -49,7 +16,7 @@ test("single player: seed → room → join → ready → solve → grade", asyn
 
   // Create a room for v1-01 from the puzzle picker; it redirects to the host screen.
   const host = await browser.newPage({ viewport: { width: 1280, height: 800 } });
-  const hostResponses: { url: string; body: string }[] = [];
+  const hostResponses: Recorded = [];
   recordApi(host, hostResponses, { view: null });
   await host.goto("/");
   await host.getByRole("button", { name: "Game 1", exact: true }).click();
@@ -58,7 +25,7 @@ test("single player: seed → room → join → ready → solve → grade", asyn
   await expect(host.getByRole("img", { name: /QR code/ })).toBeVisible();
 
   // Join from the phone.
-  const responses: { url: string; body: string }[] = [];
+  const responses: Recorded = [];
   const latest: { view: StateView | null } = { view: null };
   recordApi(page, responses, latest);
   await page.goto(`/play/${rid}`);
@@ -101,15 +68,14 @@ test("single player: seed → room → join → ready → solve → grade", asyn
       await page.getByRole("button", { name: /Open meta panel/ }).click();
       const field = page.getByLabel("Meta guess");
       await expect(field).toBeFocused();
-      await page.keyboard.type("wrongo");
+      await page.keyboard.type("Bet");
       await page.waitForTimeout(1_500); // at least one poll re-render
-      await page.keyboard.type("x");
-      await expect(field).toHaveValue("wrongox");
-      await page.keyboard.press("Enter");
-      await expect(page.getByText(/Not a meta word\. 2 wrong guesses left/)).toBeVisible();
-      await page.keyboard.type("Better");
+      await page.keyboard.type("ter");
+      await expect(field).toHaveValue("Better");
       await page.keyboard.press("Enter");
       await expect(page.getByText(/Meta word 4 solved: \+5\.6 pts/)).toBeVisible();
+      // One guess per game: the field is now disabled.
+      await expect(field).toBeDisabled();
       await page.keyboard.press("Escape");
     }
     const rotate = page.getByRole("button", { name: /^Rotate left/ });
@@ -125,8 +91,12 @@ test("single player: seed → room → join → ready → solve → grade", asyn
   // Results on the phone and on the host screen.
   await expect(page.getByText("Game 1 complete")).toBeVisible();
   await expect(page.getByLabel(/^Grade /)).toBeVisible();
-  await expect(page.getByText("Meta words guessed: 1 of 5")).toBeVisible();
-  await expect(page.getByText("auto-completed").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your scorecard" })).toBeVisible();
+  const card = page.getByRole("region", { name: "Scorecard: Clem Leung" });
+  await expect(card).toContainText("Tiles filled59"); // 19 + 19 + 21 open cells
+  await expect(card).toContainText("BETTER ✓ word 4, +5.6");
+  await expect(page.getByText(/guessed by Clem Leung, after 2 rotations/)).toBeVisible();
+  await expect(page.getByText("Check", { exact: false })).toHaveCount(0);
   await expect(host.getByLabel(/^Grade /)).toBeVisible({ timeout: 20_000 });
 
   // Nothing secret was ever sent: no clue answers, no solution grid. (Meta answers appear once

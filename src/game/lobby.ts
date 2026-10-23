@@ -3,7 +3,7 @@ import type { GameCtx } from "./context";
 import { fail, type Result } from "./errors";
 import { guardMaster, guardPlayer } from "./guards";
 import { assignMaster, initialMasterCount } from "./master";
-import { cloneState, cooldownFor, initialsOf, isActive } from "./state";
+import { cloneState, cooldownFor, emptyPlayerStats, initialsOf, isActive } from "./state";
 import type { RoomState } from "./types";
 
 export function sanitizeName(name: unknown): string {
@@ -55,23 +55,16 @@ export function joinRoom(
     activeSeconds: 0,
   };
   next.seats[seat] = pid;
+  next.playerStats[pid] = emptyPlayerStats();
   if (next.masterPid === null) assignMaster(next, pid);
-  if (next.status === "playing") {
-    // Late joiner (V1.5+): add their Check tokens.
-    next.tokensIssued += ctx.cfg.tokensPerPlayer;
-    next.tokensLeft += ctx.cfg.tokensPerPlayer;
-  }
   return { ok: true, state: next, seat, rejoined: false };
 }
 
 /** Starts the timer (mutates `state`). In multiplayer the first rotation waits one cooldown. */
 function startTimer(state: RoomState, ctx: GameCtx, now: number): void {
-  const players = Object.keys(state.players).length;
   state.status = "playing";
   state.timerStartedAt = now;
   state.cooldownUntil = now + cooldownFor(state, ctx.cfg);
-  state.tokensIssued = ctx.cfg.tokensPerPlayer * players;
-  state.tokensLeft = state.tokensIssued;
 }
 
 /** Ready (§3.2): the timer starts once every active player is ready. */

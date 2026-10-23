@@ -1,8 +1,8 @@
 # Decisions
 
 Choices made where the V1 spec was silent, and rules implemented as written but flagged for review.
-Section numbers refer to the V1 spec. Section H lists rule changes requested after V1; where they
-conflict with the spec or with an earlier entry here, section H wins.
+Section numbers refer to the V1 spec. Sections H and I list rule changes requested after V1; where
+they conflict with the spec or with an earlier entry here, the later section wins (I over H).
 
 ## A. Rules implemented as written, flagged for review
 
@@ -14,8 +14,7 @@ conflict with the spec or with an earlier entry here, section H wins.
    pulse → shift → `rotations++`. Unlocks are evaluated inside the pulse, so a `rotations: N` clue
    unlocks at the pulse of rotation N + 1 (or at a Final Check after N rotations), not at rotation N.
    The phone can therefore show `Unlocks at 3 rotations (now 3)` while the clue is still locked. That
-   matches how `solvedCount` behaves after a Check Cells lock: the count is reached, and the unlock
-   waits for the next pulse. If the intent is "unlock at rotation N", increment `rotations` before
+   matches how `solvedCount` behaves: the count is reached, and the unlock waits for the next pulse. If the intent is "unlock at rotation N", increment `rotations` before
    calling `runPulse` in `completeRotation` (`src/game/rotation.ts`). The unit test
    `evaluates rotation unlocks in the pulse before the rotation counter increments` pins the current
    behavior. The validator's solvability result is the same under both readings (all 10 games:
@@ -48,7 +47,9 @@ conflict with the spec or with an earlier entry here, section H wins.
    `GET /api/puzzles`; puzzles seeded with an older `format` count as not seeded. Meta answers live in
    the solution key as `metaAnswers` (id → answer), because the public puzzle must not contain any
    answer. The room meta hash adds `createdAt`, `result` (the score, frozen when the game ends) and
-   `metaSolved` (JSON, replacing `metaSolvedAt`).
+   `metaSolved` (JSON, replacing `metaSolvedAt`). Added in I: `room:{rid}:b:{n}:authors` (cell →
+   player id who typed it) and `room:{rid}:pstats` (player id → per-player stats JSON). Removed with
+   Check Cells: `room:{rid}:b:{n}:red` and the token fields.
 5. **Version bumps.** Saves run under the room lock and write `SET version n+1` inside the same MULTI
    as the diff. Under the lock this is equivalent to `INCR`.
 6. **TTL.** Every save refreshes `EXPIRE roomTtlSeconds` on every room key, so a room expires 24 hours
@@ -84,8 +85,7 @@ conflict with the spec or with an earlier entry here, section H wins.
    (`command was: …`), which for the seed route contains solutions. They are classified into a fixed
    message and logged with the body stripped. Status codes for the spec's codes: `NOT_FOUND` 404,
    `NOT_IN_ROOM` and `NOT_MASTER` 403, all other rule rejections 409.
-2. **Check Cells on a locked word** returns `LOCKED_CELL`; on an empty or partial word, `NOT_FILLED`.
-   No token is spent on any rejection.
+2. **Check Cells was removed (I.6)**, with its route, tokens and red marks.
 3. **Rotating while a rotation is pending** returns `COOLDOWN`.
 4. **Mutation responses include `version`,** so the phone can reconcile optimistic letters.
 5. **Player ids.** `playerId` must match `^[A-Za-z0-9-]{8,64}$`; the server generates a UUID when it is
@@ -103,12 +103,13 @@ conflict with the spec or with an earlier entry here, section H wins.
 1. **In multiplayer the first rotation waits one cooldown.** Starting the timer sets
    `cooldownUntil = start + cooldown`, so the Capt. cannot rotate (and unlock rotation clues) in the
    first 20 seconds. Single player has no cooldown (H.4).
-2. **Tokens are issued when the timer starts** (`tokensPerPlayer × players`). A late joiner (V1.5)
-   adds `tokensPerPlayer`.
+2. **Late joiners** may take a free seat while a game is running (up to 3 players).
 3. **Initial master** is the first player to join (V1: the only player).
-4. **Seat assignment** is the first free seat (V1: seat 0). The V2 spacing table is not implemented.
+4. **Seat assignment** is the first free seat, in join order (seats 0, 1, 2). The V2 spacing table is
+   not implemented.
 5. **Final Check** does not change the master and is allowed only when no rotation is pending.
-6. **Red marks** clear when the cell's letter changes; retyping the same letter keeps the mark.
+6. **Tile authorship.** Each cell remembers who typed its current letter; clearing a cell clears it,
+   and retyping the same letter changes nothing.
 7. **Suspect marks.** Marking an already-marked cell is a no-op (no double count). Removing a mark and
    marking again counts again. `accurateSuspects` counts marks on cells holding a wrong letter; empty
    cells count as neither false nor accurate.
@@ -131,7 +132,8 @@ conflict with the spec or with an earlier entry here, section H wins.
    The phone disables the button until the cooldown ends, as it does for ⟲ and ⟳.
 3. **Extra view fields:** `rid`, `puzzleTitle`, `board.lockedCount`/`totalCount`,
    `board.metaCells`, `meta.words` (per word: number, slots, solved/auto-completed, points),
-   `meta.pointsNow`, `result.details` (time, par, tokens used, false suspects, per-word meta results),
+   `meta.pointsNow`, `meta.guessesLeftBySeat`, `you.canGuess`/`you.guess`, `result.details` (time, par,
+   false suspects, per-word meta results), `result.players`/`mvps`/`leaderboard` (I.5),
    and on the host view `masterName` and `players` (names, seats, ready, Capt.). The host view never
    contains board letters.
 4. **Host view rotation previews** (`nextIfLeft`/`nextIfRight`, `pending.youReceive`) are computed for
@@ -148,8 +150,8 @@ conflict with the spec or with an earlier entry here, section H wins.
    360 px viewport (36 px is the maximum). Keys are 46 px tall, and each key's hit area spans its full
    share of the row with no dead gaps. All other controls, including grid cells, are at least
    44×44 px.
-2. **Check 🎟 sits in the current-clue bar,** not below the keyboard, so the clue list keeps usable
-   height at 360×780. It shows the checks left (`Check 🎟2`).
+2. **The current-clue bar** has ‹ and › to move between clues. (It used to hold the Check button,
+   removed in I.6.)
 3. **Typing** advances to the next non-locked cell in the word and stays on the last cell at the end
    of the word. Typing on a locked cell writes into the next non-locked cell of the word. Tab and
    Shift+Tab move between clues on desktop.
@@ -176,14 +178,20 @@ conflict with the spec or with an earlier entry here, section H wins.
 4. **Upstash adapter coverage.** `scripts/upstash-shim.ts` is a minimal Upstash-REST-compatible proxy
    in front of a real Redis. CI starts Redis and the shim and runs the store contract and repository
    tests against both the in-process store and the real `@upstash/redis` client.
-5. **E2E** runs `next start` with the in-process store. It reloads mid-game, opens the meta panel and
-   types without clicking the field (the focus bug), makes a wrong and a right guess, and asserts that
-   recorded API responses never contain a clue answer, a solution grid, the text of a locked clue,
-   or a meta answer before it is guessed.
+5. **E2E** runs `next start` with the in-process store, a 1.5 s cooldown and a 1.5 s warning.
+   - Single player: reloads mid-game, opens the meta panel and types without clicking the field (the
+     focus bug), uses the one guess, checks the scorecard, and asserts that recorded API responses
+     never contain a clue answer, a solution grid, the text of a locked clue, or a meta answer before
+     it is obtained.
+   - Two players: both join and ready, each fills the board at their seat, one spends their guess,
+     the Capt. rotates (the other phone sees the warning), the Capt. role passes, the game ends when
+     all meta words are obtained, and both phones and the host show the MVPs, leaderboard and
+     scorecards without any player id.
 
 ## H. Rule changes requested after V1
 
-These supersede the spec's §3.10, §4, §3.6 cooldown and the `meta`/`shaded` fields of §6.
+These supersede the spec's §3.10, §4, §3.6 cooldown and the `meta`/`shaded` fields of §6. Items 2,
+3 and 5 are partly superseded by section I.
 
 1. **Five meta words per game, of lengths 3, 4, 5, 6 and 7.** The 6-letter word is the game's
    original meta (same cells). The other four were generated by `scripts/generate-metas.ts` from a
@@ -216,3 +224,46 @@ These supersede the spec's §3.10, §4, §3.6 cooldown and the `meta`/`shaded` f
     and each 1-second poll passed a new `onClose`), pulling focus off the guess field, so only the
     first letter registered. It now focuses the first field once when it opens and never takes focus
     back from inside the dialog.
+
+## I. Rule changes requested after V1 (second round)
+
+1. **The game ends when all 5 meta words are obtained**, not when every clue is locked. A word is
+   obtained by a correct guess, or during a pulse once every one of its cells is locked green.
+   Solving every clue still obtains every word, so the old ending is a special case. The validator's
+   solvability rule still requires every clue to be reachable.
+2. **One guess per player per game.** The guess is checked against every word not yet obtained.
+   Right or wrong, it is used up; the field is then disabled. Completing a word with tiles never uses
+   a guess. An empty guess, or a guess of a word that is already obtained (and therefore fully shown),
+   is rejected without using it. The team-wide "3 wrong guesses" rule is gone.
+3. **Every meta word scores when it is obtained,** by guess or by tiles: 7 points minus 10% per
+   rotation made before it was obtained (floor 0.7). A word obtained by tiles during a rotation's
+   pulse uses the count before that rotation, like the clue unlocks (A.2). Nothing is auto-completed
+   for 0 any more.
+4. **S\*** needs a total of at least 95 and 0 false suspects (every word is obtained by the end).
+5. **Scorecards, board MVPs and the tiles leaderboard,** computed once when the game ends:
+   - A **tile** is a locked cell, credited to the player who typed the letter it holds. Wrong and
+     overwritten letters earn nothing.
+   - **Scorecard** per player: tiles (total and per board), letters typed, rotations made as Capt.,
+     accurate and false suspect marks, their guess and its points, active time.
+   - **Board MVP:** the player with the most tiles on that board; ties share it; a board with no
+     credited tiles has none.
+   - **Leaderboard:** players by tiles, most first (seat breaks ties).
+   - Players are identified by seat and name in results, never by player id. The phone shows "Your
+     scorecard" alone in single player; with 2–3 players it shows MVPs, leaderboard and every card
+     (yours first). The host shows them all.
+   - Per-player stats live in their own hash, written only under the room lock: the player record is
+     rewritten by every poll outside the lock, which would race with stat increments.
+   - The Capt.'s rotation count is credited before the rotation's pulse, so a rotation that ends the
+     game is counted.
+6. **Check Cells is removed:** route, rule, tokens, red marks and the button. **Final Check** (a pulse
+   without rotating once every cell is filled) is a different feature and stays.
+7. **Multiplayer is on: up to 3 players,** one per board, joining in seat order. The shrinking
+   multiplayer cooldown (H.4), the 3-second warning, the Capt. hand-off after each rotation (§3.7),
+   per-player Ready and the Capt.'s Start now all apply. `par` uses `effPlayers` (§4), so two
+   always-active players get par 5 × √½ ≈ 3:32.
+8. **Dark mode:** a theme button (🌓 Auto → ☀️ Light → 🌙 Dark) on the home page, the host header,
+   the lobby and the phone's seating panel. Auto follows the system setting. The choice is stored per
+   device (`localStorage["xw:theme"]`) and applied by a tiny inline script before the first paint, so
+   pages never flash the wrong theme. All colors are theme tokens; dark text colors were chosen for
+   contrast (for example green text is lighter than the green tile fill). The QR code keeps a white
+   background so phones can scan it.

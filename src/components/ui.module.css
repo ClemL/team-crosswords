@@ -34,7 +34,7 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(20, 18, 14, 0.45);
+  background: var(--backdrop);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -120,19 +120,19 @@
 
 /* Meta words. Each word has a number and color; the color is never the only cue. */
 .m1 {
-  --meta: #1f4fd1;
+  --meta: var(--meta-1);
 }
 .m2 {
-  --meta: #7b3fb0;
+  --meta: var(--meta-2);
 }
 .m3 {
-  --meta: #00796b;
+  --meta: var(--meta-3);
 }
 .m4 {
-  --meta: #b85c00;
+  --meta: var(--meta-4);
 }
 .m5 {
-  --meta: #c2185b;
+  --meta: var(--meta-5);
 }
 
 .metaBar {
@@ -178,11 +178,6 @@
   background: var(--green);
   border-color: var(--green);
   color: var(--green-ink);
-}
-
-.metaChipAuto {
-  border-style: dashed;
-  color: var(--muted);
 }
 
 .metaGuessLabel {
@@ -256,11 +251,6 @@
   color: var(--green-ink);
 }
 
-.metaLetterAuto {
-  background: #ebe7de;
-  color: var(--muted);
-}
-
 .metaStatus {
   grid-column: 2;
   font-size: 0.82rem;
@@ -268,7 +258,7 @@
 }
 
 .metaStatusSolved {
-  color: var(--green);
+  color: var(--green-text);
   font-weight: 700;
 }
 
@@ -316,13 +306,84 @@
   font-weight: 700;
 }
 
+.resultsHeading {
+  font-size: 1.05rem;
+  margin: 20px 0 8px;
+}
+
+.plainList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 1.05rem;
+}
+
+.leaderboard {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.leaderboard li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+}
+
+.leaderYou {
+  font-weight: 700;
+}
+
+.scorecard {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background: var(--card);
+}
+
+.scorecardYou {
+  border: 2px solid var(--accent);
+}
+
+.scorecardTitle {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.stats dt {
+  color: var(--muted);
+}
+
+.stats dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
 .toast {
   position: fixed;
   left: 50%;
   bottom: 24px;
   transform: translateX(-50%);
-  background: var(--ink);
-  color: #fff;
+  background: var(--inverse-bg);
+  color: var(--inverse-ink);
   padding: 10px 16px;
   border-radius: 999px;
   z-index: 60;
@@ -337,6 +398,6 @@
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
   padding: 0 12px;
-  background: #fff;
+  background: var(--input-bg);
   font-size: 1.05rem;
 }

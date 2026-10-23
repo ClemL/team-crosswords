@@ -2,7 +2,7 @@ import type { GameConfig } from "@/config";
 import type { GameCtx } from "./context";
 import { pickBoardEmojis } from "./emoji";
 import { cellKey, indexPuzzle, solutionLetter } from "./puzzle";
-import type { PlayerRecord, PublicClue, PublicPuzzle, RoomState } from "./types";
+import type { PlayerRecord, PlayerStats, PublicClue, PublicPuzzle, RoomState } from "./types";
 
 /** One player: no cooldown and instant rotations. Multiplayer: shrinking cooldown. */
 export function isSinglePlayer(state: Pick<RoomState, "players">): boolean {
@@ -51,12 +51,9 @@ export function createRoomState(args: {
     cooldownUntil: 0,
     masterPid: null,
     pendingRotation: null,
-    tokensIssued: 0,
-    tokensLeft: 0,
     timerStartedAt: null,
     endedAt: null,
     metaSolved: {},
-    metaGuessesLeft: cfg.metaGuesses,
     boardEmojis: pickBoardEmojis(puzzle.boards.length, rng),
     finalCheckAt: null,
     result: null,
@@ -65,10 +62,11 @@ export function createRoomState(args: {
     players: {},
     masterCounts: {},
     ready: [],
-    boards: puzzle.boards.map(() => ({ entries: {}, suspects: {}, red: [] })),
+    playerStats: {},
+    boards: puzzle.boards.map(() => ({ entries: {}, authors: {}, suspects: {} })),
     locked: [],
     unlocked: baseClues,
-    stats: { tokensSpent: 0, falseSuspects: 0, accurateSuspects: 0, metaWrong: 0 },
+    stats: { falseSuspects: 0, accurateSuspects: 0, metaWrong: 0 },
   };
 }
 
@@ -122,14 +120,13 @@ export function isWordCorrect(
   return wrongCells(state, ctx, board, clue).length === 0;
 }
 
-/** Lock a word green (mutates `state`): clears red and suspect marks on its cells (§3.9.4). */
+/** Lock a word green (mutates `state`): clears suspect marks on its cells (§3.9.4). */
 export function lockWord(state: RoomState, board: number, clue: PublicClue): void {
   if (state.locked.includes(clue.id)) return;
   state.locked.push(clue.id);
   const b = state.boards[board];
   const keys = new Set(clue.cells.map(([r, c]) => cellKey(r, c)));
   for (const k of keys) delete b.suspects[k];
-  b.red = b.red.filter((k) => !keys.has(k));
 }
 
 export function allCellsFilled(state: RoomState, ctx: GameCtx): boolean {
@@ -147,6 +144,16 @@ export function boardPercent(state: RoomState, ctx: GameCtx, board: number): num
 
 export function boardLockedCount(state: RoomState, ctx: GameCtx, board: number): number {
   return ctx.puzzle.boards[board].clues.filter((c) => state.locked.includes(c.id)).length;
+}
+
+export function emptyPlayerStats(): PlayerStats {
+  return { lettersTyped: 0, rotations: 0, falseSuspects: 0, accurateSuspects: 0, guess: null };
+}
+
+/** The player's stats record, created on first use (mutates `state`). */
+export function statsFor(state: RoomState, pid: string): PlayerStats {
+  state.playerStats[pid] ??= emptyPlayerStats();
+  return state.playerStats[pid];
 }
 
 export function initialsOf(name: string): string {

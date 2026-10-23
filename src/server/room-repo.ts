@@ -33,11 +33,12 @@ export async function loadRoom(
     { op: "get", key: k.boardAtSeat },
     { op: "hgetall", key: k.players },
     { op: "hgetall", key: k.masterCounts },
+    { op: "hgetall", key: k.playerStats },
     { op: "smembers", key: k.ready },
     ...k.boards.flatMap((b): Cmd[] => [
       { op: "hgetall", key: b.entries },
+      { op: "hgetall", key: b.authors },
       { op: "hgetall", key: b.suspects },
-      { op: "smembers", key: b.red },
     ]),
     { op: "smembers", key: k.locked },
     { op: "smembers", key: k.unlocked },
@@ -48,12 +49,13 @@ export async function loadRoom(
   const meta = res[1] as Record<string, string>;
   const boardAtSeat = res[3] as string | null;
   if (version === null || !meta.puzzleId || boardAtSeat === null) return null;
+  const head = 8;
   const boards: RedisShape["boards"] = k.boards.map((_, n) => ({
-    entries: res[7 + n * 3] as Record<string, string>,
-    suspects: res[8 + n * 3] as Record<string, string>,
-    red: res[9 + n * 3] as string[],
+    entries: res[head + n * 3] as Record<string, string>,
+    authors: res[head + 1 + n * 3] as Record<string, string>,
+    suspects: res[head + 2 + n * 3] as Record<string, string>,
   }));
-  const tail = 7 + k.boards.length * 3;
+  const tail = head + k.boards.length * 3;
   return fromRedis(rid, {
     version,
     meta,
@@ -61,7 +63,8 @@ export async function loadRoom(
     boardAtSeat,
     players: res[4] as Record<string, string>,
     masterCounts: res[5] as Record<string, string>,
-    ready: res[6] as string[],
+    playerStats: res[6] as Record<string, string>,
+    ready: res[7] as string[],
     boards,
     locked: res[tail] as string[],
     unlocked: res[tail + 1] as string[],
@@ -103,8 +106,9 @@ export function diffCommands(k: RoomKeys, before: RedisShape | null, after: Redi
     boardAtSeat: "",
     players: {},
     masterCounts: {},
+    playerStats: {},
     ready: [],
-    boards: after.boards.map(() => ({ entries: {}, suspects: {}, red: [] })),
+    boards: after.boards.map(() => ({ entries: {}, authors: {}, suspects: {} })),
     locked: [],
     unlocked: [],
     stats: {},
@@ -118,11 +122,12 @@ export function diffCommands(k: RoomKeys, before: RedisShape | null, after: Redi
       : []),
     ...hashDiff(k.players, b.players, after.players),
     ...hashDiff(k.masterCounts, b.masterCounts, after.masterCounts),
+    ...hashDiff(k.playerStats, b.playerStats, after.playerStats),
     ...setDiff(k.ready, b.ready, after.ready),
     ...after.boards.flatMap((ab, n) => [
       ...hashDiff(k.boards[n].entries, b.boards[n].entries, ab.entries),
       ...hashDiff(k.boards[n].suspects, b.boards[n].suspects, ab.suspects),
-      ...setDiff(k.boards[n].red, b.boards[n].red, ab.red),
+      ...hashDiff(k.boards[n].authors, b.boards[n].authors, ab.authors),
     ]),
     ...setDiff(k.locked, b.locked, after.locked),
     ...setDiff(k.unlocked, b.unlocked, after.unlocked),

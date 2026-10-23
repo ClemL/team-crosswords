@@ -1,5 +1,5 @@
 import type { GameCtx } from "./context";
-import { endGameIfComplete } from "./end";
+import { endGameIfComplete, obtainMetasByTiles } from "./end";
 import { cellKey, solutionLetter } from "./puzzle";
 import { cloneState, isWordCorrect, isWordFilled, lockWord } from "./state";
 import type { PublicClue, RoomState } from "./types";
@@ -36,7 +36,8 @@ export function unlockConditionMet(state: RoomState, ctx: GameCtx, clue: PublicC
  * (a) lock every filled word whose letters all match the solution,
  * (b) evaluate unlocks on the post-lock state, (c) evaluate once more for cascades,
  * (d) percentages and the meta bar are derived from `locked`, so they are current afterwards.
- * Also ends the game when every word is locked.
+ * Then meta words whose cells are all locked count as obtained, and the game ends once every
+ * meta word is obtained.
  */
 export function runPulse(state: RoomState, ctx: GameCtx, now: number): PulseResult {
   const next = cloneState(state);
@@ -64,6 +65,7 @@ export function runPulse(state: RoomState, ctx: GameCtx, now: number): PulseResu
     }
   }
 
+  obtainMetasByTiles(next, ctx, now);
   const ended = endGameIfComplete(next, ctx, now);
   return { state: next, newlyLocked, newlyUnlocked, ended };
 }

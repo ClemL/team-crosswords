@@ -22,7 +22,6 @@ export function Grid({
 }) {
   const n = board.layout.length;
   const locked = new Set(board.lockedCells);
-  const red = new Set(board.red);
   const metaAt = new Map(board.metaCells.map((m) => [key(m.r, m.c), m]));
   const numbers = new Map<string, number>();
   for (const clue of board.clues) numbers.set(key(clue.cells[0][0], clue.cells[0][1]), clue.num);
@@ -51,7 +50,6 @@ export function Grid({
               metaAt.has(k) && ui[`m${metaAt.get(k)!.meta}`],
               inWord.has(k) && s.inWord,
               isSel && s.selected,
-              red.has(k) && !isLocked && s.red,
               isLocked && s.locked,
               isLocked && fresh.has(k) && s.justLocked,
               pendingKeys.has(k) && s.pending,
@@ -63,7 +61,6 @@ export function Grid({
               `Row ${r + 1}, column ${c + 1}`,
               letter ? `letter ${letter}` : "empty",
               isLocked && "locked",
-              red.has(k) && !isLocked && "marked wrong",
               suspect && `suspected by ${suspect}`,
               metaAt.has(k) && `meta word ${metaAt.get(k)!.meta}, letter ${metaAt.get(k)!.slot}`,
             ]
