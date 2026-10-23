@@ -18,7 +18,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "validate:puzzles": "tsx scripts/validate-puzzles.ts",
-    "check:leaks": "tsx scripts/check-leaks.ts"
+    "check:leaks": "tsx scripts/check-leaks.ts",
+    "shim:upstash": "tsx scripts/upstash-shim.ts"
   },
   "dependencies": {
     "@upstash/redis": "^1.39.0",

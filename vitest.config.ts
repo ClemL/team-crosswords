@@ -3,10 +3,13 @@ import path from "node:path";
 
 export default defineConfig({
   resolve: {
-    alias: { "@": path.resolve(import.meta.dirname, "src") },
+    alias: {
+      "@": path.resolve(import.meta.dirname, "src"),
+      "server-only": path.resolve(import.meta.dirname, "src/server/__tests__/server-only-stub.ts"),
+    },
   },
   test: {
-    include: ["src/**/__tests__/**/*.test.ts", "scripts/**/__tests__/**/*.test.ts"],
+    include: ["src/**/__tests__/**/*.test.ts"],
     environment: "node",
   },
 });

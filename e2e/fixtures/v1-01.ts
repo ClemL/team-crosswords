@@ -1,0 +1,70 @@
+// Test-only fixture: the solution of game v1-01. Never import this from app code.
+export const V1_01 = {
+  puzzleId: "v1-01",
+  metaAnswer: "BETTER",
+  /** Solution rows per board index. */
+  boards: [
+    ["##OWE", "#GRAY", "TABLE", "EVIL#", "NET##"],
+    ["OFT##", "PART#", "TRIAL", "#MEMO", "##DEW"],
+    ["AWAY#", "RARE#", "CIGAR", "#SURE", "#TEND"],
+  ],
+  /** Across clues per board: id, first cell and answer. */
+  across: [
+    [
+      { id: "B0-1A", r: 0, c: 2, answer: "OWE" },
+      { id: "B0-4A", r: 1, c: 1, answer: "GRAY" },
+      { id: "B0-5A", r: 2, c: 0, answer: "TABLE" },
+      { id: "B0-6A", r: 3, c: 0, answer: "EVIL" },
+      { id: "B0-7A", r: 4, c: 0, answer: "NET" },
+    ],
+    [
+      { id: "B1-1A", r: 0, c: 0, answer: "OFT" },
+      { id: "B1-4A", r: 1, c: 0, answer: "PART" },
+      { id: "B1-6A", r: 2, c: 0, answer: "TRIAL" },
+      { id: "B1-8A", r: 3, c: 1, answer: "MEMO" },
+      { id: "B1-9A", r: 4, c: 2, answer: "DEW" },
+    ],
+    [
+      { id: "B2-1A", r: 0, c: 0, answer: "AWAY" },
+      { id: "B2-5A", r: 1, c: 0, answer: "RARE" },
+      { id: "B2-6A", r: 2, c: 0, answer: "CIGAR" },
+      { id: "B2-8A", r: 3, c: 1, answer: "SURE" },
+      { id: "B2-9A", r: 4, c: 1, answer: "TEND" },
+    ],
+  ],
+  /** Every clue answer, for leak assertions on recorded API responses. */
+  allAnswers: [
+    "OWE",
+    "GRAY",
+    "TABLE",
+    "EVIL",
+    "NET",
+    "ORBIT",
+    "WALL",
+    "EYE",
+    "GAVE",
+    "TEN",
+    "OFT",
+    "PART",
+    "TRIAL",
+    "MEMO",
+    "DEW",
+    "OPT",
+    "FARM",
+    "TRIED",
+    "TAME",
+    "LOW",
+    "AWAY",
+    "RARE",
+    "CIGAR",
+    "SURE",
+    "TEND",
+    "ARC",
+    "WAIST",
+    "ARGUE",
+    "YEARN",
+    "RED",
+  ],
+  /** Text of a clue that starts locked (crossLetter) and must never be sent unmasked at start. */
+  lockedClueText: "Be in debt",
+};
