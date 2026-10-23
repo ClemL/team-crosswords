@@ -13,15 +13,24 @@ export function Modal({
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const closeRef = useRef(onClose);
   useEffect(() => {
-    ref.current?.focus();
-    if (!onClose) return;
+    closeRef.current = onClose;
+  });
+  // Runs once per opening. Parents re-render every poll with a new `onClose`, so this effect must
+  // not depend on it: re-running it would pull focus out of the dialog's input on every render.
+  useEffect(() => {
+    const dialog = ref.current;
+    if (dialog && !dialog.contains(document.activeElement)) {
+      const field = dialog.querySelector<HTMLElement>("input, textarea, select");
+      (field ?? dialog).focus();
+    }
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") closeRef.current?.();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, []);
   return (
     <div className={ui.backdrop} onClick={onClose}>
       <div

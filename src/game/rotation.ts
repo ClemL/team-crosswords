@@ -4,7 +4,7 @@ import { guardMaster, guardPlayer, guardPlaying } from "./guards";
 import { assignMaster, pickNextMaster } from "./master";
 import { runPulse } from "./pulse";
 import { shiftRing } from "./ring";
-import { allCellsFilled, cloneState } from "./state";
+import { allCellsFilled, cloneState, cooldownFor, isSinglePlayer } from "./state";
 import type { RoomState, RotationDir } from "./types";
 
 function guardCooldown(state: RoomState, now: number) {
@@ -13,13 +13,17 @@ function guardCooldown(state: RoomState, now: number) {
   return null;
 }
 
-/** Master asks for a rotation (§3.6.3): it happens after rotationWarningMs. */
+/**
+ * The Capt. asks for a rotation (§3.6.3). In multiplayer it happens after rotationWarningMs so
+ * everyone sees it coming; with a single player it happens at once.
+ */
 export function requestRotation(
   state: RoomState,
   ctx: GameCtx,
   pid: string,
   dir: RotationDir,
   now: number,
+  rng: () => number,
 ): Result<{ state: RoomState }> {
   const g =
     guardPlayer(state, pid) ??
@@ -28,6 +32,10 @@ export function requestRotation(
     guardCooldown(state, now);
   if (g) return g;
   const next = cloneState(state);
+  if (isSinglePlayer(state)) {
+    next.pendingRotation = { dir, at: now };
+    return { ok: true, state: completeRotation(next, ctx, now, rng) };
+  }
   next.pendingRotation = { dir, at: now + ctx.cfg.rotationWarningMs };
   return { ok: true, state: next };
 }
@@ -47,7 +55,7 @@ export function completeRotation(
   const next = runPulse(state, ctx, now).state;
   next.boardAtSeat = shiftRing(next.boardAtSeat, pending.dir);
   next.rotations += 1;
-  next.cooldownUntil = now + ctx.cfg.cooldownMs;
+  next.cooldownUntil = now + cooldownFor(next, ctx.cfg);
   next.pendingRotation = null;
   if (next.status === "playing") {
     const master = pickNextMaster(next, now, rng, ctx.cfg);
@@ -73,6 +81,6 @@ export function finalCheck(
     return fail("NOT_FILLED", "Every cell on every board must be filled.");
   const next = runPulse(state, ctx, now).state;
   next.finalCheckAt = now;
-  if (next.status === "playing") next.cooldownUntil = now + ctx.cfg.cooldownMs;
+  if (next.status === "playing") next.cooldownUntil = now + cooldownFor(next, ctx.cfg);
   return { ok: true, state: next };
 }

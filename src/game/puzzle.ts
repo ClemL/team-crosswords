@@ -1,4 +1,5 @@
 import type {
+  BoardCell,
   Cell,
   PublicBoard,
   PublicClue,
@@ -27,11 +28,14 @@ export function splitPuzzle(game: PuzzleGame): { pub: PublicPuzzle; solution: Pu
     version: game.version,
     boardSize: game.boardSize,
     parMinutes: game.parMinutes,
-    meta: { enumeration: game.meta.enumeration },
+    metas: game.metas.map((m) => ({
+      id: m.id,
+      enumeration: m.enumeration,
+      cells: m.cells.map(([b, r, c]) => [b, r, c] as BoardCell),
+    })),
     boards: game.boards.map((b) => ({
       index: b.index,
       layout: [...b.layout],
-      shaded: b.shaded.map(([r, c]) => [r, c] as Cell),
       clues: b.clues.map((c) => ({
         id: c.id,
         num: c.num,
@@ -44,7 +48,7 @@ export function splitPuzzle(game: PuzzleGame): { pub: PublicPuzzle; solution: Pu
   };
   const solution: PuzzleSolution = {
     boards: game.boards.map((b) => [...b.solution]),
-    metaAnswer: game.meta.answer,
+    metaAnswers: Object.fromEntries(game.metas.map((m) => [m.id, m.answer])),
   };
   return { pub, solution };
 }

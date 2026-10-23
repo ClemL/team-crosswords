@@ -2,7 +2,8 @@
 
 A ring of three 5×5 mini crosswords that rotate around the table. Words lock green only when the
 ring rotates; some clues stay hidden until a letter on another board is confirmed, enough rotations
-happen, or enough words are solved. Shaded cells spell a 6-letter meta word.
+happen, or enough words are solved. Circled cells spell 5 meta words (3–7 letters); guessing one early
+scores more. Par is 5 minutes.
 
 V1 is single player: one player in seat 0, three boards, ten pre-built games
 (`data/puzzles-v1.json`). The server keeps all state (seats, board master, versioned polling), so
@@ -93,7 +94,7 @@ src/app/api/                Route handlers (§7.4)
 src/app/{page,host,play}    Puzzle picker, host screen, phone
 src/components/             UI components
 e2e/                        Playwright test and its test-only fixture
-scripts/                    Validator, leak checker, Upstash shim
+scripts/                    Validator, leak checker, Upstash shim, meta word generator
 ```
 
 Each request loads the room, applies due transitions (rotation, master hand-off), runs one pure rule

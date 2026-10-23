@@ -4,6 +4,23 @@ import { pickBoardEmojis } from "./emoji";
 import { cellKey, indexPuzzle, solutionLetter } from "./puzzle";
 import type { PlayerRecord, PublicClue, PublicPuzzle, RoomState } from "./types";
 
+/** One player: no cooldown and instant rotations. Multiplayer: shrinking cooldown. */
+export function isSinglePlayer(state: Pick<RoomState, "players">): boolean {
+  return Object.keys(state.players).length <= 1;
+}
+
+/**
+ * Cooldown that starts after a rotation or Final Check, given the rotations made so far:
+ * none in single player; in multiplayer cooldownMs, shortened by cooldownStepMs per rotation.
+ */
+export function cooldownFor(
+  state: Pick<RoomState, "players" | "rotations">,
+  cfg: GameConfig,
+): number {
+  if (isSinglePlayer(state)) return 0;
+  return Math.max(cfg.cooldownMinMs, cfg.cooldownMs - cfg.cooldownStepMs * state.rotations);
+}
+
 export function cloneState(s: RoomState): RoomState {
   return structuredClone(s);
 }
@@ -38,7 +55,7 @@ export function createRoomState(args: {
     tokensLeft: 0,
     timerStartedAt: null,
     endedAt: null,
-    metaSolvedAt: null,
+    metaSolved: {},
     metaGuessesLeft: cfg.metaGuesses,
     boardEmojis: pickBoardEmojis(puzzle.boards.length, rng),
     finalCheckAt: null,

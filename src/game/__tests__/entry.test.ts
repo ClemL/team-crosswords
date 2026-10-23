@@ -4,7 +4,7 @@ import { applyEntry } from "../entry";
 import { joinRoom } from "../lobby";
 import { mulberry32 } from "../rng";
 import { requestRotation } from "../rotation";
-import { makeCtx, PID, startedRoom, T0, unwrap } from "./helpers";
+import { GAME1, makeCtx, PID, startedDuo, startedRoom, T0, unwrap } from "./helpers";
 
 const ctx = makeCtx();
 
@@ -61,14 +61,15 @@ describe("applyEntry", () => {
     expect(unwrap(applyEntry(s, ctx, PID, 0, 2, 0, "T", T0)).state.boards[0].red).toEqual(["2,1"]);
   });
 
-  it("is allowed during the rotation countdown but not once the rotation is due", () => {
-    let s = startedRoom(ctx);
+  it("is allowed during the multiplayer rotation countdown but not once the rotation is due", () => {
+    const duo = makeCtx(GAME1, { maxPlayers: 2 });
+    let s = startedDuo(duo); // PID sits in seat 0, holding board 0
     const at = s.cooldownUntil;
-    s = unwrap(requestRotation(s, ctx, PID, "L", at)).state;
+    s = unwrap(requestRotation(s, duo, s.masterPid!, "L", at, () => 0)).state;
     expect(
-      unwrap(applyEntry(s, ctx, PID, 0, 2, 0, "T", at + 1)).state.boards[0].entries["2,0"],
+      unwrap(applyEntry(s, duo, PID, 0, 2, 0, "T", at + 1)).state.boards[0].entries["2,0"],
     ).toBe("T");
-    expect(applyEntry(s, ctx, PID, 0, 2, 0, "T", at + ctx.cfg.rotationWarningMs)).toMatchObject({
+    expect(applyEntry(s, duo, PID, 0, 2, 0, "T", at + duo.cfg.rotationWarningMs)).toMatchObject({
       error: { code: "NOT_YOUR_BOARD" },
     });
   });

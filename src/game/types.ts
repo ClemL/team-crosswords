@@ -28,8 +28,18 @@ export type PuzzleBoard = {
   index: number;
   layout: string[];
   solution: string[];
-  shaded: Cell[];
   clues: PuzzleClue[];
+};
+
+/** [board, row, col], 0-based. */
+export type BoardCell = [number, number, number];
+
+/** A meta word, spelled by `cells` in order. Each game has several of differing lengths. */
+export type PuzzleMetaWord = {
+  id: string;
+  answer: string;
+  enumeration: string;
+  cells: BoardCell[];
 };
 
 export type PuzzleGame = {
@@ -38,7 +48,7 @@ export type PuzzleGame = {
   version: 1;
   boardSize: number;
   parMinutes: number;
-  meta: { answer: string; enumeration: string };
+  metas: PuzzleMetaWord[];
   boards: PuzzleBoard[];
 };
 
@@ -46,13 +56,17 @@ export type PuzzleGame = {
 
 export type PublicClue = Omit<PuzzleClue, "answer">;
 export type PublicBoard = Omit<PuzzleBoard, "solution" | "clues"> & { clues: PublicClue[] };
+export type PublicMetaWord = Omit<PuzzleMetaWord, "answer">;
 /** Puzzle without any solution, answer or meta answer. */
-export type PublicPuzzle = Omit<PuzzleGame, "boards" | "meta"> & {
-  meta: { enumeration: string };
+export type PublicPuzzle = Omit<PuzzleGame, "boards" | "metas"> & {
+  metas: PublicMetaWord[];
   boards: PublicBoard[];
 };
-/** Never returned to a client. `boards[n]` is the solution grid of board n, one string per row. */
-export type PuzzleSolution = { boards: string[][]; metaAnswer: string };
+/**
+ * Never returned to a client. `boards[n]` is the solution grid of board n, one string per row;
+ * `metaAnswers` maps meta word id to its answer.
+ */
+export type PuzzleSolution = { boards: string[][]; metaAnswers: Record<string, string> };
 
 // ---- Room state ---------------------------------------------------------------------------
 
@@ -85,7 +99,15 @@ export type RoomStats = {
 
 export type Grade = "S*" | "S" | "A" | "B" | "C" | "D" | "F";
 
-export type ScoreBreakdown = { time: number; tokens: number; suspects: number; meta: number };
+export type ScoreBreakdown = { time: number; metas: number; suspects: number };
+
+export type MetaResult = {
+  id: string;
+  answer: string;
+  /** Rotations made before the correct guess; null when auto-completed at the end. */
+  rotations: number | null;
+  points: number;
+};
 
 export type GameResult = {
   total: number;
@@ -95,12 +117,16 @@ export type GameResult = {
     gameSeconds: number;
     parSeconds: number;
     effPlayers: number;
+    /** Reported for information only: Check tokens are not scored. */
     tokensSpent: number;
     tokensIssued: number;
     falseSuspects: number;
-    metaSolved: boolean;
+    metas: MetaResult[];
   };
 };
+
+/** A meta word solved by a correct guess. */
+export type MetaSolve = { at: number; rotations: number };
 
 export type RoomState = {
   rid: string;
@@ -116,7 +142,9 @@ export type RoomState = {
   tokensLeft: number;
   timerStartedAt: number | null;
   endedAt: number | null;
-  metaSolvedAt: number | null;
+  /** Meta word id -> when it was guessed. Auto-completed words at the end are not recorded. */
+  metaSolved: Record<string, MetaSolve>;
+  /** Wrong guesses left, shared by all meta words. */
   metaGuessesLeft: number;
   boardEmojis: BoardStyle[];
   finalCheckAt: number | null;

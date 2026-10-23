@@ -1,16 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { createRoomState } from "../state";
+import { createRoomState, cooldownFor } from "../state";
 import { joinRoom, markReady, masterStart } from "../lobby";
 import { mulberry32 } from "../rng";
 import { finalCheck, requestRotation } from "../rotation";
 import { applyDueTransitions, hasDueTransition } from "../transitions";
-import { fillBoard, fillWord, makeCtx, PID, startedRoom, T0, unwrap } from "./helpers";
+import {
+  fillBoard,
+  fillWord,
+  GAME1,
+  makeCtx,
+  PID,
+  PID2,
+  startedDuo,
+  startedRoom,
+  T0,
+  unwrap,
+} from "./helpers";
 
 const ctx = makeCtx();
+const duoCtx = makeCtx(GAME1, { maxPlayers: 2 });
 const rng = mulberry32(3);
 
 describe("lobby", () => {
-  it("makes the first player master and starts the timer on Ready", () => {
+  it("makes the first player Capt. and starts the timer on Ready, with no cooldown alone", () => {
     let s = createRoomState({ rid: "T", puzzle: ctx.puzzle, now: T0, rng, cfg: ctx.cfg });
     const j = unwrap(joinRoom(s, ctx, PID, "  Clem   Leung  ", T0));
     expect(j.seat).toBe(0);
@@ -25,7 +37,13 @@ describe("lobby", () => {
       tokensIssued: 2,
       tokensLeft: 2,
     });
-    expect(s.cooldownUntil).toBe(T0 + 5 + ctx.cfg.cooldownMs);
+    expect(s.cooldownUntil).toBe(T0 + 5);
+  });
+
+  it("starts a multiplayer game with one full cooldown", () => {
+    const s = startedDuo(duoCtx);
+    expect(s.cooldownUntil).toBe(T0 + duoCtx.cfg.cooldownMs);
+    expect(s.tokensIssued).toBe(4);
   });
 
   it("reclaims the seat for a known player id and rejects a second player in V1", () => {
@@ -37,7 +55,7 @@ describe("lobby", () => {
     expect(joinRoom(s, ctx, "other", "Kris", T0)).toMatchObject({ error: { code: "ROOM_FULL" } });
   });
 
-  it("lets only the master start", () => {
+  it("lets only the Capt. start", () => {
     let s = createRoomState({ rid: "T", puzzle: ctx.puzzle, now: T0, rng, cfg: ctx.cfg });
     s = unwrap(joinRoom(s, ctx, PID, "Clem", T0)).state;
     expect(masterStart(s, ctx, "x", T0)).toMatchObject({ error: { code: "NOT_IN_ROOM" } });
@@ -45,53 +63,32 @@ describe("lobby", () => {
   });
 });
 
-describe("rotation", () => {
-  it("is master-only and waits for the cooldown", () => {
-    const s = startedRoom(ctx);
-    expect(requestRotation(s, ctx, PID, "L", T0 + 1)).toMatchObject({
-      error: { code: "COOLDOWN" },
-    });
-    const ok = unwrap(requestRotation(s, ctx, PID, "L", s.cooldownUntil));
-    expect(ok.state.pendingRotation).toEqual({
-      dir: "L",
-      at: s.cooldownUntil + ctx.cfg.rotationWarningMs,
-    });
-    expect(requestRotation(ok.state, ctx, PID, "R", s.cooldownUntil + 1)).toMatchObject({
-      error: { code: "COOLDOWN" },
-    });
-  });
-
-  it("completes lazily: pulse, then shift, rotations++, cooldown, master", () => {
+describe("single-player rotation", () => {
+  it("validates and swaps at once, with no cooldown and no countdown", () => {
     let s = startedRoom(ctx);
     fillWord(s, ctx, 0, "B0-4A");
-    const t = s.cooldownUntil;
-    s = unwrap(requestRotation(s, ctx, PID, "L", t)).state;
-    const at = t + ctx.cfg.rotationWarningMs;
-    expect(hasDueTransition(s, at - 1, ctx.cfg)).toBe(false);
-    expect(applyDueTransitions(s, ctx, at - 1, rng).changed).toBe(false);
-    expect(hasDueTransition(s, at, ctx.cfg)).toBe(true);
-    const { state, changed } = applyDueTransitions(s, ctx, at + 250, rng);
-    expect(changed).toBe(true);
-    expect(state.locked).toEqual(["B0-4A"]);
-    expect(state.boardAtSeat).toEqual([1, 2, 0]);
-    expect(state.rotations).toBe(1);
-    expect(state.cooldownUntil).toBe(at + 250 + ctx.cfg.cooldownMs);
-    expect(state.pendingRotation).toBeNull();
-    expect(state.masterPid).toBe(PID);
-    expect(state.masterCounts[PID]).toBe(2);
+    s = unwrap(requestRotation(s, ctx, PID, "L", T0 + 1, rng)).state;
+    expect(s.pendingRotation).toBeNull();
+    expect(s.locked).toEqual(["B0-4A"]);
+    expect(s.boardAtSeat).toEqual([1, 2, 0]);
+    expect(s.rotations).toBe(1);
+    expect(s.cooldownUntil).toBe(T0 + 1);
+    // And again immediately.
+    s = unwrap(requestRotation(s, ctx, PID, "R", T0 + 1, rng)).state;
+    expect(s.boardAtSeat).toEqual([0, 1, 2]);
+    expect(s.rotations).toBe(2);
   });
 
   it("evaluates rotation unlocks in the pulse before the rotation counter increments", () => {
     // As written in §3.6.4 / §7.2: pulse → shift → rotations++ (see DECISIONS.md).
     let s = startedRoom(ctx);
     s.rotations = 1;
-    s = unwrap(requestRotation(s, ctx, PID, "R", s.cooldownUntil)).state;
-    s = applyDueTransitions(s, ctx, s.pendingRotation!.at, rng).state;
+    s = unwrap(requestRotation(s, ctx, PID, "R", T0, rng)).state;
     expect(s.rotations).toBe(2);
     expect(s.unlocked).not.toContain("B1-1D"); // rotations ≥ 2: unlocks at the next pulse
   });
 
-  it("does not hand mastership around when the single player idles", () => {
+  it("does not hand the Capt. role around when the single player idles", () => {
     const s = startedRoom(ctx);
     const late = s.cooldownUntil + ctx.cfg.masterIdleTimeoutMs + 1;
     s.players[PID].lastSeen = late;
@@ -100,36 +97,97 @@ describe("rotation", () => {
   });
 });
 
-describe("finalCheck", () => {
-  it("requires every cell filled, then pulses without rotating and starts the cooldown", () => {
-    let s = startedRoom(ctx);
+describe("multiplayer rotation", () => {
+  it("is Capt.-only, waits for the cooldown, then warns before rotating", () => {
+    const s = startedDuo(duoCtx);
+    const capt = s.masterPid!;
+    const other = capt === PID ? PID2 : PID;
+    expect(requestRotation(s, duoCtx, other, "L", s.cooldownUntil, rng)).toMatchObject({
+      error: { code: "NOT_MASTER", message: "Only the Capt. can do that." },
+    });
+    expect(requestRotation(s, duoCtx, capt, "L", T0 + 1, rng)).toMatchObject({
+      error: { code: "COOLDOWN" },
+    });
+    const ok = unwrap(requestRotation(s, duoCtx, capt, "L", s.cooldownUntil, rng));
+    expect(ok.state.pendingRotation).toEqual({
+      dir: "L",
+      at: s.cooldownUntil + duoCtx.cfg.rotationWarningMs,
+    });
+    expect(requestRotation(ok.state, duoCtx, capt, "R", s.cooldownUntil + 1, rng)).toMatchObject({
+      error: { code: "COOLDOWN" },
+    });
+  });
+
+  it("completes lazily: pulse, then shift, rotations++, a 1 s shorter cooldown, next Capt.", () => {
+    let s = startedDuo(duoCtx);
+    const capt = s.masterPid!;
+    fillWord(s, duoCtx, 0, "B0-4A");
     const t = s.cooldownUntil;
+    s = unwrap(requestRotation(s, duoCtx, capt, "L", t, rng)).state;
+    const at = t + duoCtx.cfg.rotationWarningMs;
+    for (const p of Object.values(s.players)) p.lastSeen = at;
+    expect(hasDueTransition(s, at - 1, duoCtx.cfg)).toBe(false);
+    expect(applyDueTransitions(s, duoCtx, at - 1, rng).changed).toBe(false);
+    expect(hasDueTransition(s, at, duoCtx.cfg)).toBe(true);
+    const { state, changed } = applyDueTransitions(s, duoCtx, at + 250, rng);
+    expect(changed).toBe(true);
+    expect(state.locked).toEqual(["B0-4A"]);
+    expect(state.boardAtSeat).toEqual([1, 2, 0]);
+    expect(state.rotations).toBe(1);
+    expect(state.cooldownUntil).toBe(at + 250 + 19_000);
+    expect(state.pendingRotation).toBeNull();
+    expect(state.masterPid).not.toBe(capt);
+  });
+
+  it("shortens the cooldown by 1 s per rotation, never below the minimum", () => {
+    const players = { a: {}, b: {} } as never;
+    const cfg = duoCtx.cfg;
+    expect(cooldownFor({ players, rotations: 0 }, cfg)).toBe(20_000);
+    expect(cooldownFor({ players, rotations: 1 }, cfg)).toBe(19_000);
+    expect(cooldownFor({ players, rotations: 5 }, cfg)).toBe(15_000);
+    expect(cooldownFor({ players, rotations: 25 }, cfg)).toBe(0);
+    expect(cooldownFor({ players: { a: {} } as never, rotations: 0 }, cfg)).toBe(0);
+  });
+});
+
+describe("finalCheck", () => {
+  it("requires every cell filled, then pulses without rotating", () => {
+    let s = startedRoom(ctx);
+    const t = T0 + 1;
     fillBoard(s, ctx, 0);
     fillBoard(s, ctx, 1);
     expect(finalCheck(s, ctx, PID, t)).toMatchObject({ error: { code: "NOT_FILLED" } });
     fillBoard(s, ctx, 2);
     s.boards[2].entries["0,0"] = "Z"; // one wrong letter keeps the game going
-    expect(finalCheck(s, ctx, PID, t - 1)).toMatchObject({ error: { code: "COOLDOWN" } });
     s = unwrap(finalCheck(s, ctx, PID, t)).state;
     expect(s.rotations).toBe(0);
     expect(s.boardAtSeat).toEqual([0, 1, 2]);
     expect(s.finalCheckAt).toBe(t);
-    expect(s.cooldownUntil).toBe(t + ctx.cfg.cooldownMs);
+    expect(s.cooldownUntil).toBe(t); // no cooldown alone
     expect(s.status).toBe("playing");
     expect(s.locked.length).toBe(28); // 30 words minus AWAY and ARC
+  });
+
+  it("respects the cooldown in multiplayer", () => {
+    const s = startedDuo(duoCtx);
+    for (const b of [0, 1, 2]) fillBoard(s, duoCtx, b);
+    expect(finalCheck(s, duoCtx, s.masterPid!, s.cooldownUntil - 1)).toMatchObject({
+      error: { code: "COOLDOWN" },
+    });
   });
 
   it("ends the game and freezes the result when everything locks", () => {
     let s = startedRoom(ctx);
     for (const b of [0, 1, 2]) fillBoard(s, ctx, b);
-    const t = T0 + 10 * 60_000;
+    const t = T0 + 4 * 60_000;
     s.players[PID].lastSeen = t - 500;
     s = unwrap(finalCheck(s, ctx, PID, t)).state;
     expect(s.status).toBe("ended");
+    // Under par: 50 time + 0 metas (none guessed) + 15 suspects.
     expect(s.result).toMatchObject({
-      grade: "S",
-      total: 90,
-      details: { gameSeconds: 600, effPlayers: 1 },
+      grade: "C",
+      total: 65,
+      details: { gameSeconds: 240, effPlayers: 1 },
     });
   });
 });

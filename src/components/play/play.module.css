@@ -54,6 +54,29 @@
   opacity: 0.4;
 }
 
+.rotateBtn {
+  min-width: 64px;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  background: var(--card);
+  font-size: 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.rotateBtn:disabled {
+  opacity: 0.4;
+}
+
+.rotateEmoji {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
 .controlRow {
   display: flex;
   align-items: center;
@@ -73,6 +96,7 @@
 }
 
 .finalBtn {
+  margin-left: auto;
   min-height: 44px;
   padding: 0 10px;
   border-radius: 10px;
@@ -124,15 +148,34 @@
   background: var(--black-cell);
 }
 
-/* Shaded meta cell: a circle that stays visible in every state. */
+/* Meta cell: a circle in its word's color plus the word number; visible in every state. */
 .shaded::after {
   content: "";
   position: absolute;
   inset: 9%;
   border-radius: 50%;
-  border: 2px solid currentColor;
-  opacity: 0.4;
+  border: 2px solid var(--meta, currentColor);
+  opacity: 0.75;
   pointer-events: none;
+}
+
+.locked.shaded::after {
+  border-color: currentColor;
+  opacity: 0.6;
+}
+
+.metaTag {
+  position: absolute;
+  right: 3px;
+  bottom: 2px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--meta, var(--muted));
+}
+
+.locked .metaTag {
+  color: var(--green-ink);
 }
 
 .inWord {

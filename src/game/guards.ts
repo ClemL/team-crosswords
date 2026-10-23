@@ -14,7 +14,7 @@ export function guardPlaying(state: RoomState): Failure | null {
 }
 
 export function guardMaster(state: RoomState, pid: string): Failure | null {
-  return state.masterPid === pid ? null : fail("NOT_MASTER", "Only the board master can do that.");
+  return state.masterPid === pid ? null : fail("NOT_MASTER", "Only the Capt. can do that.");
 }
 
 /** The player may only act on the board at their seat, and not once a due rotation has moved it. */

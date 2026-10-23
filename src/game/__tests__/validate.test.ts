@@ -32,8 +32,30 @@ describe("puzzle validator", () => {
       (g: PuzzleGame) =>
         (g.boards[0].clues[0].unlock = { type: "crossLetter", board: 5, cell: [0, 0] }),
     ],
-    ["shaded count", (g: PuzzleGame) => g.boards[0].shaded.pop()],
-    ["meta mismatch", (g: PuzzleGame) => (g.meta.answer = "BUTTER")],
+    ["meta count", (g: PuzzleGame) => g.metas.pop()],
+    ["meta letters", (g: PuzzleGame) => (g.metas[3].answer = "BUTTER")],
+    [
+      "meta same length",
+      (g: PuzzleGame) => {
+        g.metas[0] = { ...g.metas[0], answer: "BEDS", enumeration: "(4)", cells: g.metas[1].cells };
+      },
+    ],
+    ["meta shared cell", (g: PuzzleGame) => (g.metas[0].cells[0] = g.metas[3].cells[0])],
+    [
+      "meta on one board",
+      (g: PuzzleGame) => {
+        // NET: board 0, r4c0–r4c2 — a valid spelling, but from one board only.
+        g.metas[0] = {
+          ...g.metas[0],
+          answer: "NET",
+          cells: [
+            [0, 4, 0],
+            [0, 4, 1],
+            [0, 4, 2],
+          ],
+        };
+      },
+    ],
     [
       "too few base",
       (g: PuzzleGame) =>

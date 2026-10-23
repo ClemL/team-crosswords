@@ -8,6 +8,7 @@ import { mulberry32 } from "../rng";
 
 const ctx = makeCtx();
 const answers = ALL_GAMES[0].boards.flatMap((b) => b.clues.map((c) => c.answer));
+const metaAnswers = ALL_GAMES[0].metas.map((m) => m.answer);
 
 describe("views", () => {
   it("never include answers, solutions or the text of locked clues", () => {
@@ -17,7 +18,7 @@ describe("views", () => {
     for (const json of [player, host]) {
       for (const a of answers) expect(json).not.toContain(`"${a}"`);
       expect(json).not.toContain("solution");
-      expect(json).not.toContain("BETTER");
+      for (const a of metaAnswers) expect(json).not.toContain(`"${a}"`);
       expect(json).not.toContain("Be in debt"); // B0-1A is crossLetter-locked
     }
     const view = buildPlayerView(s, ctx, PID, T0);
@@ -31,6 +32,19 @@ describe("views", () => {
     expect(view.board.clues.find((c) => c.id === "B0-1D")!.condition).toBe(
       "Unlocks at 4 rotations (now 0)",
     );
+  });
+
+  it("marks the meta cells of the board with their word number and position", () => {
+    const view = buildPlayerView(startedRoom(ctx), ctx, PID, T0);
+    // Board 0 holds BETTER's first two letters (r2c2, r3c0) among others.
+    expect(view.board.metaCells).toEqual(
+      expect.arrayContaining([
+        { r: 2, c: 2, meta: 4, slot: 1 },
+        { r: 3, c: 0, meta: 4, slot: 2 },
+      ]),
+    );
+    const total = ALL_GAMES[0].metas.flatMap((m) => m.cells).filter(([b]) => b === 0).length;
+    expect(view.board.metaCells).toHaveLength(total);
   });
 
   it("shows only the board at the player's seat", () => {
@@ -61,7 +75,15 @@ describe("views", () => {
     const host = buildHostView(s, ctx, T0, "u");
     expect(host).not.toHaveProperty("board");
     expect(host).not.toHaveProperty("you");
-    expect(host.meta.slots.map((x) => x.letter)).toEqual(["B", null, null, null, null, null]);
+    expect(host.meta.words[3].slots.map((x) => x.letter)).toEqual([
+      "B",
+      null,
+      null,
+      null,
+      null,
+      null,
+    ]);
+    expect(host.meta.words.every((w) => w.answer === undefined)).toBe(true);
     expect(JSON.stringify(host)).not.toContain('"O"');
   });
 

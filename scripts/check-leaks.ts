@@ -30,7 +30,7 @@ const needles: { label: string; test: (s: string) => boolean }[] = [];
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const answers = new Set<string>();
 for (const g of games) {
-  answers.add(g.meta.answer);
+  for (const m of g.metas) answers.add(m.answer);
   for (const b of g.boards) {
     for (const c of b.clues) {
       answers.add(c.answer);

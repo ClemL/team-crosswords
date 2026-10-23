@@ -5,6 +5,7 @@ type StateView = {
   status: string;
   board: { index: number; lockedCount: number; entries: Record<string, string> };
   rotation: { count: number; cooldownUntil: number };
+  seating: { nextIfLeft: { emoji: string } };
   now: number;
 };
 
@@ -68,9 +69,10 @@ test("single player: seed → room → join → ready → solve → grade", asyn
   await expect(page.getByRole("heading", { name: "ACROSS" })).toBeVisible();
   await expect.poll(() => latest.view?.status).toBe("playing");
 
-  // The locked crossLetter clue is masked server-side.
+  // The locked crossLetter clue is masked server-side, and no meta answer is sent before a guess.
   const firstState = responses.find((r) => r.url.includes("/state"))!;
   expect(firstState.body).not.toContain(V1_01.lockedClueText);
+  for (const m of V1_01.metaAnswers) expect(firstState.body).not.toContain(`"${m}"`);
 
   // Solve: fill the board at the seat, rotate left, repeat until every word locks.
   for (let round = 0; round < 3; round++) {
@@ -94,31 +96,45 @@ test("single player: seed → room → join → ready → solve → grade", asyn
       ).toBeVisible();
     }
     if (round === 2) {
-      await page.getByRole("button", { name: "Guess" }).click();
-      await page.getByLabel("Meta guess").fill(V1_01.metaAnswer.toLowerCase());
-      await page.getByRole("button", { name: "Submit" }).click();
-      await expect(page.getByText(`✓ ${V1_01.metaAnswer}`)).toBeVisible();
+      // Open the meta panel and type with the keyboard, without clicking the field: the field
+      // must already have focus, and keep it while the page re-renders on each poll.
+      await page.getByRole("button", { name: /Open meta panel/ }).click();
+      const field = page.getByLabel("Meta guess");
+      await expect(field).toBeFocused();
+      await page.keyboard.type("wrongo");
+      await page.waitForTimeout(1_500); // at least one poll re-render
+      await page.keyboard.type("x");
+      await expect(field).toHaveValue("wrongox");
+      await page.keyboard.press("Enter");
+      await expect(page.getByText(/Not a meta word\. 2 wrong guesses left/)).toBeVisible();
+      await page.keyboard.type("Better");
+      await page.keyboard.press("Enter");
+      await expect(page.getByText(/Meta word 4 solved: \+5\.6 pts/)).toBeVisible();
+      await page.keyboard.press("Escape");
     }
     const rotate = page.getByRole("button", { name: /^Rotate left/ });
-    await expect(rotate).toBeEnabled({ timeout: 20_000 });
+    await expect(rotate).toBeEnabled();
+    // The button shows the board it brings.
+    await expect(rotate).toContainText(latest.view!.seating.nextIfLeft.emoji);
     const count = latest.view!.rotation.count;
     await rotate.click();
-    await expect(page.getByText(/Rotating ⟲ in/)).toBeVisible();
-    await expect.poll(() => latest.view?.rotation.count, { timeout: 20_000 }).toBe(count + 1);
+    // Single player: no countdown, the swap is immediate.
+    await expect.poll(() => latest.view?.rotation.count, { timeout: 5_000 }).toBe(count + 1);
   }
 
   // Results on the phone and on the host screen.
   await expect(page.getByText("Game 1 complete")).toBeVisible();
   await expect(page.getByLabel(/^Grade /)).toBeVisible();
-  await expect(page.getByText("Meta solved")).toBeVisible();
+  await expect(page.getByText("Meta words guessed: 1 of 5")).toBeVisible();
+  await expect(page.getByText("auto-completed").first()).toBeVisible();
   await expect(host.getByLabel(/^Grade /)).toBeVisible({ timeout: 20_000 });
 
-  // Nothing secret was ever sent: no clue answers, no solution grid.
-  const meta = V1_01.metaAnswer;
+  // Nothing secret was ever sent: no clue answers, no solution grid. (Meta answers appear once
+  // guessed or at the end, by design; the check before the first guess is above.)
   for (const { url, body } of [...responses, ...hostResponses]) {
     expect(body, url).not.toMatch(/"solution"/);
     for (const a of V1_01.allAnswers) {
-      if (a.length >= 4 && a !== rid && a !== meta)
+      if (a.length >= 4 && a !== rid && !V1_01.metaAnswers.includes(a))
         expect(body, `${url} leaks ${a}`).not.toContain(`"${a}"`);
     }
   }

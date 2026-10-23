@@ -1,7 +1,8 @@
 # Decisions
 
 Choices made where the V1 spec was silent, and rules implemented as written but flagged for review.
-Section numbers refer to the V1 spec.
+Section numbers refer to the V1 spec. Section H lists rule changes requested after V1; where they
+conflict with the spec or with an earlier entry here, section H wins.
 
 ## A. Rules implemented as written, flagged for review
 
@@ -43,10 +44,11 @@ Section numbers refer to the V1 spec.
    `redis://` / `rediss://` connection string in the URL variable is rejected with a clear message.
 3. **The in-process store seeds itself** at first use, because it starts empty on every boot. Upstash
    is never auto-seeded: run `POST /api/admin/seed` once.
-4. **Extra keys and fields (§7.1).** `puzzles:index` (JSON list of `{id, title}`) backs
-   `GET /api/puzzles`. The meta answer lives in the solution key as `metaAnswer`, because the public
-   puzzle must not contain any answer. The room meta hash adds `createdAt` and `result` (the score,
-   frozen when the game ends).
+4. **Extra keys and fields (§7.1).** `puzzles:index` (`{format, puzzles: [{id, title}]}`) backs
+   `GET /api/puzzles`; puzzles seeded with an older `format` count as not seeded. Meta answers live in
+   the solution key as `metaAnswers` (id → answer), because the public puzzle must not contain any
+   answer. The room meta hash adds `createdAt`, `result` (the score, frozen when the game ends) and
+   `metaSolved` (JSON, replacing `metaSolvedAt`).
 5. **Version bumps.** Saves run under the room lock and write `SET version n+1` inside the same MULTI
    as the diff. Under the lock this is equivalent to `INCR`.
 6. **TTL.** Every save refreshes `EXPIRE roomTtlSeconds` on every room key, so a room expires 24 hours
@@ -98,9 +100,9 @@ Section numbers refer to the V1 spec.
 
 ## D. Game-rule details the spec left open
 
-1. **The first rotation waits one cooldown.** Starting the timer sets
-   `cooldownUntil = start + cooldownMs`, so the master cannot rotate (and unlock rotation clues) in the
-   first 20 seconds.
+1. **In multiplayer the first rotation waits one cooldown.** Starting the timer sets
+   `cooldownUntil = start + cooldown`, so the Capt. cannot rotate (and unlock rotation clues) in the
+   first 20 seconds. Single player has no cooldown (H.4).
 2. **Tokens are issued when the timer starts** (`tokensPerPlayer × players`). A late joiner (V1.5)
    adds `tokensPerPlayer`.
 3. **Initial master** is the first player to join (V1: the only player).
@@ -110,9 +112,9 @@ Section numbers refer to the V1 spec.
 7. **Suspect marks.** Marking an already-marked cell is a no-op (no double count). Removing a mark and
    marking again counts again. `accurateSuspects` counts marks on cells holding a wrong letter; empty
    cells count as neither false nor accurate.
-8. **Meta.** A guess counts as "solved before the game ended" when `metaSolvedAt <= endedAt`. The
-   answer is sent to clients once solved or once the game has ended (all six slots are visible by
-   then). Empty guesses (after normalization) are rejected without using a guess.
+8. **Meta.** See H.1–H.3. A guess counts when it was made at or before `endedAt`. An answer is sent to
+   clients once its word is solved or once the game has ended. Empty guesses (after normalization)
+   are rejected without using a guess.
 9. **Scoring.**
    - `effPlayers` is floored at 1. With one player it is exactly 1, as the spec states. Without the
      floor, time spent with the tab hidden would lower `effPlayers` and lengthen par.
@@ -127,9 +129,11 @@ Section numbers refer to the V1 spec.
 2. **`canFinalCheck`** means "every cell on every board is filled and you are master". It does not
    include the cooldown, because views are cached by version and a time-based flag would go stale.
    The phone disables the button until the cooldown ends, as it does for ⟲ and ⟳.
-3. **Extra view fields:** `rid`, `puzzleTitle`, `board.lockedCount`/`totalCount`, `meta.enumeration`,
-   `result.details` (time, par, tokens, false suspects, meta), and on the host view `masterName` and
-   `players` (names, seats, ready, master). The host view never contains board letters.
+3. **Extra view fields:** `rid`, `puzzleTitle`, `board.lockedCount`/`totalCount`,
+   `board.metaCells`, `meta.words` (per word: number, slots, solved/auto-completed, points),
+   `meta.pointsNow`, `result.details` (time, par, tokens used, false suspects, per-word meta results),
+   and on the host view `masterName` and `players` (names, seats, ready, Capt.). The host view never
+   contains board letters.
 4. **Host view rotation previews** (`nextIfLeft`/`nextIfRight`, `pending.youReceive`) are computed for
    the master's seat.
 5. **Masked clue text** is generated on the server for every clue that is neither unlocked nor locked
@@ -145,7 +149,7 @@ Section numbers refer to the V1 spec.
    share of the row with no dead gaps. All other controls, including grid cells, are at least
    44×44 px.
 2. **Check 🎟 sits in the current-clue bar,** not below the keyboard, so the clue list keeps usable
-   height at 360×780.
+   height at 360×780. It shows the checks left (`Check 🎟2`).
 3. **Typing** advances to the next non-locked cell in the word and stays on the last cell at the end
    of the word. Typing on a locked cell writes into the next non-locked cell of the word. Tab and
    Shift+Tab move between clues on desktop.
@@ -172,6 +176,43 @@ Section numbers refer to the V1 spec.
 4. **Upstash adapter coverage.** `scripts/upstash-shim.ts` is a minimal Upstash-REST-compatible proxy
    in front of a real Redis. CI starts Redis and the shim and runs the store contract and repository
    tests against both the in-process store and the real `@upstash/redis` client.
-5. **E2E** runs `next start` with the in-process store, a 1.5 s cooldown and a 0.7 s warning. It also
-   reloads mid-game and asserts that recorded API responses never contain a clue answer, a solution
-   grid, or the text of a locked clue.
+5. **E2E** runs `next start` with the in-process store. It reloads mid-game, opens the meta panel and
+   types without clicking the field (the focus bug), makes a wrong and a right guess, and asserts that
+   recorded API responses never contain a clue answer, a solution grid, the text of a locked clue,
+   or a meta answer before it is guessed.
+
+## H. Rule changes requested after V1
+
+These supersede the spec's §3.10, §4, §3.6 cooldown and the `meta`/`shaded` fields of §6.
+
+1. **Five meta words per game, of lengths 3, 4, 5, 6 and 7.** The 6-letter word is the game's
+   original meta (same cells). The other four were generated by `scripts/generate-metas.ts` from a
+   list of common words: deterministic per game id, letters drawn from all three boards, no cell
+   shared between words, and no word equal to any clue answer in the set. Puzzle file:
+   `metas: [{ id, answer, enumeration, cells: [[board, row, col], …] }]`; `meta` and `shaded` are gone.
+   The validator enforces 5 words, distinct lengths, correct spelling, open and unshared cells, every
+   board used, and no clash with a clue answer.
+2. **One guess box, 3 wrong guesses shared by all words.** A guess is compared with every unsolved
+   word. A miss costs one shared wrong guess; a hit costs nothing; re-guessing a solved word is free.
+3. **Meta scoring.** Each word is worth 7 points (5 × 7 = 35), minus 10% of that per rotation made
+   before the guess, never below 10% (0.7). Final Check does not count as a rotation. When the game
+   ends, unguessed words are revealed ("auto-completed") for 0 points.
+4. **Cooldowns.** Single player: no cooldown, and ⟲/⟳ validate and swap immediately (no 3-second
+   warning; the seating flash still shows). Multiplayer: the cooldown starts at 20 s and each rotation
+   makes the next one 1 s shorter (`cooldownMs − cooldownStepMs × rotations`, floor `cooldownMinMs`
+   = 0). The 3-second warning stays in multiplayer.
+5. **Score: Time 50 · Metas 35 · Suspects 15.** Check tokens are no longer scored (still 2 per player,
+   reported on the results screen as "not scored"). S\* needs ≥ 95, 0 false suspects and all 5 words
+   guessed (the "0 tokens spent" condition is gone).
+6. **Par is 5 minutes** for the three 5×5 boards (`parMinutes: 5` in the puzzle file).
+7. **"Capt." replaces "master" in all user-facing text,** in red. Internal identifiers (`masterPid`,
+   `isMaster`, `NOT_MASTER`) keep the spec's names.
+8. **Rotate buttons show the board they bring** (`⟲ 🌵`, `⟳ 🐙`). The seating button uses a folded-map
+   icon (inline SVG) instead of the 🗺 world-map emoji.
+9. **Meta cells** are circled in their word's color and carry the word number (1–5) in the corner, so
+   color is never the only cue. The phone's meta bar shows one compact chip per word (e.g. `C__N`) and
+   opens the meta panel.
+10. **Meta field bug.** The dialog component re-ran its focus effect on every render (each keystroke
+    and each 1-second poll passed a new `onClose`), pulling focus off the guess field, so only the
+    first letter registered. It now focuses the first field once when it opens and never takes focus
+    back from inside the dialog.

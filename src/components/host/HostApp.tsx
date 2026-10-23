@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { CONFIG_V1 } from "@/config";
 import { formatClock, usePoll, useServerNow } from "@/client/usePoll";
 import type { HostView } from "@/game/views";
-import { MetaBar } from "../MetaBar";
+import { MetaWordList } from "../MetaBar";
 import { Results } from "../Results";
 import ui from "../ui.module.css";
 import h from "./host.module.css";
@@ -50,7 +50,7 @@ function Ring({ view }: { view: HostView }) {
             </div>
             <div className={h.tileName}>
               {idle ? "idle" : seat.playerName}
-              {seat.isMaster ? " ★" : ""}
+              {seat.isMaster && <span className={ui.capt}> Capt.</span>}
             </div>
             <div className={ui.muted}>
               Seat {seat.seat + 1}
@@ -153,9 +153,15 @@ export function HostApp({ rid }: { rid: string }) {
           <div className={`${ui.card}`} style={{ padding: 12 }}>
             <Ring view={view} />
             <p className={h.footer}>
-              {view.players.length === 0
-                ? "Waiting for a player to join…"
-                : `Master: ${view.masterName ?? "—"}. The timer starts when everyone taps Ready, or when the master taps Start.`}
+              {view.players.length === 0 ? (
+                "Waiting for a player to join…"
+              ) : (
+                <>
+                  <span className={ui.capt}>Capt.</span> {view.masterName ?? "—"}. The timer starts
+                  when everyone taps Ready, or when the <span className={ui.capt}>Capt.</span> taps
+                  Start.
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -169,12 +175,16 @@ export function HostApp({ rid }: { rid: string }) {
 
       {view.status === "ended" && view.result && (
         <div className={ui.card} style={{ maxWidth: 520, width: "100%", margin: "0 auto" }}>
-          <Results result={view.result} metaAnswer={view.meta.answer} />
+          <Results result={view.result} />
         </div>
       )}
 
       <div className={`${ui.card} ${h.metaWrap}`}>
-        <MetaBar meta={view.meta} canGuess={false} />
+        <h2 className={h.metaTitle}>
+          Meta words · {view.meta.solvedCount}/{view.meta.words.length} solved ·{" "}
+          {view.meta.guessesLeft} wrong {view.meta.guessesLeft === 1 ? "guess" : "guesses"} left
+        </h2>
+        <MetaWordList meta={view.meta} />
       </div>
     </main>
   );

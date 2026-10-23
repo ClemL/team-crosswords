@@ -118,14 +118,33 @@
   justify-content: center;
 }
 
-/* Meta bar */
+/* Meta words. Each word has a number and color; the color is never the only cue. */
+.m1 {
+  --meta: #1f4fd1;
+}
+.m2 {
+  --meta: #7b3fb0;
+}
+.m3 {
+  --meta: #00796b;
+}
+.m4 {
+  --meta: #b85c00;
+}
+.m5 {
+  --meta: #c2185b;
+}
+
 .metaBar {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 6px 8px;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  text-align: left;
 }
 
 .metaLabel {
@@ -135,32 +154,99 @@
   color: var(--muted);
 }
 
-.metaSlots {
+.metaChips {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   flex: 1;
+  min-width: 0;
+}
+
+.metaChip {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  padding: 1px 3px;
+  border-radius: 5px;
+  border: 2px solid var(--meta);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.metaChipSolved {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--green-ink);
+}
+
+.metaChipAuto {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+.metaGuessLabel {
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+@media (max-width: 400px) {
+  .metaBar .metaLabel {
+    display: none;
+  }
+}
+
+.metaList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.metaWord {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.metaNum {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--meta);
+  color: var(--meta);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
   justify-content: center;
+}
+
+.metaSlots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
 }
 
 .metaSlot {
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   line-height: 1;
 }
 
 .metaLetter {
-  width: 32px;
-  height: 34px;
+  width: 28px;
+  height: 30px;
   margin-top: 2px;
-  border: 2px solid var(--line-strong);
+  border: 2px solid var(--meta, var(--line-strong));
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 1.1rem;
+  font-size: 1rem;
   background: var(--card);
 }
 
@@ -170,10 +256,26 @@
   color: var(--green-ink);
 }
 
-.metaSolved {
-  font-weight: 700;
+.metaLetterAuto {
+  background: #ebe7de;
+  color: var(--muted);
+}
+
+.metaStatus {
+  grid-column: 2;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.metaStatusSolved {
   color: var(--green);
-  white-space: nowrap;
+  font-weight: 700;
+}
+
+/* Capt. (board master) label */
+.capt {
+  color: var(--red);
+  font-weight: 800;
 }
 
 /* Results */

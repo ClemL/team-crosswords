@@ -2,6 +2,7 @@
 
 import type { BoardView } from "@/game/views";
 import { clueAt, key, type Selection } from "@/client/board-nav";
+import ui from "../ui.module.css";
 import s from "./play.module.css";
 
 export function Grid({
@@ -22,7 +23,7 @@ export function Grid({
   const n = board.layout.length;
   const locked = new Set(board.lockedCells);
   const red = new Set(board.red);
-  const shaded = new Set(board.shaded.map(([r, c]) => key(r, c)));
+  const metaAt = new Map(board.metaCells.map((m) => [key(m.r, m.c), m]));
   const numbers = new Map<string, number>();
   for (const clue of board.clues) numbers.set(key(clue.cells[0][0], clue.cells[0][1]), clue.num);
   const word = clueAt(board, sel.r, sel.c, sel.dir);
@@ -46,7 +47,8 @@ export function Grid({
             const isSel = sel.r === r && sel.c === c;
             const classes = [
               s.cell,
-              shaded.has(k) && s.shaded,
+              metaAt.has(k) && s.shaded,
+              metaAt.has(k) && ui[`m${metaAt.get(k)!.meta}`],
               inWord.has(k) && s.inWord,
               isSel && s.selected,
               red.has(k) && !isLocked && s.red,
@@ -63,7 +65,7 @@ export function Grid({
               isLocked && "locked",
               red.has(k) && !isLocked && "marked wrong",
               suspect && `suspected by ${suspect}`,
-              shaded.has(k) && "meta cell",
+              metaAt.has(k) && `meta word ${metaAt.get(k)!.meta}, letter ${metaAt.get(k)!.slot}`,
             ]
               .filter(Boolean)
               .join(", ");
@@ -78,6 +80,7 @@ export function Grid({
               >
                 {numbers.has(k) && <span className={s.num}>{numbers.get(k)}</span>}
                 {suspect && !isLocked && <span className={s.suspect}>?{suspect}</span>}
+                {metaAt.has(k) && <span className={s.metaTag}>{metaAt.get(k)!.meta}</span>}
                 {letter}
               </button>
             );

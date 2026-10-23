@@ -1,6 +1,7 @@
 import type { GameCtx } from "./context";
 import { maskClue } from "./mask";
-import { metaSlots } from "./meta";
+import { metaWords, type MetaWordState } from "./meta";
+import { metaPoints } from "./score";
 import { boardReceived } from "./ring";
 import { allCellsFilled, boardLockedCount, boardPercent, lockedCellKeys } from "./state";
 import type {
@@ -37,7 +38,8 @@ export type BoardView = {
   lockedCells: string[];
   red: string[];
   suspects: Record<string, string>;
-  shaded: Cell[];
+  /** Cells that belong to a meta word: `meta` is the word's 1-based number, `slot` its position. */
+  metaCells: Array<{ r: number; c: number; meta: number; slot: number }>;
   clues: ClueView[];
   percent: number;
   lockedCount: number;
@@ -68,16 +70,23 @@ export type RotationView = {
   count: number;
   cooldownUntil: number;
   pending?: { dir: RotationDir; at: number; youReceive: BoardRef };
-  /** Every cell on every board is filled and you are master. The client also waits for cooldown. */
+  /** Every cell on every board is filled and you are Capt. The client also waits for cooldown. */
   canFinalCheck: boolean;
 };
 
-export type MetaView = {
+export type MetaWordView = Omit<MetaWordState, "slots"> & {
+  number: number;
   slots: Array<{ emoji: string; letter: string | null }>;
-  enumeration: string;
+};
+
+export type MetaView = {
+  words: MetaWordView[];
+  /** Wrong guesses left, shared by all words. */
   guessesLeft: number;
-  solved: boolean;
-  answer?: string;
+  solvedCount: number;
+  /** Points a correct guess would earn now (each word), given the current rotation count. */
+  pointsNow: number;
+  maxPointsPerWord: number;
 };
 
 export type PlayerView = {
@@ -155,7 +164,12 @@ export function buildBoardView(state: RoomState, ctx: GameCtx, boardIndex: numbe
     lockedCells: [...lockedCellKeys(state, ctx, boardIndex)].sort(),
     red: [...b.red],
     suspects,
-    shaded: pb.shaded,
+    metaCells: ctx.puzzle.metas.flatMap((m, mi) =>
+      m.cells
+        .map(([b, r, c], slot) => ({ b, r, c, meta: mi + 1, slot: slot + 1 }))
+        .filter((x) => x.b === boardIndex)
+        .map(({ r, c, meta, slot }) => ({ r, c, meta, slot })),
+    ),
     clues,
     percent: boardPercent(state, ctx, boardIndex),
     lockedCount: boardLockedCount(state, ctx, boardIndex),
@@ -201,16 +215,19 @@ function buildShared(
   viewerSeat: number,
   viewerPid: string | null,
 ) {
-  const slots = metaSlots(state, ctx);
-  const solved = state.metaSolvedAt !== null;
+  // An answer is included only once its word is solved, or at the end (auto-completed).
+  const words = metaWords(state, ctx).map((w, i) => ({
+    ...w,
+    number: i + 1,
+    slots: w.slots.map((x) => ({ emoji: x.emoji, letter: x.letter })),
+  }));
   const meta: MetaView = {
-    slots: slots.map((s) => ({ emoji: s.emoji, letter: s.letter })),
-    enumeration: ctx.puzzle.meta.enumeration,
+    words,
     guessesLeft: state.metaGuessesLeft,
-    solved,
+    solvedCount: words.filter((w) => w.solved).length,
+    pointsNow: metaPoints(state.rotations, ctx.cfg),
+    maxPointsPerWord: ctx.cfg.metaWordPoints,
   };
-  // The meta answer is revealed once solved, or at the end (all slots are visible by then anyway).
-  if (solved || state.status === "ended") meta.answer = ctx.solution.metaAnswer;
   const filled = state.status === "playing" && allCellsFilled(state, ctx);
   const rotation: RotationView = {
     count: state.rotations,

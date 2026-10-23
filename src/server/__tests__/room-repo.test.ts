@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CONFIG_V1 } from "@/config";
 import { applyEntry } from "@/game/entry";
 import { joinRoom, markReady } from "@/game/lobby";
+import { guessMeta } from "@/game/meta";
 import { runPulse } from "@/game/pulse";
 import { mulberry32 } from "@/game/rng";
 import { createRoomState } from "@/game/state";
@@ -41,6 +42,7 @@ for (const { name, make } of storesUnderTest()) {
       next = unwrap(markReady(next, ctx, PID, now)).state;
       next = unwrap(applyEntry(next, ctx, PID, 0, 2, 0, "T", now)).state;
       next = unwrap(toggleSuspect(next, ctx, PID, 0, 2, 0, true, now)).state;
+      next = unwrap(guessMeta(next, ctx, PID, "water", now)).state;
       fillWord(next, ctx, 0, "B0-4A");
       next = runPulse(next, ctx, now).state;
       const saved = await saveRoom(store, loaded, next, cfg);
@@ -52,6 +54,7 @@ for (const { name, make } of storesUnderTest()) {
       expect(again.boards[0].entries["2,0"]).toBe("T");
       expect(again.boards[0].suspects).toEqual({ "2,0": PID });
       expect(again.locked).toEqual(["B0-4A"]);
+      expect(again.metaSolved).toEqual({ M3: { at: now, rotations: 0 } });
 
       // A save without changes does not bump the version.
       const noop = await saveRoom(store, again, structuredClone(again), cfg);

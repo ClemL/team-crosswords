@@ -2,7 +2,10 @@ import { guessMeta } from "@/game/meta";
 import { handle, json, readBody, str } from "@/server/http";
 import { mutateRoom } from "@/server/room-service";
 
-/** POST /api/rooms/[rid]/meta { pid, guess } → { correct, guessesLeft } */
+/**
+ * POST /api/rooms/[rid]/meta { pid, guess } → { correct, metaId, points, guessesLeft }
+ * One guess is checked against every unsolved meta word; `metaId` and `points` are null on a miss.
+ */
 export async function POST(req: Request, { params }: { params: Promise<{ rid: string }> }) {
   return handle(async () => {
     const { rid } = await params;
@@ -10,6 +13,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ rid: st
     const pid = str(body, "pid", 64);
     const guess = str(body, "guess", 64);
     const res = await mutateRoom(rid, (s, ctx, now) => guessMeta(s, ctx, pid, guess, now));
-    return json({ correct: res.correct, guessesLeft: res.guessesLeft, version: res.state.version });
+    return json({
+      correct: res.correct,
+      metaId: res.metaId,
+      points: res.points,
+      guessesLeft: res.guessesLeft,
+      version: res.state.version,
+    });
   });
 }

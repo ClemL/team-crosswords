@@ -4,13 +4,19 @@ export const CONFIG_V1 = {
   boardSize: 5,
   maxPlayers: 1, // V1.5: 3
   tokensPerPlayer: 2,
-  cooldownMs: 20_000,
+  cooldownMs: 20_000, // multiplayer only; single player has no cooldown
   rotationWarningMs: 3_000,
   seatingFlashMs: 2_000,
   masterIdleTimeoutMs: 90_000,
   inactiveAfterMs: 60_000,
   lockedRevealRatio: 0.5,
-  metaGuesses: 3,
+  metaWords: 5,
+  metaGuesses: 3, // wrong guesses, shared by all meta words
+  metaWordPoints: 7, // 5 words × 7 = 35 points
+  metaDecayPerRotation: 0.1, // a word loses 10% of its points per rotation made before the guess
+  metaMinFraction: 0.1, // … down to 10%
+  cooldownStepMs: 1_000, // multiplayer: each rotation shortens the next cooldown by 1 s
+  cooldownMinMs: 0,
   pollIntervalMs: 1_000,
   hostPollIntervalMs: 1_500,
   roomTtlSeconds: 86_400,

@@ -14,6 +14,7 @@ export const ALL_GAMES = JSON.parse(
 
 export const GAME1 = ALL_GAMES[0];
 export const PID = "p-1";
+export const PID2 = "p-2";
 export const T0 = 1_000_000;
 
 export function makeCtx(game: PuzzleGame = GAME1, cfg: Partial<GameConfig> = {}): GameCtx {
@@ -41,6 +42,25 @@ export function startedRoom(ctx: GameCtx, now: number = T0): RoomState {
 }
 
 /** Writes the solution letters of a clue straight into the state (mutates). */
+/**
+ * A two-player room (multiplayer rules: cooldowns, rotation warning). Needs a ctx whose config
+ * allows 2 players, e.g. makeCtx(GAME1, { maxPlayers: 2 }).
+ */
+export function startedDuo(ctx: GameCtx, now: number = T0): RoomState {
+  let s = createRoomState({
+    rid: "DUO",
+    puzzle: ctx.puzzle,
+    now,
+    rng: mulberry32(7),
+    cfg: ctx.cfg,
+  });
+  s = unwrap(joinRoom(s, ctx, PID, "Clem Leung", now)).state;
+  s = unwrap(joinRoom(s, ctx, PID2, "Kris", now)).state;
+  s = unwrap(markReady(s, ctx, PID, now)).state;
+  s = unwrap(markReady(s, ctx, PID2, now)).state;
+  return s;
+}
+
 export function fillWord(
   s: RoomState,
   ctx: GameCtx,

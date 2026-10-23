@@ -23,7 +23,9 @@ export function SeatingCard({
           <div>
             You hold <span className={ui.bigEmoji}>{mine.emoji}</span>
           </div>
-          <div className={ui.muted}>Master: {isMaster ? "you" : (masterName ?? "—")}</div>
+          <div className={ui.muted}>
+            <span className={ui.capt}>Capt.</span> {isMaster ? "you" : (masterName ?? "—")}
+          </div>
         </div>
       )}
       <div className={ui.section}>
@@ -38,7 +40,12 @@ export function SeatingCard({
                 <strong>{idle ? "idle" : s.playerName}</strong>{" "}
                 <span className={ui.muted}>
                   {s.isYou ? "(you)" : `(seat ${s.seat + 1})`}
-                  {s.isMaster ? " · master" : ""}
+                  {s.isMaster && (
+                    <>
+                      {" · "}
+                      <span className={ui.capt}>Capt.</span>
+                    </>
+                  )}
                   {seating.readySeats.includes(s.seat) && !seating.timerStarted ? " · ready" : ""}
                 </span>
               </span>

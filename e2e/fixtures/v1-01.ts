@@ -1,7 +1,8 @@
 // Test-only fixture: the solution of game v1-01. Never import this from app code.
 export const V1_01 = {
   puzzleId: "v1-01",
-  metaAnswer: "BETTER",
+  /** Meta words M1–M5 in order. */
+  metaAnswers: ["APE", "CORN", "WATER", "BETTER", "GALLERY"],
   /** Solution rows per board index. */
   boards: [
     ["##OWE", "#GRAY", "TABLE", "EVIL#", "NET##"],

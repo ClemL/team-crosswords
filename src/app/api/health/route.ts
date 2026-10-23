@@ -1,5 +1,6 @@
 import { json } from "@/server/http";
 import { puzzleKeys } from "@/server/keys";
+import { parseIndex } from "@/server/puzzles";
 import { getStore, StoreError, storeKind } from "@/server/store";
 
 export const dynamic = "force-dynamic";
@@ -22,10 +23,13 @@ export async function GET() {
   let store = "unconfigured";
   let database = "ok";
   let puzzlesSeeded: number | null = null;
+  let staleSeed = false;
   try {
     store = storeKind();
     const [index] = await getStore().exec([{ op: "get", key: puzzleKeys.index }]);
-    puzzlesSeeded = index ? (JSON.parse(index as string) as unknown[]).length : 0;
+    const parsed = parseIndex(index);
+    puzzlesSeeded = parsed?.puzzles.length ?? 0;
+    staleSeed = parsed?.stale ?? false;
   } catch (e) {
     database = e instanceof StoreError ? e.publicMessage : "unexpected error (see server logs)";
     if (!(e instanceof StoreError)) console.error("[health]", e);
@@ -34,8 +38,10 @@ export async function GET() {
   const next =
     database !== "ok"
       ? database
-      : puzzlesSeeded === 0
-        ? 'Database reachable but empty: POST /api/admin/seed with header "x-seed-secret".'
-        : "Ready.";
+      : staleSeed
+        ? 'Puzzles were seeded by an older version: POST /api/admin/seed again with header "x-seed-secret".'
+        : puzzlesSeeded === 0
+          ? 'Database reachable but empty: POST /api/admin/seed with header "x-seed-secret".'
+          : "Ready.";
   return json({ ok, store, database, puzzlesSeeded, env, next }, ok ? 200 : 503);
 }

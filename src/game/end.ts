@@ -1,8 +1,8 @@
 import type { GameCtx } from "./context";
 import { accrueActivity } from "./activity";
 import { indexPuzzle } from "./puzzle";
-import { scoreGame } from "./score";
-import type { GameResult, RoomState } from "./types";
+import { metaPoints, scoreGame } from "./score";
+import type { GameResult, MetaResult, RoomState } from "./types";
 
 /** Ends the game when every word on every board is locked (§3.12). Mutates `state`. */
 export function endGameIfComplete(state: RoomState, ctx: GameCtx, now: number): boolean {
@@ -25,16 +25,24 @@ export function computeResult(state: RoomState, ctx: GameCtx): GameResult {
   const activeTotal = Object.values(state.players).reduce((sum, p) => sum + p.activeSeconds, 0);
   // effPlayers is floored at 1: the team is never "less than one player" (see DECISIONS.md).
   const effPlayers = gameSeconds > 0 ? Math.max(1, activeTotal / gameSeconds) : 1;
-  const metaSolved = state.metaSolvedAt !== null && state.metaSolvedAt <= ended;
+  const metas: MetaResult[] = ctx.puzzle.metas.map((m) => {
+    const solve = state.metaSolved[m.id];
+    const guessed = solve !== undefined && solve.at <= ended;
+    return {
+      id: m.id,
+      answer: ctx.solution.metaAnswers[m.id],
+      rotations: guessed ? solve.rotations : null,
+      points: guessed ? metaPoints(solve.rotations, ctx.cfg) : 0,
+    };
+  });
   const score = scoreGame({
     gameSeconds,
     parMinutes: ctx.puzzle.parMinutes,
     refPlayers: ctx.cfg.refPlayers,
     effPlayers,
-    tokensSpent: state.stats.tokensSpent,
-    tokensIssued: state.tokensIssued,
     falseSuspects: state.stats.falseSuspects,
-    metaSolved,
+    metaPoints: metas.reduce((sum, m) => sum + m.points, 0),
+    allMetasSolved: metas.every((m) => m.rotations !== null),
   });
   return {
     total: score.total,
@@ -47,7 +55,7 @@ export function computeResult(state: RoomState, ctx: GameCtx): GameResult {
       tokensSpent: state.stats.tokensSpent,
       tokensIssued: state.tokensIssued,
       falseSuspects: state.stats.falseSuspects,
-      metaSolved,
+      metas,
     },
   };
 }

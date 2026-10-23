@@ -9,7 +9,6 @@ import type { PuzzleBoard, PuzzleGame } from "./types";
 export const MAX_SOLVE_ROTATIONS = 10;
 const MIN_WORD = 3;
 const MIN_BASE = 3;
-const SHADED_PER_BOARD = 2;
 
 export type ValidationReport = {
   id: string;
@@ -135,20 +134,62 @@ function validateBoard(game: PuzzleGame, board: PuzzleBoard, bi: number, errors:
       errors.push(`${where}: crossLetter references a black cell`);
   }
 
-  // 7. Shaded cells.
-  if (!Array.isArray(board.shaded) || board.shaded.length !== SHADED_PER_BOARD) {
-    errors.push(`${at}: expected exactly ${SHADED_PER_BOARD} shaded cells`);
-  } else {
-    const keys = new Set(board.shaded.map(([r, c]) => cellKey(r, c)));
-    if (keys.size !== board.shaded.length) errors.push(`${at}: duplicate shaded cells`);
-    for (const [r, c] of board.shaded) {
-      if (isBlack(board.layout, r, c)) errors.push(`${at}: shaded cell r${r}c${c} is not open`);
-    }
-  }
-
   // 8. Base clues.
   const base = board.clues.filter((c) => c.unlock.type === "base").length;
   if (base < MIN_BASE) errors.push(`${at}: only ${base} base clues (minimum ${MIN_BASE})`);
+}
+
+/**
+ * Meta words (§3.10, revised): exactly CONFIG_V1.metaWords words of differing lengths, each spelled
+ * by open cells that use every board, no cell shared between words, and no word equal to a clue
+ * answer of the same game.
+ */
+function validateMetas(game: PuzzleGame, clueAnswers: Set<string>, errors: string[]): void {
+  const metas = Array.isArray(game.metas) ? game.metas : [];
+  if (metas.length !== CONFIG_V1.metaWords) {
+    errors.push(`expected ${CONFIG_V1.metaWords} meta words, found ${metas.length}`);
+  }
+  const ids = new Set<string>();
+  const lengths = new Set<number>();
+  const usedCells = new Map<string, string>();
+  for (const m of metas) {
+    const where = `meta ${m.id}`;
+    if (ids.has(m.id)) errors.push(`duplicate meta id ${m.id}`);
+    ids.add(m.id);
+    if (typeof m.answer !== "string" || !/^[A-Z]{2,}$/.test(m.answer)) {
+      errors.push(`${where}: answer must be at least 2 letters A–Z`);
+      continue;
+    }
+    if (lengths.has(m.answer.length))
+      errors.push(`${where}: another meta word also has ${m.answer.length} letters`);
+    lengths.add(m.answer.length);
+    if (m.enumeration !== `(${m.answer.length})`)
+      errors.push(`${where}: enumeration should be (${m.answer.length})`);
+    if (clueAnswers.has(m.answer)) errors.push(`${where}: "${m.answer}" is also a clue answer`);
+    if (!Array.isArray(m.cells) || m.cells.length !== m.answer.length) {
+      errors.push(`${where}: needs one cell per letter`);
+      continue;
+    }
+    let letters = "";
+    for (const [b, r, c] of m.cells) {
+      const board = game.boards[b];
+      if (!board || isBlack(board.layout, r, c)) {
+        errors.push(`${where}: cell b${b} r${r}c${c} is not an open cell`);
+        letters += "?";
+        continue;
+      }
+      letters += board.solution[r][c];
+      const k = `${b}:${cellKey(r, c)}`;
+      const other = usedCells.get(k);
+      if (other) errors.push(`${where}: cell b${b} r${r}c${c} is already used by ${other}`);
+      usedCells.set(k, m.id);
+    }
+    if (letters !== m.answer) errors.push(`${where}: cells spell "${letters}", not "${m.answer}"`);
+    const boardsUsed = new Set(m.cells.map(([b]) => b));
+    if (boardsUsed.size < Math.min(game.boards.length, m.answer.length)) {
+      errors.push(`${where}: letters must come from every board`);
+    }
+  }
 }
 
 /**
@@ -211,17 +252,8 @@ export function validateGame(
     }
   }
 
-  // 7. Shaded letters spell the meta answer.
-  const shadedLetters = game.boards
-    .flatMap((b) =>
-      (Array.isArray(b.shaded) ? b.shaded : []).map(([r, c]) => b.solution[r]?.[c] ?? "?"),
-    )
-    .join("");
-  if (shadedLetters !== game.meta?.answer) {
-    errors.push(
-      `shaded letters "${shadedLetters}" do not spell meta answer "${game.meta?.answer}"`,
-    );
-  }
+  // 7. Meta words.
+  validateMetas(game, answers, errors);
 
   // 9. Solvability (only meaningful once the structure is valid).
   let solvedAtRotation: number | null = null;

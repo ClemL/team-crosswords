@@ -6,6 +6,18 @@ import { puzzleKeys } from "./keys";
 import type { Store } from "./store";
 
 export type PuzzleListItem = { id: string; title: string };
+
+/** Bumped whenever the stored puzzle shape changes; older seeds must be re-seeded. */
+export const PUZZLE_FORMAT = 2;
+type PuzzleIndex = { format: number; puzzles: PuzzleListItem[] };
+
+/** Parses the stored index. Returns null when missing; `stale` when seeded by an older version. */
+export function parseIndex(raw: unknown): { puzzles: PuzzleListItem[]; stale: boolean } | null {
+  if (typeof raw !== "string") return null;
+  const parsed = JSON.parse(raw) as PuzzleIndex | PuzzleListItem[];
+  if (Array.isArray(parsed) || parsed.format !== PUZZLE_FORMAT) return { puzzles: [], stale: true };
+  return { puzzles: parsed.puzzles, stale: false };
+}
 export type LoadedPuzzle = { pub: PublicPuzzle; solution: PuzzleSolution };
 
 const cache = new Map<string, LoadedPuzzle>();
@@ -23,7 +35,11 @@ export async function seedPuzzles(store: Store): Promise<PuzzleListItem[]> {
           { op: "set" as const, key: puzzleKeys.solution(g.id), value: JSON.stringify(solution) },
         ];
       }),
-      { op: "set", key: puzzleKeys.index, value: JSON.stringify(index) },
+      {
+        op: "set",
+        key: puzzleKeys.index,
+        value: JSON.stringify({ format: PUZZLE_FORMAT, puzzles: index } satisfies PuzzleIndex),
+      },
     ],
     { atomic: true },
   );
@@ -41,7 +57,7 @@ async function ensureSeeded(store: Store): Promise<void> {
 export async function listPuzzles(store: Store): Promise<PuzzleListItem[]> {
   await ensureSeeded(store);
   const [raw] = await store.exec([{ op: "get", key: puzzleKeys.index }]);
-  return raw ? (JSON.parse(raw as string) as PuzzleListItem[]) : [];
+  return parseIndex(raw)?.puzzles ?? [];
 }
 
 export async function loadPuzzle(store: Store, id: string): Promise<LoadedPuzzle | null> {
@@ -57,6 +73,8 @@ export async function loadPuzzle(store: Store, id: string): Promise<LoadedPuzzle
     pub: JSON.parse(pub as string) as PublicPuzzle,
     solution: JSON.parse(solution as string) as PuzzleSolution,
   };
+  // Seeded by an older version (single meta word): treat as not seeded.
+  if (!Array.isArray(loaded.pub.metas) || !loaded.solution.metaAnswers) return null;
   cache.set(id, loaded);
   return loaded;
 }

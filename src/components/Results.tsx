@@ -2,9 +2,10 @@ import type { GameResult } from "@/game/types";
 import { formatClock } from "@/client/usePoll";
 import ui from "./ui.module.css";
 
-/** §9.7 results: time vs par, tokens, false suspects, meta, components, total, grade. */
-export function Results({ result, metaAnswer }: { result: GameResult; metaAnswer?: string }) {
+/** §9.7 results: time vs par, meta words, false suspects, components, total, grade. */
+export function Results({ result }: { result: GameResult }) {
   const d = result.details;
+  const guessed = d.metas.filter((m) => m.rotations !== null).length;
   return (
     <div className={ui.results}>
       <p className={ui.grade} aria-label={`Grade ${result.grade}`}>
@@ -24,20 +25,32 @@ export function Results({ result, metaAnswer }: { result: GameResult; metaAnswer
           </tr>
           <tr>
             <th scope="row">
-              Check tokens {d.tokensSpent} of {d.tokensIssued} spent
+              Meta words guessed: {guessed} of {d.metas.length}
             </th>
-            <td>{result.breakdown.tokens} / 25</td>
+            <td>{result.breakdown.metas} / 35</td>
           </tr>
+          {d.metas.map((m, i) => (
+            <tr key={m.id}>
+              <th scope="row" style={{ paddingLeft: 16 }}>
+                <span className={ui.muted}>{i + 1}.</span> {m.answer}{" "}
+                <span className={ui.muted}>
+                  {m.rotations === null
+                    ? "auto-completed"
+                    : `after ${m.rotations} rotation${m.rotations === 1 ? "" : "s"}`}
+                </span>
+              </th>
+              <td className={ui.muted}>{m.points}</td>
+            </tr>
+          ))}
           <tr>
             <th scope="row">False suspects: {d.falseSuspects}</th>
             <td>{result.breakdown.suspects} / 15</td>
           </tr>
           <tr>
-            <th scope="row">
-              Meta {d.metaSolved ? "solved" : "not solved"}
-              {metaAnswer ? <span className={ui.muted}> ({metaAnswer})</span> : null}
+            <th scope="row" className={ui.muted}>
+              Checks used: {d.tokensSpent} of {d.tokensIssued} (not scored)
             </th>
-            <td>{result.breakdown.meta} / 10</td>
+            <td />
           </tr>
         </tbody>
       </table>

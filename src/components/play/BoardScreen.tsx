@@ -18,6 +18,7 @@ import {
 import { formatClock, useServerNow } from "@/client/usePoll";
 import type { ClueView, PlayerView } from "@/game/views";
 import type { Cell, RotationDir } from "@/game/types";
+import { MapIcon } from "../MapIcon";
 import { MetaBar } from "../MetaBar";
 import ui from "../ui.module.css";
 import { ClueBarText, ClueList, clueLabel } from "./ClueList";
@@ -280,7 +281,12 @@ export function BoardScreen({
   const guess = useCallback(
     async (g: string) => {
       const res = await enqueue(() =>
-        post<{ correct: boolean; guessesLeft: number }>(`/api/rooms/${rid}/meta`, {
+        post<{
+          correct: boolean;
+          guessesLeft: number;
+          metaId: string | null;
+          points: number | null;
+        }>(`/api/rooms/${rid}/meta`, {
           pid,
           guess: g,
         }),
@@ -290,7 +296,6 @@ export function BoardScreen({
         toast(res.message);
         return null;
       }
-      if (res.data.correct) toast("Meta solved!");
       return res.data;
     },
     [enqueue, pid, refresh, rid, toast],
@@ -362,7 +367,7 @@ export function BoardScreen({
             ⏱ {formatClock(elapsed)}
           </span>
           <button type="button" className={s.iconBtn} onClick={onMap} aria-label="Seating map">
-            🗺
+            <MapIcon />
           </button>
         </div>
         <div className={s.controlRow}>
@@ -370,30 +375,28 @@ export function BoardScreen({
             <>
               <button
                 type="button"
-                className={s.iconBtn}
+                className={s.rotateBtn}
                 disabled={!canRotate}
                 onClick={() => rotate("L")}
                 aria-label={`Rotate left: you receive ${view.seating.nextIfLeft.emoji}`}
               >
-                ⟲
+                ⟲ <span className={s.rotateEmoji}>{view.seating.nextIfLeft.emoji}</span>
               </button>
               <button
                 type="button"
-                className={s.iconBtn}
+                className={s.rotateBtn}
                 disabled={!canRotate}
                 onClick={() => rotate("R")}
                 aria-label={`Rotate right: you receive ${view.seating.nextIfRight.emoji}`}
               >
-                ⟳
+                ⟳ <span className={s.rotateEmoji}>{view.seating.nextIfRight.emoji}</span>
               </button>
-              <span className={s.cooldown} aria-live="off">
-                {pending
-                  ? "rotating…"
-                  : cooling
-                    ? `in ${formatClock(view.rotation.cooldownUntil - now)}`
-                    : "ready"}{" "}
-                (master)
-              </span>
+              <span className={ui.capt}>Capt.</span>
+              {(pending || cooling) && (
+                <span className={s.cooldown} aria-live="off">
+                  {pending ? "rotating…" : formatClock(view.rotation.cooldownUntil - now)}
+                </span>
+              )}
               {view.rotation.canFinalCheck && (
                 <button
                   type="button"
@@ -410,12 +413,10 @@ export function BoardScreen({
               Rotation #{view.rotation.count} ·{" "}
               {cooling
                 ? `cooldown ${formatClock(view.rotation.cooldownUntil - now)}`
-                : "waiting on master"}
+                : "waiting on the "}
+              {!cooling && <span className={ui.capt}>Capt.</span>}
             </span>
           )}
-          <span className={s.tokens} aria-label={`${view.tokens.left} check tokens left`}>
-            🎟 {view.tokens.left}
-          </span>
         </div>
       </header>
 
@@ -453,9 +454,9 @@ export function BoardScreen({
           className={`${ui.btn} ${ui.primary}`}
           disabled={!canCheck}
           onClick={check}
-          aria-label={`Check this word, costs one token, ${view.tokens.left} left`}
+          aria-label={`Check this word: ${view.tokens.left} ${view.tokens.left === 1 ? "check" : "checks"} left`}
         >
-          Check 🎟
+          Check 🎟{view.tokens.left}
         </button>
       </div>
 

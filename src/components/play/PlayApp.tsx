@@ -16,7 +16,7 @@ import type { PlayerView } from "@/game/views";
 import { Modal } from "../Modal";
 import { Results } from "../Results";
 import { SeatingCard } from "../SeatingCard";
-import { MetaBar } from "../MetaBar";
+import { MetaWordList } from "../MetaBar";
 import ui from "../ui.module.css";
 import { BoardScreen, type Actions } from "./BoardScreen";
 import { RotationBanner, SeatingFlash } from "./Overlays";
@@ -198,9 +198,9 @@ export function PlayApp({ rid }: { rid: string }) {
       <main className={s.centered}>
         <h1 className={s.title}>{view.puzzleTitle} complete</h1>
         <div className={`${ui.card} ${s.panel}`}>
-          <Results result={view.result} metaAnswer={view.meta.answer} />
+          <Results result={view.result} />
           <div className={ui.section}>
-            <MetaBar meta={view.meta} canGuess={false} />
+            <MetaWordList meta={view.meta} />
           </div>
           <div className={`${ui.section} ${ui.actions}`}>
             <Link className={`${ui.btn} ${ui.primary}`} href="/">
