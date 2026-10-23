@@ -1,0 +1,240 @@
+/* Shared building blocks: buttons, cards, modals, meta bar, results. */
+
+.btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line-strong);
+  background: var(--card);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+}
+
+.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 18, 14, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 40;
+}
+
+.modal {
+  width: min(420px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 8px 0 16px;
+}
+
+.modalTitle {
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.section {
+  padding: 12px 16px;
+  border-top: 1px solid var(--line);
+}
+
+.section:first-child {
+  border-top: 0;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* Seating card */
+.seatRow {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.seatEmoji {
+  font-size: 1.5rem;
+  line-height: 1;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid;
+}
+
+.idle {
+  opacity: 0.55;
+  filter: grayscale(0.7);
+}
+
+.nextRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 1.05rem;
+}
+
+.bigEmoji {
+  font-size: 2rem;
+  vertical-align: middle;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Meta bar */
+.metaBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 8px;
+}
+
+.metaLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.metaSlots {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+
+.metaSlot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.metaLetter {
+  width: 32px;
+  height: 34px;
+  margin-top: 2px;
+  border: 2px solid var(--line-strong);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  background: var(--card);
+}
+
+.metaLetterOn {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--green-ink);
+}
+
+.metaSolved {
+  font-weight: 700;
+  color: var(--green);
+  white-space: nowrap;
+}
+
+/* Results */
+.results {
+  padding: 16px;
+}
+
+.grade {
+  font-size: 4.5rem;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  margin: 8px 0 0;
+}
+
+.total {
+  text-align: center;
+  font-size: 1.2rem;
+  margin: 4px 0 16px;
+}
+
+.breakdown {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.breakdown th,
+.breakdown td {
+  text-align: left;
+  padding: 8px 4px;
+  border-top: 1px solid var(--line);
+  font-weight: 400;
+}
+
+.breakdown td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 999px;
+  z-index: 60;
+  max-width: calc(100vw - 32px);
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 0 12px;
+  background: #fff;
+  font-size: 1.05rem;
+}

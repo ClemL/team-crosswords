@@ -1,0 +1,39 @@
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 1.7rem;
+}
+
+.lede {
+  color: var(--muted);
+  margin: 0 0 20px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.game {
+  width: 100%;
+  min-height: 72px;
+  font-size: 1.1rem;
+}
+
+.rules {
+  margin-top: 28px;
+  line-height: 1.5;
+}
+
+.rules li {
+  margin-bottom: 6px;
+}

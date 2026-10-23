@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   // Never ship source maps to the browser: they would expose server-only code paths (§2 security rule 2).
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
+  devIndicators: false,
 };
 
 export default nextConfig;

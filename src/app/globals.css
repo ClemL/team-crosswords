@@ -1,1 +1,85 @@
-body{margin:0}
+:root {
+  --bg: #f6f4ef;
+  --card: #ffffff;
+  --ink: #1d1b16;
+  --muted: #5c574d;
+  --line: #d3ccbd;
+  --line-strong: #8f8879;
+  --accent: #1f4fd1;
+  --accent-ink: #ffffff;
+  --accent-tint: #dce6ff;
+  --green: #1b7a35;
+  --green-ink: #ffffff;
+  --red: #b3261e;
+  --red-tint: #fde3df;
+  --amber: #6f4700;
+  --amber-tint: #ffe6a6;
+  --black-cell: #24221d;
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.06);
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Noto Sans",
+    sans-serif;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+  min-height: 100dvh;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+a {
+  color: var(--accent);
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
