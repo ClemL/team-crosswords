@@ -1,6 +1,7 @@
 import "server-only";
 import { NextResponse } from "next/server";
 import { ERROR_STATUS, type ErrorCode, type GameError } from "@/game/errors";
+import { StoreError } from "./store";
 
 export class ApiError extends Error {
   constructor(
@@ -31,6 +32,12 @@ export async function handle(fn: () => Promise<Response>): Promise<Response> {
     return await fn();
   } catch (e) {
     if (e instanceof ApiError) return errorResponse({ code: e.code, message: e.message });
+    if (e instanceof StoreError) {
+      console.error(
+        `[store] ${e.code}: ${e.publicMessage}${e.logDetail ? ` (${e.logDetail})` : ""}`,
+      );
+      return errorResponse({ code: e.code, message: e.publicMessage });
+    }
     // Never echo internals (they could include puzzle data) — log server-side only.
     console.error("[api] unexpected error", e);
     return errorResponse({ code: "SERVER_ERROR", message: "Something went wrong." });

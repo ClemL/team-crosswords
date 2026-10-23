@@ -32,7 +32,13 @@ export function PuzzlePicker() {
     setError(r.message);
   };
 
-  if (error) return <p role="alert">{error}</p>;
+  if (error) {
+    return (
+      <p role="alert">
+        {error} Diagnostics: <a href="/api/health">/api/health</a>
+      </p>
+    );
+  }
   if (!items) return <p>Loading games…</p>;
   if (items.length === 0)
     return <p>No games are loaded yet. Run the seed route first (see README).</p>;

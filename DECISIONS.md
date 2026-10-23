@@ -38,6 +38,9 @@ Section numbers refer to the V1 spec.
    used when `XW_STORE=memory`, or when the Upstash variables are missing outside production. It works
    only in a single process (local development, E2E), never on Vercel. A production server without
    the Upstash variables fails with an error instead of falling back.
+   The Vercel Marketplace names `KV_REST_API_URL` and `KV_REST_API_TOKEN` are accepted as fallbacks
+   (the same order `@upstash/redis` uses in `Redis.fromEnv()`), values are trimmed, and a
+   `redis://` / `rediss://` connection string in the URL variable is rejected with a clear message.
 3. **The in-process store seeds itself** at first use, because it starts empty on every boot. Upstash
    is never auto-seeded: run `POST /api/admin/seed` once.
 4. **Extra keys and fields (§7.1).** `puzzles:index` (JSON list of `{id, title}`) backs
@@ -72,8 +75,12 @@ Section numbers refer to the V1 spec.
 ## C. API
 
 1. **Additional error codes.** `BAD_REQUEST` (400) for malformed input, black cells or non-letters;
-   `UNAUTHORIZED` (401) for the seed route; `ROOM_FULL` (409); `BUSY` (503); `SERVER_ERROR` (500, with
-   no internal details in the body). Status codes for the spec's codes: `NOT_FOUND` 404,
+   `UNAUTHORIZED` (401) for the seed route; `ROOM_FULL` (409); `BUSY` (503); `STORE_NOT_CONFIGURED`
+   (503, names the missing or malformed variable); `STORE_UNAVAILABLE` (503, wrong token, read-only
+   token, unreachable URL); `SERVER_ERROR` (500, with no internal details in the body). Raw Upstash
+   errors are never returned or logged in full: their message embeds the request body
+   (`command was: …`), which for the seed route contains solutions. They are classified into a fixed
+   message and logged with the body stripped. Status codes for the spec's codes: `NOT_FOUND` 404,
    `NOT_IN_ROOM` and `NOT_MASTER` 403, all other rule rejections 409.
 2. **Check Cells on a locked word** returns `LOCKED_CELL`; on an empty or partial word, `NOT_FILLED`.
    No token is spent on any rejection.
@@ -85,6 +92,9 @@ Section numbers refer to the V1 spec.
 6. **Seed route** requires `ADMIN_SEED_SECRET` to be set and compares the header in constant time.
    Re-seeding overwrites the puzzle keys (idempotent).
 7. **Room codes** are matched case-insensitively.
+8. **`GET /api/health`** reports the store in use, which configuration variables are present
+   (booleans only, never values), whether the database answers, and how many puzzles are seeded.
+   It returns 503 until the database is reachable and seeded.
 
 ## D. Game-rule details the spec left open
 

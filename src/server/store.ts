@@ -61,6 +61,65 @@ function normalize(cmd: Cmd, raw: unknown): unknown {
   }
 }
 
+// ---- Errors -------------------------------------------------------------------------------------
+
+export type StoreErrorCode = "STORE_NOT_CONFIGURED" | "STORE_UNAVAILABLE";
+
+/**
+ * A storage failure with a message that is safe to send to clients. Raw Upstash errors are never
+ * echoed: they embed the request body ("command was: …"), which can contain puzzle solutions.
+ */
+export class StoreError extends Error {
+  constructor(
+    readonly code: StoreErrorCode,
+    readonly publicMessage: string,
+    /** Server-log detail with any request body stripped. */
+    readonly logDetail = "",
+  ) {
+    super(publicMessage);
+    this.name = "StoreError";
+  }
+}
+
+/** Maps an error thrown by the Upstash client to a StoreError without leaking request bodies. */
+export function classifyUpstashError(e: unknown): StoreError {
+  const raw = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+  const detail = raw.split(", command was:")[0].slice(0, 300);
+  if (/NOPERM|read.?only/i.test(raw)) {
+    return new StoreError(
+      "STORE_UNAVAILABLE",
+      "The Upstash token is read-only. Use the read/write token (UPSTASH_REDIS_REST_TOKEN or KV_REST_API_TOKEN), then redeploy.",
+      detail,
+    );
+  }
+  if (/WRONGPASS|unauthori[sz]ed|invalid.*token|401/i.test(raw)) {
+    return new StoreError(
+      "STORE_UNAVAILABLE",
+      "Upstash rejected the token. Check UPSTASH_REDIS_REST_TOKEN (or KV_REST_API_TOKEN) for this database, then redeploy.",
+      detail,
+    );
+  }
+  if (/UpstashJSONParseError/.test(raw)) {
+    return new StoreError(
+      "STORE_UNAVAILABLE",
+      "The configured URL did not answer like Upstash REST. Check UPSTASH_REDIS_REST_URL (or KV_REST_API_URL): it must be the https://…upstash.io REST URL.",
+      detail,
+    );
+  }
+  if (/fetch failed|ENOTFOUND|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|getaddrinfo|network/i.test(raw)) {
+    return new StoreError(
+      "STORE_UNAVAILABLE",
+      "Could not reach Upstash at the configured URL. Check UPSTASH_REDIS_REST_URL (or KV_REST_API_URL) and that the database exists.",
+      detail,
+    );
+  }
+  return new StoreError(
+    "STORE_UNAVAILABLE",
+    "The database returned an error. See the server logs.",
+    detail,
+  );
+}
+
 // ---- Upstash (production) -------------------------------------------------------------------
 
 const RELEASE_SCRIPT =
@@ -114,12 +173,21 @@ class UpstashStore implements Store {
           break;
       }
     }
-    const raw = (await p.exec()) as unknown[];
+    let raw: unknown[];
+    try {
+      raw = (await p.exec()) as unknown[];
+    } catch (e) {
+      throw classifyUpstashError(e);
+    }
     return raw.map((r, i) => normalize(cmds[i], r));
   }
 
   async releaseLock(key: string, token: string): Promise<void> {
-    await this.redis.eval(RELEASE_SCRIPT, [key], [token]);
+    try {
+      await this.redis.eval(RELEASE_SCRIPT, [key], [token]);
+    } catch (e) {
+      throw classifyUpstashError(e);
+    }
   }
 }
 
@@ -243,11 +311,42 @@ export class MemoryStore implements Store {
 
 const globalForStore = globalThis as unknown as { __xwStore?: Store; __xwStoreWarned?: boolean };
 
+function envValue(name: string): string | undefined {
+  const v = process.env[name]?.trim();
+  return v ? v : undefined;
+}
+
+/**
+ * Upstash REST credentials. The Vercel Marketplace integration names them KV_REST_API_URL and
+ * KV_REST_API_TOKEN; Upstash's own console uses UPSTASH_REDIS_REST_URL and _TOKEN.
+ */
+export function upstashEnv(): { url?: string; token?: string } {
+  return {
+    url: envValue("UPSTASH_REDIS_REST_URL") ?? envValue("KV_REST_API_URL"),
+    token: envValue("UPSTASH_REDIS_REST_TOKEN") ?? envValue("KV_REST_API_TOKEN"),
+  };
+}
+
 export function storeKind(): "upstash" | "memory" {
   if (process.env.XW_STORE === "memory") return "memory";
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) return "upstash";
+  const { url, token } = upstashEnv();
+  if (url && token) {
+    if (!/^https?:\/\//i.test(url)) {
+      throw new StoreError(
+        "STORE_NOT_CONFIGURED",
+        "UPSTASH_REDIS_REST_URL (or KV_REST_API_URL) must be the https://…upstash.io REST URL, not a redis:// connection string.",
+      );
+    }
+    return "upstash";
+  }
   if (process.env.NODE_ENV !== "production") return "memory";
-  throw new Error("UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be set");
+  const missing = [!url && "UPSTASH_REDIS_REST_URL", !token && "UPSTASH_REDIS_REST_TOKEN"].filter(
+    Boolean,
+  );
+  throw new StoreError(
+    "STORE_NOT_CONFIGURED",
+    `Database not configured: set ${missing.join(" and ")} (or the KV_REST_API_* names from the Vercel Upstash integration), then redeploy.`,
+  );
 }
 
 export function getStore(): Store {
@@ -256,8 +355,8 @@ export function getStore(): Store {
   if (kind === "upstash") {
     globalForStore.__xwStore = new UpstashStore(
       new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL!,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+        url: upstashEnv().url!,
+        token: upstashEnv().token!,
         automaticDeserialization: false,
         enableTelemetry: false,
       }),

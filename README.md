@@ -20,13 +20,13 @@ Open `/`, pick a game, then open the join link (or scan the QR code) on a phone 
 
 ## Environment
 
-| Variable                   | Example                        | Purpose                                                     |
-| -------------------------- | ------------------------------ | ----------------------------------------------------------- |
-| `UPSTASH_REDIS_REST_URL`   | `https://<your-db>.upstash.io` | Upstash REST endpoint (server only)                         |
-| `UPSTASH_REDIS_REST_TOKEN` | `<token>`                      | Upstash token (server only)                                 |
-| `ADMIN_SEED_SECRET`        | `change-me`                    | Protects `POST /api/admin/seed`                             |
-| `XW_STORE`                 | `memory`                       | Optional: force the in-process store (single process only)  |
-| `XW_CONFIG_OVERRIDES`      | `{"cooldownMs":1500}`          | Optional: override numeric `CONFIG_V1` values on the server |
+| Variable                   | Example                        | Purpose                                                              |
+| -------------------------- | ------------------------------ | -------------------------------------------------------------------- |
+| `UPSTASH_REDIS_REST_URL`   | `https://<your-db>.upstash.io` | Upstash REST endpoint (server only; `KV_REST_API_URL` also accepted) |
+| `UPSTASH_REDIS_REST_TOKEN` | `<token>`                      | Upstash token (server only; `KV_REST_API_TOKEN` also accepted)       |
+| `ADMIN_SEED_SECRET`        | `change-me`                    | Protects `POST /api/admin/seed`                                      |
+| `XW_STORE`                 | `memory`                       | Optional: force the in-process store (single process only)           |
+| `XW_CONFIG_OVERRIDES`      | `{"cooldownMs":1500}`          | Optional: override numeric `CONFIG_V1` values on the server          |
 
 Without the Upstash variables, `next dev` uses the in-process store. A production server
 (`NODE_ENV=production`) answers API requests with a server error until they are set, unless
@@ -34,15 +34,23 @@ Without the Upstash variables, `next dev` uses the in-process store. A productio
 
 ## Deploy to Vercel
 
-1. Create an Upstash Redis database and set the three variables above in the Vercel project.
-2. Deploy.
-3. Seed the puzzles once (idempotent):
+1. Create an Upstash Redis database and set the database variables plus `ADMIN_SEED_SECRET` in the
+   Vercel project. If you connected Upstash through the Vercel Marketplace, it already created
+   `KV_REST_API_URL` and `KV_REST_API_TOKEN`; the app accepts those names as well. Use the REST URL
+   (`https://…upstash.io`) and the read/write token, not `REDIS_URL` or the read-only token.
+2. Redeploy. Environment variable changes only apply to new deployments.
+3. Open `https://<your-app>.vercel.app/api/health`. It reports which variables are present (never
+   their values), whether the database answers, and whether the puzzles are seeded.
+4. Seed the puzzles once (idempotent):
 
    ```bash
    curl -X POST https://<your-app>.vercel.app/api/admin/seed -H "x-seed-secret: change-me"
    ```
 
-Rooms expire 24 hours after their last change. Puzzle keys do not expire.
+5. `/api/health` should now return `"ok": true` with `"puzzlesSeeded": 10`.
+
+Rooms expire 24 hours after their last change. Puzzle keys do not expire. Server-side errors are
+logged under the deployment's Runtime Logs with a `[store]` or `[api]` prefix.
 
 ## Scripts
 
