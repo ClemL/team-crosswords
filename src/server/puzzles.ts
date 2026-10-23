@@ -1,14 +1,26 @@
 import "server-only";
-import puzzleFile from "../../data/puzzles-v1.json";
+import fiveFile from "../../data/puzzles-v1.json";
+import sixFile from "../../data/puzzles-6x.json";
+import { MODES, modeForSize, type Mode } from "@/config";
 import { splitPuzzle } from "@/game/puzzle";
 import type { PublicPuzzle, PuzzleGame, PuzzleSolution } from "@/game/types";
 import { puzzleKeys } from "./keys";
 import type { Store } from "./store";
 
-export type PuzzleListItem = { id: string; title: string };
+export type PuzzleListItem = {
+  id: string;
+  title: string;
+  mode: Mode;
+  boardSize: number;
+  metaWords: number;
+  parMinutes: number;
+};
+
+/** Every game of every mode: 5x (data/puzzles-v1.json) and 6x (data/puzzles-6x.json). */
+export const ALL_PUZZLES = [...fiveFile, ...sixFile] as unknown as PuzzleGame[];
 
 /** Bumped whenever the stored puzzle shape changes; older seeds must be re-seeded. */
-export const PUZZLE_FORMAT = 2;
+export const PUZZLE_FORMAT = 3;
 type PuzzleIndex = { format: number; puzzles: PuzzleListItem[] };
 
 /** Parses the stored index. Returns null when missing; `stale` when seeded by an older version. */
@@ -24,8 +36,18 @@ const cache = new Map<string, LoadedPuzzle>();
 
 /** Writes every puzzle into Redis as public + solution keys (no TTL). Idempotent. */
 export async function seedPuzzles(store: Store): Promise<PuzzleListItem[]> {
-  const games = puzzleFile as unknown as PuzzleGame[];
-  const index: PuzzleListItem[] = games.map((g) => ({ id: g.id, title: g.title }));
+  const games = ALL_PUZZLES;
+  const index: PuzzleListItem[] = games.map((g) => {
+    const mode = modeForSize(g.boardSize) ?? "5x";
+    return {
+      id: g.id,
+      title: g.title,
+      mode,
+      boardSize: g.boardSize,
+      metaWords: MODES[mode].metaWords,
+      parMinutes: g.parMinutes,
+    };
+  });
   await store.exec(
     [
       ...games.flatMap((g) => {

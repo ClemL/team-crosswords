@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CONFIG_V1, NAME_MAX_LENGTH } from "@/config";
+import { CONFIG_V1, MODES, NAME_MAX_LENGTH } from "@/config";
 import { createQueue, post } from "@/client/api";
 import {
   getOrCreatePid,
@@ -165,7 +165,8 @@ export function PlayApp({ rid }: { rid: string }) {
     return (
       <main className={s.centered}>
         <h1 className={s.title}>
-          {view.puzzleTitle} · Room {rid}
+          {view.puzzleTitle} ({MODES[view.mode].boardSize}×{MODES[view.mode].boardSize}) · Room{" "}
+          {rid}
         </h1>
         <div className={`${ui.card} ${s.panel}`}>
           <SeatingCard

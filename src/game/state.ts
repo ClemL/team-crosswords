@@ -63,11 +63,24 @@ export function createRoomState(args: {
     masterCounts: {},
     ready: [],
     playerStats: {},
+    knockedOut: {},
     boards: puzzle.boards.map(() => ({ entries: {}, authors: {}, suspects: {} })),
     locked: [],
     unlocked: baseClues,
     stats: { falseSuspects: 0, accurateSuspects: 0, metaWrong: 0 },
   };
+}
+
+/** A player still in the game: seated and not knocked out by a wrong guess. */
+export function inGame(state: Pick<RoomState, "players" | "knockedOut">, pid: string): boolean {
+  return state.players[pid] !== undefined && state.knockedOut[pid] === undefined;
+}
+
+/** seat -> whether a player still in the game sits there. */
+export function seatedInGame(
+  state: Pick<RoomState, "seats" | "players" | "knockedOut">,
+): boolean[] {
+  return state.seats.map((pid) => pid !== null && inGame(state, pid));
 }
 
 export function seatOf(state: RoomState, pid: string): number | null {
@@ -136,6 +149,11 @@ export function allCellsFilled(state: RoomState, ctx: GameCtx): boolean {
   );
 }
 
+/** Every word on the board is locked green. */
+export function boardComplete(state: RoomState, ctx: GameCtx, board: number): boolean {
+  return ctx.puzzle.boards[board].clues.every((c) => state.locked.includes(c.id));
+}
+
 export function boardPercent(state: RoomState, ctx: GameCtx, board: number): number {
   const clues = ctx.puzzle.boards[board].clues;
   const locked = clues.filter((c) => state.locked.includes(c.id)).length;
@@ -147,7 +165,7 @@ export function boardLockedCount(state: RoomState, ctx: GameCtx, board: number):
 }
 
 export function emptyPlayerStats(): PlayerStats {
-  return { lettersTyped: 0, rotations: 0, falseSuspects: 0, accurateSuspects: 0, guess: null };
+  return { lettersTyped: 0, rotations: 0, falseSuspects: 0, accurateSuspects: 0, guesses: [] };
 }
 
 /** The player's stats record, created on first use (mutates `state`). */

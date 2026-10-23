@@ -16,12 +16,20 @@ export function SeatingCard({
   showNext?: boolean;
 }) {
   const mine = seating.seats.find((s) => s.isYou);
+  const done = seating.boards.filter((b) => b.done);
   return (
     <>
       {mine && (
         <div className={ui.section}>
           <div>
-            You hold <span className={ui.bigEmoji}>{mine.emoji}</span>
+            {mine.boardIndex === null ? (
+              "You have no board this rotation"
+            ) : (
+              <>
+                You hold <span className={ui.bigEmoji}>{mine.emoji}</span>
+              </>
+            )}
+            {mine.out && <span className={ui.muted}> · knocked out</span>}
           </div>
           <div className={ui.muted}>
             <span className={ui.capt}>Capt.</span> {isMaster ? "you" : (masterName ?? "—")}
@@ -34,7 +42,7 @@ export function SeatingCard({
           return (
             <div key={s.seat} className={`${ui.seatRow} ${idle ? ui.idle : ""}`}>
               <span className={ui.seatEmoji} style={{ borderColor: s.color }} aria-hidden="true">
-                {s.emoji}
+                {s.emoji || "—"}
               </span>
               <span>
                 <strong>{idle ? "idle" : s.playerName}</strong>{" "}
@@ -47,12 +55,22 @@ export function SeatingCard({
                     </>
                   )}
                   {seating.readySeats.includes(s.seat) && !seating.timerStarted ? " · ready" : ""}
+                  {s.out ? " · out" : ""}
                 </span>
               </span>
-              <span aria-label={`${s.percent} percent solved`}>{s.percent}%</span>
+              {s.boardIndex === null ? (
+                <span className={ui.muted}>no board</span>
+              ) : (
+                <span aria-label={`${s.percent} percent solved`}>{s.percent}%</span>
+              )}
             </div>
           );
         })}
+        {done.length > 0 && (
+          <div className={ui.muted}>
+            Done, out of the ring: {done.map((b) => b.emoji).join(" ")}
+          </div>
+        )}
       </div>
       {showNext && (
         <div className={ui.section}>
@@ -60,13 +78,13 @@ export function SeatingCard({
           <div className={ui.nextRow}>
             <span>⟲ Left</span>
             <span>
-              → <span className={ui.bigEmoji}>{seating.nextIfLeft.emoji}</span>
+              → <span className={ui.bigEmoji}>{seating.nextIfLeft?.emoji ?? "no board"}</span>
             </span>
           </div>
           <div className={ui.nextRow}>
             <span>⟳ Right</span>
             <span>
-              → <span className={ui.bigEmoji}>{seating.nextIfRight.emoji}</span>
+              → <span className={ui.bigEmoji}>{seating.nextIfRight?.emoji ?? "no board"}</span>
             </span>
           </div>
         </div>

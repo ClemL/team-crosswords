@@ -5,7 +5,7 @@ import type { MetaView, MetaWordView } from "@/game/views";
 import { Modal } from "./Modal";
 import ui from "./ui.module.css";
 
-const metaClass = (n: number) => ui[`m${((n - 1) % 5) + 1}`];
+const metaClass = (n: number) => ui[`m${((n - 1) % 6) + 1}`];
 
 function statusText(w: MetaWordView): string {
   if (!w.solved) return w.enumeration;
@@ -66,24 +66,37 @@ export function MetaChips({ meta }: { meta: MetaView }) {
   );
 }
 
-type GuessResult = { correct: boolean; metaId: string | null; points: number | null };
-type YourGuess = { text: string; correct: boolean; metaNumber: number | null } | null;
+type GuessResult = {
+  correct: boolean;
+  metaId: string | null;
+  points: number | null;
+  knockedOut: boolean;
+};
+type YourGuess = { text: string; correct: boolean; metaNumber: number | null };
+
+function guessLine(g: YourGuess): string {
+  return `${g.text} ${g.correct ? `✓ word ${g.metaNumber}` : "✗"}`;
+}
 
 /**
- * Phone meta bar (§3.10, revised): a compact row of the 5 words. Tapping it opens the meta panel
- * with every word and the player's single guess, checked against every word not yet obtained.
+ * Phone meta bar (§3.10, revised): a compact row of the words. Tapping it opens the meta panel
+ * with every word and the guess form. Alone, a player guesses until a guess is wrong; with others,
+ * each player gets one guess and a wrong one knocks them out.
  */
 export function MetaBar({
   meta,
   onGuess,
   canGuess,
-  yourGuess = null,
+  yourGuesses = [],
+  out = false,
 }: {
   meta: MetaView;
   onGuess?: (guess: string) => Promise<GuessResult | null>;
-  /** False once this player has used their one guess (or the game is not running). */
+  /** False once this player may not guess any more (or the game is not running). */
   canGuess: boolean;
-  yourGuess?: YourGuess;
+  yourGuesses?: YourGuess[];
+  /** Knocked out by a wrong guess. */
+  out?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [guess, setGuess] = useState("");
@@ -103,10 +116,26 @@ export function MetaBar({
     setFeedback(
       r.correct
         ? { ok: true, text: `✓ Meta word ${word?.number ?? ""} solved: +${r.points} pts` }
-        : { ok: false, text: "Not a meta word. Your guess is used." },
+        : {
+            ok: false,
+            text: r.knockedOut
+              ? "Not a meta word. You are knocked out of the game."
+              : "Not a meta word. That was your last guess.",
+          },
     );
     setGuess("");
   };
+
+  const pts = `Each word is worth ${meta.pointsNow} of ${meta.maxPointsPerWord} points now (10% less per rotation), whether it is guessed or its tiles are completed.`;
+  const rule = out
+    ? "You were knocked out by a wrong guess."
+    : meta.solo
+      ? canGuess
+        ? `Playing alone, you can keep guessing until a guess is wrong. ${pts}`
+        : "Your last guess was wrong, so you have no guesses left."
+      : canGuess
+        ? `You get one guess, checked against every unsolved word. A wrong guess knocks you out of the game. ${pts}`
+        : "You have used your guess.";
 
   return (
     <>
@@ -134,11 +163,10 @@ export function MetaBar({
           {onGuess && (
             <form className={ui.section} onSubmit={submit}>
               <p className={ui.muted} style={{ marginTop: 0 }}>
-                {yourGuess
-                  ? `You guessed ${yourGuess.text}: ${
-                      yourGuess.correct ? `right (word ${yourGuess.metaNumber})` : "not a meta word"
-                    }. Each player gets one guess per game.`
-                  : `You get one guess for the whole game, checked against every unsolved word; right or wrong, it is then used. Each word is worth ${meta.pointsNow} of ${meta.maxPointsPerWord} points now (10% less per rotation), whether it is guessed or its tiles are completed.`}
+                {rule}
+                {yourGuesses.length > 0 && (
+                  <> Your guesses: {yourGuesses.map(guessLine).join(", ")}.</>
+                )}
               </p>
               <input
                 className={ui.input}

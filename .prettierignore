@@ -2,6 +2,7 @@
 node_modules
 package-lock.json
 data/puzzles-v1.json
+data/puzzles-6x.json
 playwright-report
 test-results
 AGENTS.md

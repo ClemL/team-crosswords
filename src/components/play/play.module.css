@@ -114,7 +114,8 @@
 }
 
 .grid {
-  --size: clamp(230px, min(calc(100vw - 32px), calc(100dvh - 530px)), 330px);
+  /* At least 46 px a cell: 230 px for a 5×5, 276 px for a 6×6. */
+  --size: clamp(calc(46px * var(--n)), min(calc(100vw - 32px), calc(100dvh - 530px)), 330px);
   width: var(--size);
   height: var(--size);
   display: grid;
@@ -391,6 +392,22 @@
 
 .checkBtn {
   flex: 1;
+}
+
+.outBanner {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--red);
+}
+
+.noBoard {
+  flex: 1;
+  padding: 24px 16px;
+  text-align: center;
+  line-height: 1.5;
 }
 
 .metaWrap {

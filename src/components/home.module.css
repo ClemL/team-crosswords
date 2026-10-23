@@ -45,3 +45,26 @@
 .rules li {
   margin-bottom: 6px;
 }
+
+.modes {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.mode {
+  flex: 1;
+  min-height: 56px;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.modeSpec {
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.modeNote {
+  color: var(--muted);
+  margin: 0 0 12px;
+}

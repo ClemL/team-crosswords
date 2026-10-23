@@ -22,11 +22,11 @@ async function phone(browser: Browser, rid: string, name: string): Promise<Playe
 
 /** Fills the board at the player's seat and waits until the server holds every letter. */
 async function fillMyBoard(p: Player) {
-  const board = p.latest.view!.board.index;
+  const board = p.latest.view!.board!.index;
   await typeBoard(p.page, board);
   await expect
     .poll(() =>
-      p.latest.view?.board.index === board ? Object.keys(p.latest.view.board.entries).length : -1,
+      p.latest.view?.board?.index === board ? Object.keys(p.latest.view.board.entries).length : -1,
     )
     .toBe(openCells(board));
 }
@@ -85,9 +85,11 @@ test("two players: join, ready, Capt. hand-off, results with MVPs and leaderboar
   await clem.page.keyboard.press("Escape");
   await captRotates(clem, kris);
 
-  // The Capt. role passed to Kris, who now holds board 2.
+  // Boards 0 and 1 are complete, so they left the ring: Kris now holds board 2 and is Capt.,
+  // Clem has no board.
   await expect.poll(() => kris.latest.view?.you.isMaster).toBe(true);
-  expect(kris.latest.view!.board.index).toBe(2);
+  expect(kris.latest.view!.board!.index).toBe(2);
+  await expect(clem.page.getByText("No board at your seat this rotation.")).toBeVisible();
   await expect(kris.page.getByText("Capt.").first()).toBeVisible();
   await fillMyBoard(kris);
   await captRotates(kris, clem);
@@ -116,4 +118,46 @@ test("two players: join, ready, Capt. hand-off, results with MVPs and leaderboar
   await expect(host.getByRole("region", { name: "Scorecard: Kris" })).toBeVisible();
   await expect(host.getByRole("region", { name: "Scorecard: Clem Leung" })).toBeVisible();
   for (const { body } of hostResponses) expect(body).not.toMatch(/"pid"|"masterPid"/);
+});
+
+test("two players: a wrong guess knocks a player out; the game ends when both are out", async ({
+  browser,
+  request,
+}) => {
+  expect(
+    (
+      await request.post("/api/admin/seed", { headers: { "x-seed-secret": "e2e-secret" } })
+    ).status(),
+  ).toBe(200);
+  const { rid } = (await (
+    await request.post("/api/rooms", { data: { puzzleId: "v1-02" } })
+  ).json()) as { rid: string };
+  const clem = await phone(browser, rid, "Clem Leung");
+  const kris = await phone(browser, rid, "Kris");
+  for (const p of [clem, kris]) await p.page.getByRole("button", { name: "I'm ready" }).click();
+  for (const p of [clem, kris]) await expect.poll(() => p.latest.view?.status).toBe("playing");
+
+  // Clem, the Capt., guesses wrong: out of the game, and the Capt. role passes to Kris.
+  await clem.page.getByRole("button", { name: /Open meta panel/ }).click();
+  await clem.page.keyboard.type("zebra");
+  await clem.page.keyboard.press("Enter");
+  await expect(
+    clem.page.getByText("Not a meta word. You are knocked out of the game."),
+  ).toBeVisible();
+  await clem.page.keyboard.press("Escape");
+  await expect(clem.page.getByText(/Knocked out by a wrong guess/)).toBeVisible();
+  await expect.poll(() => kris.latest.view?.you.isMaster).toBe(true);
+  await expect(clem.page.getByRole("button", { name: /^Rotate left/ })).toHaveCount(0);
+
+  // Kris guesses wrong too: nobody is left, so the game ends.
+  await kris.page.getByRole("button", { name: /Open meta panel/ }).click();
+  await kris.page.keyboard.type("yak");
+  await kris.page.keyboard.press("Enter");
+  for (const p of [clem, kris]) {
+    await expect(p.page.getByText("Game 2 complete")).toBeVisible();
+  }
+  await expect(clem.page.getByRole("region", { name: "Scorecard: Clem Leung" })).toContainText(
+    "knocked out",
+  );
+  await expect(clem.page.getByText("not obtained").first()).toBeVisible();
 });

@@ -11,7 +11,7 @@ function secretMatches(given: string | null): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-/** POST /api/admin/seed — loads data/puzzles-v1.json into puzzle:* keys. Idempotent. */
+/** POST /api/admin/seed — loads every puzzle file (5x and 6x) into puzzle:* keys. Idempotent. */
 export async function POST(req: Request) {
   return handle(async () => {
     if (!secretMatches(req.headers.get("x-seed-secret"))) {

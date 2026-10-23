@@ -134,6 +134,9 @@
 .m5 {
   --meta: var(--meta-5);
 }
+.m6 {
+  --meta: var(--meta-6);
+}
 
 .metaBar {
   display: flex;

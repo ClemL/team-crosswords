@@ -123,7 +123,8 @@ export async function pollRoom(
 
   if (pid !== null) {
     const base = state?.players[pid] ?? players[pid];
-    const updated = accrueActivity(base, state ?? lite, now, cfg);
+    const out = (state ?? lite).knockedOut[pid];
+    const updated = accrueActivity(base, state ?? lite, now, cfg, out);
     await store.exec([{ op: "hset", key: k.players, values: { [pid]: JSON.stringify(updated) } }]);
     if (state) state.players[pid] = updated;
   }

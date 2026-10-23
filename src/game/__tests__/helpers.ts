@@ -12,6 +12,11 @@ export const ALL_GAMES = JSON.parse(
   readFileSync(path.resolve(import.meta.dirname, "../../../data/puzzles-v1.json"), "utf8"),
 ) as PuzzleGame[];
 
+/** The 6× set: three 6×6 boards and 6 meta words per game. */
+export const SIX_GAMES = JSON.parse(
+  readFileSync(path.resolve(import.meta.dirname, "../../../data/puzzles-6x.json"), "utf8"),
+) as PuzzleGame[];
+
 export const GAME1 = ALL_GAMES[0];
 export const PID = "p-1";
 export const PID2 = "p-2";

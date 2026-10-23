@@ -4,7 +4,7 @@ import { V1_01 } from "./fixtures/v1-01";
 export type StateView = {
   status: string;
   you: { isMaster: boolean; seat: number; canGuess: boolean };
-  board: { index: number; lockedCount: number; entries: Record<string, string> };
+  board: { index: number; lockedCount: number; entries: Record<string, string> } | null;
   rotation: { count: number; cooldownUntil: number };
   seating: { nextIfLeft: { emoji: string } };
   now: number;

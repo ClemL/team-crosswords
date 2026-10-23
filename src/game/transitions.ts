@@ -2,12 +2,12 @@ import type { GameConfig } from "@/config";
 import type { GameCtx } from "./context";
 import { assignMaster, masterNeedsReplacement, pickNextMaster } from "./master";
 import { completeRotation } from "./rotation";
-import { cloneState, isActive } from "./state";
+import { cloneState, inGame, isActive } from "./state";
 import type { RoomState } from "./types";
 
 type TransitionInput = Pick<
   RoomState,
-  "status" | "pendingRotation" | "cooldownUntil" | "masterPid" | "players"
+  "status" | "pendingRotation" | "cooldownUntil" | "masterPid" | "players" | "knockedOut"
 >;
 
 function masterIdleExpired(s: TransitionInput, now: number, cfg: GameConfig): boolean {
@@ -15,7 +15,7 @@ function masterIdleExpired(s: TransitionInput, now: number, cfg: GameConfig): bo
   if (now <= s.cooldownUntil + cfg.masterIdleTimeoutMs) return false;
   // Mastership can only pass if another active player exists.
   return Object.keys(s.players).some(
-    (pid) => pid !== s.masterPid && isActive(s.players[pid], now, cfg),
+    (pid) => pid !== s.masterPid && inGame(s, pid) && isActive(s.players[pid], now, cfg),
   );
 }
 

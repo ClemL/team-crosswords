@@ -5,13 +5,10 @@ import ui from "./ui.module.css";
 
 /** Board emoji by board index, from the seating view. */
 export function boardEmojis(seating: SeatingView): string[] {
-  const out: string[] = [];
-  for (const s of seating.seats) out[s.boardIndex] = s.emoji;
-  return out;
+  return seating.boards.map((b) => b.emoji);
 }
 
 function Scorecard({ card, emojis, you }: { card: PlayerCard; emojis: string[]; you: boolean }) {
-  const g = card.guess;
   return (
     <section
       className={`${ui.scorecard} ${you ? ui.scorecardYou : ""}`}
@@ -20,6 +17,7 @@ function Scorecard({ card, emojis, you }: { card: PlayerCard; emojis: string[]; 
       <h3 className={ui.scorecardTitle}>
         {card.name}
         {you && <span className={ui.muted}> (you)</span>}
+        {card.knockedOut && <span className={ui.muted}> · knocked out</span>}
       </h3>
       <dl className={ui.stats}>
         <dt>Tiles filled</dt>
@@ -37,12 +35,12 @@ function Scorecard({ card, emojis, you }: { card: PlayerCard; emojis: string[]; 
         <dd>
           {card.accurateSuspects} accurate · {card.falseSuspects} false
         </dd>
-        <dt>Meta guess</dt>
+        <dt>Meta {card.guesses.length > 1 ? "guesses" : "guess"}</dt>
         <dd>
-          {g ? (
-            <>
-              {g.text} {g.correct ? `✓ word ${g.metaNumber}, +${g.points}` : "✗"}
-            </>
+          {card.guesses.length > 0 ? (
+            card.guesses
+              .map((g) => `${g.text} ${g.correct ? `✓ word ${g.metaNumber}, +${g.points}` : "✗"}`)
+              .join(" · ")
           ) : (
             <span className={ui.muted}>not used</span>
           )}
@@ -103,7 +101,11 @@ export function Results({
               <th scope="row" style={{ paddingLeft: 16 }}>
                 <span className={ui.muted}>{i + 1}.</span> {m.answer}{" "}
                 <span className={ui.muted}>
-                  {m.by === "guess" ? `guessed${m.guessedBy ? ` by ${m.guessedBy}` : ""}` : "tiles"}
+                  {m.by === "guess"
+                    ? `guessed${m.guessedBy ? ` by ${m.guessedBy}` : ""}`
+                    : m.by === "tiles"
+                      ? "tiles"
+                      : "not obtained"}
                   {m.rotations !== null &&
                     `, after ${m.rotations} rotation${m.rotations === 1 ? "" : "s"}`}
                 </span>
