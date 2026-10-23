@@ -1,0 +1,6 @@
+.next
+node_modules
+package-lock.json
+data/puzzles-v1.json
+playwright-report
+test-results
