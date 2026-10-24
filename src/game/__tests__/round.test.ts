@@ -7,6 +7,7 @@ import { runPulse } from "../pulse";
 import { mulberry32 } from "../rng";
 import { completeRotation, requestRotation } from "../rotation";
 import { createRoomState } from "../state";
+import { applyDueTransitions, hasDueTransition } from "../transitions";
 import type { RoomState } from "../types";
 import { buildBoardView } from "../views";
 import {
@@ -150,5 +151,65 @@ describe("unlock helper cells", () => {
       [2, 0],
       [4, 2],
     ]);
+  });
+});
+
+describe("time limit (7x)", () => {
+  // Game 1 of the 5x set, run as if its mode had a 7-minute limit: the engine reads the limit
+  // from the mode of the puzzle's board size, so borrow 7x by pretending the boards are 7×7.
+  const timed: GameCtx = { ...ctx, puzzle: { ...ctx.puzzle, boardSize: 7 } };
+  const LIMIT = 7 * 60_000;
+
+  it("fixes the deadline when the timer starts, and only in a mode with a limit", () => {
+    expect(startedRoom(ctx).timeUpAt).toBeNull();
+    expect(startedRoom(timed).timeUpAt).toBe(T0 + LIMIT);
+  });
+
+  it("ends the game at the deadline; the score is the number of meta words obtained", () => {
+    let s = startedRoom(timed);
+    s = unwrap(guessMeta(s, timed, PID, "ape", T0 + 1000, rng)).state;
+    s = unwrap(guessMeta(s, timed, PID, "corn", T0 + 2000, rng)).state;
+    expect(hasDueTransition(s, T0 + LIMIT - 1, timed.cfg)).toBe(false);
+    expect(hasDueTransition(s, T0 + LIMIT, timed.cfg)).toBe(true);
+    const t = applyDueTransitions(s, timed, T0 + LIMIT + 5_000, rng);
+    expect(t.changed).toBe(true);
+    expect(t.state).toMatchObject({ status: "ended", endedAt: T0 + LIMIT });
+    expect(t.state.result).toMatchObject({
+      endedBy: "time",
+      metasObtained: 2,
+      total: 2,
+      grade: null,
+    });
+    // Nothing more can be done once time is up.
+    expect(guessMeta(t.state, timed, PID, "water", T0 + LIMIT + 6_000, rng)).toMatchObject({
+      error: { code: "GAME_ENDED" },
+    });
+  });
+
+  it("keeps a rotation that was due before the deadline, and drops one due after it", () => {
+    let duo = startedDuo(timed);
+    fillWord(duo, timed, 0, "B0-4A");
+    const before = unwrap(
+      requestRotation(duo, timed, duo.masterPid!, "L", T0 + LIMIT - 5_000, rng),
+    );
+    const t1 = applyDueTransitions(before.state, timed, T0 + LIMIT + 60_000, rng).state;
+    expect(t1).toMatchObject({ status: "ended", rotations: 1, endedAt: T0 + LIMIT });
+    expect(t1.locked).toContain("B0-4A");
+
+    duo = startedDuo(timed);
+    fillWord(duo, timed, 0, "B0-4A");
+    const after = unwrap(requestRotation(duo, timed, duo.masterPid!, "L", T0 + LIMIT - 100, rng));
+    const t2 = applyDueTransitions(after.state, timed, T0 + LIMIT + 60_000, rng).state;
+    expect(t2).toMatchObject({ status: "ended", rotations: 0, pendingRotation: null });
+    expect(t2.locked).not.toContain("B0-4A");
+  });
+
+  it("scores a game finished before the deadline as usual", () => {
+    let s = startedRoom(timed);
+    for (const b of [0, 1, 2]) fillBoard(s, timed, b);
+    s = rotateLeft(s, timed);
+    expect(s.result).toMatchObject({ endedBy: "metas", metasObtained: 5 });
+    expect(s.result!.grade).not.toBeNull();
+    expect(s.result!.total).toBeGreaterThan(5);
   });
 });

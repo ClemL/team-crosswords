@@ -11,7 +11,7 @@ import {
   rememberJoined,
   storeName,
 } from "@/client/identity";
-import { formatClock, usePoll, useServerNow } from "@/client/usePoll";
+import { gameClock, usePoll, useServerNow } from "@/client/usePoll";
 import type { PlayerView } from "@/game/views";
 import { Modal } from "../Modal";
 import { DensityToggle } from "../DensityToggle";
@@ -172,7 +172,6 @@ export function PlayApp({ rid }: { rid: string }) {
   }
 
   const masterName = view.seating.seats.find((x) => x.isMaster)?.playerName ?? null;
-  const elapsed = view.timer.startedAt ? (view.timer.endedAt ?? now) - view.timer.startedAt : 0;
 
   if (view.status === "lobby") {
     return (
@@ -213,7 +212,11 @@ export function PlayApp({ rid }: { rid: string }) {
   if (view.status === "ended" && view.result) {
     return (
       <main className={s.centered}>
-        <h1 className={s.title}>{view.puzzleTitle} complete</h1>
+        <h1 className={s.title}>
+          {view.result.endedBy === "time"
+            ? `${view.puzzleTitle}: time's up`
+            : `${view.puzzleTitle} complete`}
+        </h1>
         <div className={`${ui.card} ${s.panel}`}>
           <Results
             result={view.result}
@@ -258,7 +261,7 @@ export function PlayApp({ rid }: { rid: string }) {
         >
           <div className={`${ui.section} ${ui.clockRow}`}>
             <span aria-label="Game time">
-              ⏱ <strong>{formatClock(elapsed)}</strong>
+              ⏱ <strong>{gameClock(view.timer, now)}</strong>
             </span>
             <span className={ui.muted}>Rotation #{view.rotation.count}</span>
           </div>

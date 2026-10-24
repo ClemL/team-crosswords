@@ -3,8 +3,8 @@ import type { MetadataRoute } from "next";
 /** Portrait only: the phone layout is built for an upright screen (DECISIONS.md K). */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Rotating Co-op Crossword",
-    short_name: "Co-op Crossword",
+    name: "Team Crossword",
+    short_name: "Team Crossword",
     description: "A ring of mini crosswords that rotate around the table.",
     start_url: "/",
     display: "standalone",

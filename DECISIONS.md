@@ -1,9 +1,9 @@
 # Decisions
 
 Choices made where the V1 spec was silent, and rules implemented as written but flagged for review.
-Section numbers refer to the V1 spec. Sections H to K list rule changes requested after V1; where
-they conflict with the spec or with an earlier entry here, the later section wins (K over J over I
-over H).
+Section numbers refer to the V1 spec. Sections H to L list rule changes requested after V1; where
+they conflict with the spec or with an earlier entry here, the later section wins (L over K over J
+over I over H).
 
 ## A. Rules implemented as written, flagged for review
 
@@ -317,14 +317,15 @@ These supersede the spec's §3.10, §4, §3.6 cooldown and the `meta`/`shaded` f
      meta count and par, so `PUZZLE_FORMAT` is 3 and older seeds read as stale until re-seeded.
    - The phone grid keeps cells at least 46 px (276 px for a 6×6), and a sixth meta color was added
      for light and dark themes.
-4. **The 6× games** (`data/puzzles-6x.json`) are built by `scripts/generate-6x.ts` with the sibling
+4. **The 6× games** (`data/puzzles-6x.json`) are built by `scripts/generate-games.ts` (then
+   `generate-6x.ts`; renamed in L) with the sibling
    crossword-app's lexicon, grid code and filler (it needs that checkout).
    - **Grids:** 180°-symmetric, every entry 3+ letters, 8 or 10 blocks. Fewer blocks did not fill
      with everyday vocabulary: every 4- and 6-block pattern failed eight 5-second attempts, while
      every 10-block and some 8-block patterns filled in under a few seconds.
    - **Vocabulary:** three-letter fill must have a hand-written crossword-app clue; longer fill may
      come from its frequency list up to "familiar". Names, places, nationalities and crude words are
-     blocked (`BLOCKED_6X`). Every clue is hand-written: crossword-app's, or `scripts/clues-6x.ts`
+     blocked (`BLOCKED`). Every clue is hand-written: crossword-app's, or `scripts/clues.ts`
      for answers it has none for (no dictionary-derived clues). No board repeats, and an answer
      from an earlier game is reused only when nothing else fills (3–4 letters only).
    - **Unlocks** follow the 5× set's mix per board (about 40% base, a third waiting on a letter of
@@ -387,3 +388,32 @@ These supersede the spec's §3.10, §4, §3.6 cooldown and the `meta`/`shaded` f
     from the seating map, with a confirm step; once it has ended anyone may ("Play this game again"
     on the results screen). The version keeps increasing, so every phone and the host pick it up on
     their next poll.
+
+## L. Changes requested after V1 (fifth round)
+
+1. **The game is called Team Crossword** (page titles, home heading, manifest, README).
+2. **7× mode:** three 7×7 boards, 7 meta words of 3–9 letters (labeled A–G, a seventh meta color),
+   par 7 minutes, and a **7-minute time limit**. The 35 meta points split 5 per word. Only 7× has a
+   limit (`MODES.timeLimitMinutes`); 5× and 6× are unchanged.
+3. **Time limit.** The deadline is fixed when the timer starts (`timeUpAt`, in the room meta hash so
+   the polling fast path sees it). It is a lazy transition like a rotation: the first request at or
+   after the deadline ends the game, recorded as ending at the deadline itself. A rotation that was
+   due before the deadline still completes, as of its due time, so its locks and meta words count;
+   one due after it is dropped. After the deadline every action is rejected as `GAME_ENDED`.
+4. **Score when time runs out** is the number of meta words obtained, by guess or by tiles: the
+   result has `endedBy: "time"`, `total` = that count and no grade, and the results screen shows
+   "4/7" and "Time's up" instead of a grade out of 100. A 7× game whose meta words are all obtained
+   in time is scored as before (out of 100, with a grade); so is one where everyone is knocked out.
+   Results record `endedBy` (`metas`, `time`, `knockout`) and `metasObtained` in every mode.
+5. **The clock** counts down ("03:12 left") in a mode with a limit: in the non-Capt. phone header,
+   the seating map and the host screen. The Capt.'s header still has no clock (K.6); it is on the map.
+6. **The 7× games** (`data/puzzles-7x.json`) come from the same generator, now
+   `scripts/generate-games.ts --mode=7x`, with the clues in `scripts/clues.ts` (both renamed from
+   their 6× names). Every board uses the classic 7×7 layout of 8 blocks and 22 entries (eighteen of
+   3 letters, four of 7). That is the only layout that filled with everyday words: all 51 layouts
+   of 14–16 entries failed, and even with rarer 6- and 7-letter words allowed, 1 of 30 filled, with
+   a name and a star in it. Every 7-letter answer has a hand-written clue (238 more in `scripts/clues.ts`, a few for words a later run replaced); names, nationalities, religious terms, a brand and crude words were blocked
+   as they came up. Unlocks follow the same mix; every game solves in 3–4 rotations in the idealized
+   model. Meta words are again themed answers of any player, one topic per word where possible.
+7. **Tests:** the time limit can be scaled (`timeLimitScale` in `CONFIG_V1`, overridable through
+   `XW_CONFIG_OVERRIDES`); the end-to-end test runs 7× with a 4.2-second limit.

@@ -93,14 +93,18 @@ export function PuzzlePicker() {
               {MODES[m].boardSize}×{MODES[m].boardSize}
             </strong>
             <span className={home.modeSpec}>
-              {MODES[m].metaWords} metas · {MODES[m].parMinutes} min
+              {MODES[m].metaWords} metas · {MODES[m].timeLimitMinutes ?? MODES[m].parMinutes} min
+              {MODES[m].timeLimitMinutes !== null && " limit"}
             </span>
           </button>
         ))}
       </div>
       <p className={home.modeNote}>
         Three {spec.boardSize}×{spec.boardSize} boards, {spec.metaWords} meta words of 3 to{" "}
-        {spec.metaWords + 2} letters, par {spec.parMinutes} minutes.
+        {spec.metaWords + 2} letters,{" "}
+        {spec.timeLimitMinutes === null
+          ? `par ${spec.parMinutes} minutes.`
+          : `a ${spec.timeLimitMinutes}-minute time limit. If it runs out, the score is the number of meta words obtained.`}
       </p>
       {shown.length === 0 ? (
         <p>No {mode} games are loaded. Run the seed route again (see README).</p>

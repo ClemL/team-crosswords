@@ -14,7 +14,7 @@ import {
   prevInWord,
   type Selection,
 } from "@/client/board-nav";
-import { formatClock, useServerNow } from "@/client/usePoll";
+import { formatClock, gameClock, useServerNow } from "@/client/usePoll";
 import type { BoardView, ClueView, PlayerView } from "@/game/views";
 import type { RotationDir } from "@/game/types";
 import { MapIcon } from "../MapIcon";
@@ -79,7 +79,6 @@ function ScreenHeader({ view, rid, pid, offset, actions, onMap }: ScreenProps) {
   const pending = view.rotation.pending;
   const cooling = now < view.rotation.cooldownUntil;
   const canRotate = playing && view.you.isMaster && !cooling && !pending;
-  const elapsed = view.timer.startedAt ? (view.timer.endedAt ?? now) - view.timer.startedAt : 0;
   const left = view.seating.nextIfLeft?.emoji ?? "—";
   const right = view.seating.nextIfRight?.emoji ?? "—";
 
@@ -132,7 +131,7 @@ function ScreenHeader({ view, rid, pid, offset, actions, onMap }: ScreenProps) {
               {board ? `${board.lockedCount}/${board.totalCount} · ${board.percent}%` : "no board"}
             </span>
             <span className={s.timer} aria-label="Game time">
-              ⏱ {formatClock(elapsed)}
+              ⏱ {gameClock(view.timer, now)}
             </span>
           </>
         )}

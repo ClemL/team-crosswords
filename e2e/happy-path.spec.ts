@@ -143,3 +143,30 @@ test("6× mode: a 6×6 room shows a 6 by 6 grid and six meta words", async ({ pa
   await expect(page.getByRole("group", { name: /6 by 6$/ })).toBeVisible();
   await expect(page.getByRole("button", { name: /Meta words: 0 of 6 solved/ })).toBeVisible();
 });
+
+test("7× mode: a 7 by 7 grid, a countdown, and time's up scores the meta words obtained", async ({
+  page,
+  request,
+}) => {
+  await request.post("/api/admin/seed", { headers: { "x-seed-secret": "e2e-secret" } });
+  const list = (await (await request.get("/api/puzzles")).json()) as { id: string; mode: string }[];
+  const seven = list.filter((g) => g.mode === "7x");
+  expect(seven).toHaveLength(10);
+  const { rid } = (await (
+    await request.post("/api/rooms", { data: { puzzleId: seven[0].id } })
+  ).json()) as { rid: string };
+  await page.goto(`/play/${rid}`);
+  await page.getByLabel("Your name").fill("Lori");
+  await page.getByRole("button", { name: "Join" }).click();
+  await expect(page.getByRole("heading", { name: /Game 1 \(7×7\)/ })).toBeVisible();
+  await page.getByRole("button", { name: "I'm ready" }).click();
+  await expect(page.getByRole("group", { name: /7 by 7$/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Meta words: 0 of 7 solved/ })).toBeVisible();
+  // The test server shortens the 7-minute limit to 4.2 s (playwright.config.ts).
+  await page.getByRole("button", { name: "Seating map" }).click();
+  await expect(page.getByText(/left$/)).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByText("Game 1: time's up")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByLabel("Score 0 of 7")).toBeVisible();
+  await expect(page.getByText(/0 of 7 meta words obtained/)).toBeVisible();
+});

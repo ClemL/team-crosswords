@@ -139,7 +139,8 @@ export type PlayerView = {
   seating: SeatingView;
   rotation: RotationView;
   meta: MetaView;
-  timer: { startedAt: number | null; endedAt: number | null };
+  /** `endsAt`: when the time limit runs out, in a mode with one. */
+  timer: { startedAt: number | null; endedAt: number | null; endsAt: number | null };
   result?: GameResult;
 };
 
@@ -336,7 +337,7 @@ function buildShared(
     seating: buildSeating(state, ctx, viewerSeat, viewerPid),
     rotation,
     meta,
-    timer: { startedAt: state.timerStartedAt, endedAt: state.endedAt },
+    timer: { startedAt: state.timerStartedAt, endedAt: state.endedAt, endsAt: state.timeUpAt },
   } satisfies Omit<PlayerView, "you" | "board">;
   return state.result ? { ...view, result: state.result } : view;
 }

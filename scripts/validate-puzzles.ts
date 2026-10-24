@@ -6,7 +6,9 @@ import { validatePuzzleSet } from "../src/game/validate";
 import type { PuzzleGame } from "../src/game/types";
 
 const files = (
-  process.argv.length > 2 ? process.argv.slice(2) : ["data/puzzles-v1.json", "data/puzzles-6x.json"]
+  process.argv.length > 2
+    ? process.argv.slice(2)
+    : ["data/puzzles-v1.json", "data/puzzles-6x.json", "data/puzzles-7x.json"]
 ).map((f) => path.resolve(f));
 const games: PuzzleGame[] = [];
 for (const file of files) {

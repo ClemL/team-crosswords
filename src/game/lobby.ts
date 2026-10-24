@@ -1,4 +1,4 @@
-import { NAME_MAX_LENGTH } from "@/config";
+import { MODES, modeForSize, NAME_MAX_LENGTH } from "@/config";
 import type { GameCtx } from "./context";
 import { fail, type Result } from "./errors";
 import { guardMaster, guardPlayer } from "./guards";
@@ -82,11 +82,17 @@ export function joinRoom(
   return { ok: true, state: next, seat, rejoined: false };
 }
 
-/** Starts the timer (mutates `state`). In multiplayer the first rotation waits one cooldown. */
+/**
+ * Starts the timer (mutates `state`). In multiplayer the first rotation waits one cooldown. In a
+ * mode with a time limit, the deadline is fixed now.
+ */
 function startTimer(state: RoomState, ctx: GameCtx, now: number): void {
   state.status = "playing";
   state.timerStartedAt = now;
   state.cooldownUntil = now + cooldownFor(state, ctx.cfg);
+  const mode = modeForSize(ctx.puzzle.boardSize);
+  const limit = mode ? MODES[mode].timeLimitMinutes : null;
+  state.timeUpAt = limit === null ? null : now + limit * 60_000 * ctx.cfg.timeLimitScale;
 }
 
 /** Ready (§3.2): the timer starts once every active player is ready. */

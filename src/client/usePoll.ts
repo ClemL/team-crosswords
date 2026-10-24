@@ -105,3 +105,15 @@ export function formatClock(ms: number): string {
   const s = total % 60;
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
+
+/** The game clock: the time left in a mode with a time limit, otherwise the time played. */
+export function gameClock(
+  timer: { startedAt: number | null; endedAt: number | null; endsAt: number | null },
+  now: number,
+): string {
+  if (timer.startedAt === null) return formatClock(0);
+  const at = timer.endedAt ?? now;
+  return timer.endsAt !== null
+    ? `${formatClock(timer.endsAt - at)} left`
+    : formatClock(at - timer.startedAt);
+}

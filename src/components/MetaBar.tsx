@@ -6,7 +6,7 @@ import { Modal } from "./Modal";
 import { Keyboard } from "./play/Keyboard";
 import ui from "./ui.module.css";
 
-const metaClass = (n: number) => ui[`m${((n - 1) % 6) + 1}`];
+const metaClass = (n: number) => ui[`m${((n - 1) % 7) + 1}`];
 
 /** Meta words are labeled A, B, C… (board cells already carry clue numbers). */
 export const metaLabel = (n: number): string => String.fromCharCode(64 + n);

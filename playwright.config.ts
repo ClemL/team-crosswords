@@ -37,7 +37,12 @@ export default defineConfig({
     env: {
       XW_STORE: "memory",
       ADMIN_SEED_SECRET: "e2e-secret",
-      XW_CONFIG_OVERRIDES: JSON.stringify({ cooldownMs: 1_500, rotationWarningMs: 1_500 }),
+      // timeLimitScale: 7× mode's 7-minute limit runs out after 4.2 s.
+      XW_CONFIG_OVERRIDES: JSON.stringify({
+        cooldownMs: 1_500,
+        rotationWarningMs: 1_500,
+        timeLimitScale: 0.01,
+      }),
     },
   },
 });

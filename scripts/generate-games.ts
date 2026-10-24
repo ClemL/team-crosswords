@@ -1,31 +1,34 @@
-// One-off generator (kept for reproducibility) for data/puzzles-6x.json: ten games of three 6×6
-// boards, each with 6 meta words of 3 to 8 letters drawn from the crossword-app themed answers.
+// One-off generator (kept for reproducibility) for data/puzzles-<mode>.json, the 6× and 7× sets:
+// ten games of three N×N boards, each with N meta words of 3 to N + 2 letters drawn from the
+// crossword-app themed answers.
 //
 // It borrows crossword-app's lexicon, grid and filler, so it needs a checkout of that repository
 // (with its dictionary cache, fetched on first run):
 //
-//   npx tsx scripts/generate-6x.ts [--xw=../crossword-app] [--out=data/puzzles-6x.json] [--reclue]
+//   npx tsx scripts/generate-games.ts --mode=6x|7x [--xw=../crossword-app] [--out=…] [--reclue]
 //
 // Fills are time-boxed, so a run on another machine can produce different grids; the committed
 // file is the source of truth. --reclue keeps the grids, unlocks and metas of the existing file and
-// only re-picks the clues. Clues come from scripts/clues-6x.ts first, then crossword-app's
+// only re-picks the clues. Clues come from scripts/clues.ts first, then crossword-app's
 // hand-written clues; the run fails and lists any answer that has neither.
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { MODES } from "../src/config";
+import { MODES, type Mode } from "../src/config";
 import { cellKey } from "../src/game/puzzle";
 import { hashString, mulberry32 } from "../src/game/rng";
 import type { PuzzleBoard, PuzzleClue, PuzzleGame, UnlockRule } from "../src/game/types";
 import { simulateSolve, validatePuzzleSet } from "../src/game/validate";
-import { BLOCKED_6X, CLUES_6X } from "./clues-6x";
+import { BLOCKED, CLUES } from "./clues";
 
 const arg = (name: string, fallback: string) =>
   process.argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const XW = path.resolve(arg("xw", "../crossword-app"));
-const OUT = path.resolve(arg("out", "data/puzzles-6x.json"));
+const MODE_ID = arg("mode", "6x") as Mode;
+if (!(MODE_ID in MODES) || MODE_ID === "5x") throw new Error(`--mode must be 6x or 7x`);
+const OUT = path.resolve(arg("out", `data/puzzles-${MODE_ID}.json`));
 const RECLUE = process.argv.includes("--reclue");
-const MODE = MODES["6x"];
+const MODE = MODES[MODE_ID];
 const SIZE = MODE.boardSize;
 const GAMES = 10;
 const BOARDS = 3;
@@ -44,7 +47,7 @@ const { createFiller } = await lib("fill.mjs");
 // Three-letter fill is the most visible, so it must have a hand-written clue. Longer entries may
 // come from the frequency list (up to "familiar"), and every one of those is clued by hand.
 const lexicon = (await buildLexicon({ maxTier: TIER.FAMILIAR })) as Entry[];
-const blocked = new Set(BLOCKED_6X);
+const blocked = new Set(BLOCKED);
 const fillWords = lexicon.filter(
   (e) =>
     !e.derived &&
@@ -74,17 +77,41 @@ for (const set of ["shared", "clem", "lori"]) {
 
 // ---- Grid patterns ------------------------------------------------------------------------
 
-/** Every 180°-symmetric 6×6 pattern with runs of 3+ and 8 or 10 blocks (fewer rarely fill). */
+/**
+ * Which patterns fill with everyday vocabulary, measured: a 6×6 with 4 or 6 blocks never did,
+ * every 10-block and some 8-block ones did. A 7×7 filled only in the classic 8-block, 22-entry
+ * layout (in under a second); all 51 patterns of 14–16 entries failed, and with rarer 6- and
+ * 7-letter words allowed only 1 of 30 filled, with a name in it. So every 7×7 board uses it.
+ */
+const PATTERN_RULES: Record<"6x" | "7x", { blocks: number[]; minSlots: number }> = {
+  "6x": { blocks: [8, 10], minSlots: 0 },
+  "7x": { blocks: [8], minSlots: 22 },
+};
+
+/**
+ * Every 180°-symmetric pattern with runs of 3+ that meets the mode's rule: blocks come in mirrored
+ * pairs, plus the centre cell of an odd grid.
+ */
 function patterns(): Uint8Array[] {
+  const { blocks: counts, minSlots } = PATTERN_RULES[MODE_ID as "6x" | "7x"];
+  const cells = SIZE * SIZE;
+  const half = Math.floor(cells / 2);
+  const center = cells % 2 === 1 ? half : -1;
+  const maxPairs = Math.floor(Math.max(...counts) / 2);
   const out: Uint8Array[] = [];
-  const half = (SIZE * SIZE) / 2;
-  for (let mask = 0; mask < 1 << half; mask++) {
-    const b = new Uint8Array(SIZE * SIZE);
-    for (let i = 0; i < half; i++) if (mask & (1 << i)) b[i] = b[SIZE * SIZE - 1 - i] = 1;
-    const blocks = b.reduce((a, x) => a + x, 0);
-    if (blocks !== 8 && blocks !== 10) continue;
-    if (isValidPattern(b, SIZE, { minRun: 3, maxRun: SIZE })) out.push(b);
-  }
+  const visit = (start: number, chosen: number[]) => {
+    for (const withCenter of center >= 0 ? [false, true] : [false]) {
+      if (!counts.includes(chosen.length * 2 + (withCenter ? 1 : 0))) continue;
+      const b = new Uint8Array(cells);
+      for (const i of chosen) b[i] = b[cells - 1 - i] = 1;
+      if (withCenter) b[center] = 1;
+      if (!isValidPattern(b, SIZE, { minRun: 3, maxRun: SIZE })) continue;
+      if ((analyze(b, SIZE) as { slots: Slot[] }).slots.length >= minSlots) out.push(b);
+    }
+    if (chosen.length === maxPairs) return;
+    for (let i = start; i < half; i++) visit(i + 1, [...chosen, i]);
+  };
+  visit(0, []);
   return out;
 }
 
@@ -118,7 +145,7 @@ function clueFor(word: string, rng: () => number): string | null {
   // Draw even when an own clue wins, so adding an override never re-picks any other clue.
   const options = curated.get(word);
   const pick = options ? options[Math.floor(rng() * options.length)] : null;
-  return CLUES_6X[word] ?? pick;
+  return CLUES[word] ?? pick;
 }
 
 function toBoard(index: number, blocks: Uint8Array, fill: Fill, rng: () => number): PuzzleBoard {
@@ -265,7 +292,7 @@ function generate(): PuzzleGame[] {
   const games: PuzzleGame[] = [];
 
   for (let g = 1; g <= GAMES; g++) {
-    const id = `6x-${String(g).padStart(2, "0")}`;
+    const id = `${MODE_ID}-${String(g).padStart(2, "0")}`;
     const rng = mulberry32(hashString(id));
     console.log(id);
     const gameAnswers = new Set<string>();
@@ -273,17 +300,20 @@ function generate(): PuzzleGame[] {
     const order = shuffle(allPatterns, rng);
     const usedPatterns = new Set<Uint8Array>();
     // First no answer an earlier game used; failing that, earlier games' 3- and 4-letter answers
-    // may come back, but never a whole board.
+    // may come back; last, any earlier answer. A whole board never comes back.
     const passes = [
       () => new Set([...usedAnswers, ...gameAnswers]),
       () => new Set([...[...usedAnswers].filter((a) => a.length > 4), ...gameAnswers]),
+      () => new Set(gameAnswers),
     ];
+    // A game's boards take different patterns where the mode has enough of them (7×7 has one).
+    const varied = allPatterns.length >= BOARDS;
     for (let b = 0; b < BOARDS; b++) {
       let made: PuzzleBoard | null = null;
       for (const exclude of passes) {
-        for (const blocks of order) {
+        for (const blocks of varied ? order : [...order, ...order, ...order]) {
           if (made) break;
-          if (usedPatterns.has(blocks)) continue;
+          if (varied && usedPatterns.has(blocks)) continue;
           const fill = fillBoard(blocks, exclude(), Math.floor(rng() * 1e9));
           if (!fill || seenGrids.has(fill.letters.join(""))) continue;
           seenGrids.add(fill.letters.join(""));
@@ -333,7 +363,7 @@ function reclue(games: PuzzleGame[]): PuzzleGame[] {
 const games = RECLUE ? reclue(JSON.parse(readFileSync(OUT, "utf8")) as PuzzleGame[]) : generate();
 
 // Written even when clues are missing: the grids took minutes and will not come out the same
-// again, so add the clues to scripts/clues-6x.ts and run --reclue.
+// again, so add the clues to scripts/clues.ts and run --reclue.
 writeFileSync(OUT, JSON.stringify(games, null, 1) + "\n");
 console.log(`wrote ${OUT}`);
 
@@ -343,7 +373,7 @@ for (const g of games)
     for (const c of b.clues)
       if (!c.text) missing.set(c.answer, lexicon.find((e) => e.word === c.answer)?.clues[0] ?? "");
 if (missing.size > 0) {
-  console.error(`\n${missing.size} answers need a clue in scripts/clues-6x.ts, then --reclue:`);
+  console.error(`\n${missing.size} answers need a clue in scripts/clues.ts, then --reclue:`);
   for (const [w, hint] of [...missing].sort()) console.error(`  ${w}: "${hint}"`);
   process.exit(1);
 }

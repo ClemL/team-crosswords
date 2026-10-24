@@ -4,7 +4,7 @@ import { THEME_BOOT_SCRIPT } from "@/client/theme";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Rotating Co-op Crossword",
+  title: "Team Crossword",
   description: "A ring of mini crosswords that rotate around the table.",
 };
 

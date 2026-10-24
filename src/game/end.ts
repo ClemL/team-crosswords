@@ -27,21 +27,36 @@ export function obtainMetasByTiles(state: RoomState, ctx: GameCtx, now: number):
   return obtained;
 }
 
-function endGame(state: RoomState, ctx: GameCtx, now: number): void {
+function endGame(
+  state: RoomState,
+  ctx: GameCtx,
+  now: number,
+  endedBy: GameResult["endedBy"],
+): void {
   state.status = "ended";
   state.endedAt = now;
   state.pendingRotation = null;
   for (const [pid, p] of Object.entries(state.players)) {
     state.players[pid] = accrueActivity(p, state, now, ctx.cfg, state.knockedOut[pid]);
   }
-  state.result = computeResult(state, ctx);
+  state.result = computeResult(state, ctx, endedBy);
 }
 
 /** Ends the game once every meta word is obtained (revised §3.12). Mutates `state`. */
 export function endGameIfComplete(state: RoomState, ctx: GameCtx, now: number): boolean {
   if (state.status !== "playing") return false;
   if (!allMetasObtained(state, ctx)) return false;
-  endGame(state, ctx, now);
+  endGame(state, ctx, now, "metas");
+  return true;
+}
+
+/**
+ * Ends the game when its time limit has run out, as of the deadline itself: transitions run
+ * lazily, so `now` may be later. Mutates `state`.
+ */
+export function endGameIfTimeUp(state: RoomState, ctx: GameCtx, now: number): boolean {
+  if (state.status !== "playing" || state.timeUpAt === null || now < state.timeUpAt) return false;
+  endGame(state, ctx, state.timeUpAt, "time");
   return true;
 }
 
@@ -53,7 +68,7 @@ export function endGameIfNobodyLeft(state: RoomState, ctx: GameCtx, now: number)
   if (state.status !== "playing") return false;
   const pids = Object.keys(state.players);
   if (pids.length === 0 || pids.some((pid) => state.knockedOut[pid] === undefined)) return false;
-  endGame(state, ctx, now);
+  endGame(state, ctx, now, "knockout");
   return true;
 }
 
@@ -118,7 +133,11 @@ function boardMvps(state: RoomState, ctx: GameCtx, cards: PlayerCard[]): BoardMv
   });
 }
 
-export function computeResult(state: RoomState, ctx: GameCtx): GameResult {
+export function computeResult(
+  state: RoomState,
+  ctx: GameCtx,
+  endedBy: GameResult["endedBy"] = "metas",
+): GameResult {
   const started = state.timerStartedAt ?? state.createdAt;
   const ended = state.endedAt ?? started;
   const gameSeconds = Math.max(0, (ended - started) / 1000);
@@ -152,9 +171,14 @@ export function computeResult(state: RoomState, ctx: GameCtx): GameResult {
     metaPoints: metaTotal,
   });
   const players = playerCards(state, ctx);
+  const metasObtained = metas.filter((m) => m.by !== null).length;
+  // When time runs out, the score is simply the number of meta words obtained.
+  const timeUp = endedBy === "time";
   return {
-    total: score.total,
-    grade: score.grade,
+    endedBy,
+    metasObtained,
+    total: timeUp ? metasObtained : score.total,
+    grade: timeUp ? null : score.grade,
     breakdown: score.breakdown,
     details: {
       gameSeconds: Math.round(gameSeconds),

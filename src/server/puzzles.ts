@@ -1,6 +1,7 @@
 import "server-only";
 import fiveFile from "../../data/puzzles-v1.json";
 import sixFile from "../../data/puzzles-6x.json";
+import sevenFile from "../../data/puzzles-7x.json";
 import { MODES, modeForSize, type Mode } from "@/config";
 import { splitPuzzle } from "@/game/puzzle";
 import type { PublicPuzzle, PuzzleGame, PuzzleSolution } from "@/game/types";
@@ -16,8 +17,8 @@ export type PuzzleListItem = {
   parMinutes: number;
 };
 
-/** Every game of every mode: 5x (data/puzzles-v1.json) and 6x (data/puzzles-6x.json). */
-export const ALL_PUZZLES = [...fiveFile, ...sixFile] as unknown as PuzzleGame[];
+/** Every game of every mode: 5x (data/puzzles-v1.json), 6x and 7x (data/puzzles-<mode>.json). */
+export const ALL_PUZZLES = [...fiveFile, ...sixFile, ...sevenFile] as unknown as PuzzleGame[];
 
 /** Bumped whenever the stored puzzle shape changes; older seeds must be re-seeded. */
 export const PUZZLE_FORMAT = 3;

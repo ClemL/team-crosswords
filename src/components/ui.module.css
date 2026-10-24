@@ -166,6 +166,9 @@
 .m6 {
   --meta: var(--meta-6);
 }
+.m7 {
+  --meta: var(--meta-7);
+}
 
 .metaBar {
   display: flex;

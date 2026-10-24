@@ -43,6 +43,7 @@ export function serializeMeta(s: RoomState): Record<string, string> {
     pendingRotationDir: s.pendingRotation?.dir ?? "",
     pendingRotationAt: s.pendingRotation ? String(s.pendingRotation.at) : "",
     timerStartedAt: num(s.timerStartedAt),
+    timeUpAt: num(s.timeUpAt),
     endedAt: num(s.endedAt),
     metaSolved: JSON.stringify(s.metaSolved),
     boardEmojis: JSON.stringify(s.boardEmojis),
@@ -62,6 +63,7 @@ export function parseMetaLite(meta: Record<string, string>) {
     masterPid: meta.masterPid || null,
     pendingRotation: at !== null && dir ? { dir, at } : null,
     timerStartedAt: parseNum(meta.timerStartedAt),
+    timeUpAt: parseNum(meta.timeUpAt),
     endedAt: parseNum(meta.endedAt),
     knockedOut: meta.knockedOut
       ? (JSON.parse(meta.knockedOut) as RoomState["knockedOut"])
@@ -134,6 +136,7 @@ export function fromRedis(rid: string, r: RedisShape): RoomState {
     masterPid: lite.masterPid,
     pendingRotation: lite.pendingRotation,
     timerStartedAt: lite.timerStartedAt,
+    timeUpAt: lite.timeUpAt,
     endedAt: lite.endedAt,
     metaSolved: r.meta.metaSolved ? (JSON.parse(r.meta.metaSolved) as RoomState["metaSolved"]) : {},
     boardEmojis: JSON.parse(r.meta.boardEmojis || "[]") as BoardStyle[],

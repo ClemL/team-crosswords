@@ -77,6 +77,8 @@ export function Results({
 }) {
   const d = result.details;
   const multi = result.players.length > 1;
+  // Time ran out: the score is just the number of meta words obtained, with no grade.
+  const timeUp = result.endedBy === "time";
   const cards =
     yourSeat === undefined
       ? result.players
@@ -85,24 +87,41 @@ export function Results({
         );
   return (
     <div className={ui.results}>
-      <p className={ui.grade} aria-label={`Grade ${result.grade}`}>
-        {result.grade}
-      </p>
-      <p className={ui.total}>
-        <strong>{result.total}</strong> / 100
-      </p>
+      {timeUp ? (
+        <>
+          <p className={ui.grade} aria-label={`Score ${result.total} of ${d.metas.length}`}>
+            {result.total}/{d.metas.length}
+          </p>
+          <p className={ui.total}>
+            <strong>Time&apos;s up</strong>: {result.total} of {d.metas.length} meta words obtained
+          </p>
+        </>
+      ) : (
+        <>
+          <p className={ui.grade} aria-label={`Grade ${result.grade}`}>
+            {result.grade}
+          </p>
+          <p className={ui.total}>
+            <strong>{result.total}</strong> / 100
+          </p>
+        </>
+      )}
       <table className={ui.breakdown}>
         <tbody>
-          <tr>
-            <th scope="row">
-              Time {formatClock(d.gameSeconds * 1000)}{" "}
-              <span className={ui.muted}>(par {formatClock(d.parSeconds * 1000)})</span>
-            </th>
-            <td>{result.breakdown.time} / 50</td>
-          </tr>
+          {!timeUp && (
+            <tr>
+              <th scope="row">
+                Time {formatClock(d.gameSeconds * 1000)}{" "}
+                <span className={ui.muted}>(par {formatClock(d.parSeconds * 1000)})</span>
+              </th>
+              <td>{result.breakdown.time} / 50</td>
+            </tr>
+          )}
           <tr>
             <th scope="row">Meta words</th>
-            <td>{result.breakdown.metas} / 35</td>
+            <td>
+              {timeUp ? `${result.total}/${d.metas.length}` : `${result.breakdown.metas} / 35`}
+            </td>
           </tr>
           {d.metas.map((m, i) => (
             <tr key={m.id}>
@@ -118,7 +137,7 @@ export function Results({
                     `, after ${m.rotations} rotation${m.rotations === 1 ? "" : "s"}`}
                 </span>
               </th>
-              <td className={ui.muted}>{m.points}</td>
+              <td className={ui.muted}>{timeUp ? (m.by ? "✓" : "") : m.points}</td>
             </tr>
           ))}
           <tr>
@@ -130,7 +149,7 @@ export function Results({
           </tr>
           <tr>
             <th scope="row">False suspects: {d.falseSuspects}</th>
-            <td>{result.breakdown.suspects} / 15</td>
+            <td>{timeUp ? "" : `${result.breakdown.suspects} / 15`}</td>
           </tr>
         </tbody>
       </table>

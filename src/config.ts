@@ -19,16 +19,19 @@ export const CONFIG_V1 = {
   hostPollIntervalMs: 1_500,
   roomTtlSeconds: 86_400,
   refPlayers: 1,
+  timeLimitScale: 1, // the end-to-end test shortens time limits with an override
 } as const;
 
 /**
  * Game modes. Board size, number of meta words (lengths 3 to metaWords + 2) and par scale
  * together; the mode of a game is read from its boardSize. `boards` is the ring size, which is
- * also the most players a room of that mode seats (one per board).
+ * also the most players a room of that mode seats (one per board). A mode with a time limit ends
+ * when it runs out, and the score is then the number of meta words obtained.
  */
 export const MODES = {
-  "5x": { boardSize: 5, metaWords: 5, parMinutes: 5, boards: 3 },
-  "6x": { boardSize: 6, metaWords: 6, parMinutes: 6, boards: 3 },
+  "5x": { boardSize: 5, metaWords: 5, parMinutes: 5, boards: 3, timeLimitMinutes: null },
+  "6x": { boardSize: 6, metaWords: 6, parMinutes: 6, boards: 3, timeLimitMinutes: null },
+  "7x": { boardSize: 7, metaWords: 7, parMinutes: 7, boards: 3, timeLimitMinutes: 7 },
 } as const;
 export type Mode = keyof typeof MODES;
 

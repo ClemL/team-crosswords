@@ -3,7 +3,7 @@
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 import { CONFIG_V1, MODES } from "@/config";
-import { formatClock, usePoll, useServerNow } from "@/client/usePoll";
+import { formatClock, gameClock, usePoll, useServerNow } from "@/client/usePoll";
 import type { HostView } from "@/game/views";
 import { MetaWordList } from "../MetaBar";
 import { boardEmojis, Results } from "../Results";
@@ -111,7 +111,6 @@ export function HostApp({ rid }: { rid: string }) {
 
   const pending = view.rotation.pending;
   const cooling = now < view.rotation.cooldownUntil;
-  const elapsed = view.timer.startedAt ? (view.timer.endedAt ?? now) - view.timer.startedAt : 0;
 
   return (
     <main className={h.page}>
@@ -125,7 +124,7 @@ export function HostApp({ rid }: { rid: string }) {
         {view.status !== "lobby" && (
           <div className={h.stats}>
             <span className={h.stat}>
-              ⏱ <strong>{formatClock(elapsed)}</strong>
+              ⏱ <strong>{gameClock(view.timer, now)}</strong>
             </span>
             <span className={h.stat}>
               Rotations <strong>{view.rotation.count}</strong>

@@ -5,7 +5,7 @@ import path from "node:path";
 import type { PuzzleGame } from "../src/game/types";
 
 const ROOT = path.resolve(".next");
-const games = ["data/puzzles-v1.json", "data/puzzles-6x.json"].flatMap(
+const games = ["data/puzzles-v1.json", "data/puzzles-6x.json", "data/puzzles-7x.json"].flatMap(
   (f) => JSON.parse(readFileSync(f, "utf8")) as PuzzleGame[],
 );
 

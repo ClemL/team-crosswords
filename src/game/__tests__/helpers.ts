@@ -17,6 +17,11 @@ export const SIX_GAMES = JSON.parse(
   readFileSync(path.resolve(import.meta.dirname, "../../../data/puzzles-6x.json"), "utf8"),
 ) as PuzzleGame[];
 
+/** The 7× set: three 7×7 boards and 7 meta words per game, with a time limit. */
+export const SEVEN_GAMES = JSON.parse(
+  readFileSync(path.resolve(import.meta.dirname, "../../../data/puzzles-7x.json"), "utf8"),
+) as PuzzleGame[];
+
 export const GAME1 = ALL_GAMES[0];
 export const PID = "p-1";
 export const PID2 = "p-2";

@@ -176,8 +176,15 @@ export type BoardMvp = {
 };
 
 export type GameResult = {
+  /**
+   * How the game ended: every meta word obtained, the time limit ran out, or everyone was knocked
+   * out. When time ran out, `total` is the number of meta words obtained and there is no grade.
+   */
+  endedBy: "metas" | "time" | "knockout";
+  /** Meta words obtained, out of details.metas.length. */
+  metasObtained: number;
   total: number;
-  grade: Grade;
+  grade: Grade | null;
   breakdown: ScoreBreakdown;
   details: {
     gameSeconds: number;
@@ -205,6 +212,8 @@ export type RoomState = {
   masterPid: string | null;
   pendingRotation: { dir: RotationDir; at: number } | null;
   timerStartedAt: number | null;
+  /** When the time limit runs out (modes with one), set as the timer starts. */
+  timeUpAt: number | null;
   endedAt: number | null;
   /** Meta word id -> how it was obtained. The game ends when every word is obtained. */
   metaSolved: Record<string, MetaObtained>;

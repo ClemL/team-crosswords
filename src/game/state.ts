@@ -48,6 +48,7 @@ export function createRoomState(args: {
     masterPid: null,
     pendingRotation: null,
     timerStartedAt: null,
+    timeUpAt: null,
     endedAt: null,
     metaSolved: {},
     boardEmojis: pickBoardEmojis(puzzle.boards.length, rng),

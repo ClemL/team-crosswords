@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <main className={home.page}>
       <div className={home.titleRow}>
-        <h1 className={home.title}>Rotating Co-op Crossword</h1>
+        <h1 className={home.title}>Team Crossword</h1>
         <div className={home.display}>
           <ThemeToggle />
           <DensityToggle />
@@ -22,8 +22,8 @@ export default function Home() {
         <h2>How to play</h2>
         <ol>
           <li>
-            Three boards sit in a ring: 5×5 in 5× mode, 6×6 in 6× mode. You can type only on the
-            board at your seat.
+            Three boards sit in a ring: 5×5 in 5× mode, 6×6 in 6× mode, 7×7 in 7× mode. You can type
+            only on the board at your seat.
           </li>
           <li>
             Play alone or with up to one player per board (3 in either mode); players are seated
@@ -45,10 +45,10 @@ export default function Home() {
           </li>
           <li>
             Circled cells spell meta words A, B, C… of different lengths: 5 words of 3–7 letters in
-            5× mode, 6 words of 3–8 letters in 6× mode. A word is obtained when all of its tiles
-            turn green, or when someone guesses it. The words share 35 points (7 each in 5×, about
-            5.8 in 6×), minus 10% per rotation made before each was obtained. The game ends when all
-            are obtained.
+            5× mode, 6 of 3–8 in 6× mode, 7 of 3–9 in 7× mode. A word is obtained when all of its
+            tiles turn green, or when someone guesses it. The words share 35 points (7 each in 5×,
+            about 5.8 in 6×, 5 in 7×), minus 10% per rotation made before each was obtained. The
+            game ends when all are obtained.
           </li>
           <li>
             Guesses are checked against every word not yet obtained. Alone, you can keep guessing
@@ -59,10 +59,12 @@ export default function Home() {
           </li>
           <li>
             Mark a doubtful cell with ?. A mark on a correct letter is a false suspect and costs 3
-            points. Par is 5 minutes in 5× mode and 6 in 6× mode. The results show each
-            player&apos;s tiles and the wrong letters they passed on at rotations, an MVP for each
-            board and a tiles leaderboard. The <span className={ui.capt}>Capt.</span> can end a
-            round and restart it from the seating map.
+            points. Par is 5 minutes in 5× mode and 6 in 6× mode. 7× mode has a 7-minute time limit:
+            when it runs out the game ends, and the score is the number of meta words obtained. The
+            results show each player&apos;s tiles and the wrong letters they passed on at rotations,
+            an MVP for each board and a tiles leaderboard. The{" "}
+            <span className={ui.capt}>Capt.</span> can end a round and restart it from the seating
+            map.
           </li>
         </ol>
       </section>
