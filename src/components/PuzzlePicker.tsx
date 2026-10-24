@@ -100,8 +100,8 @@ export function PuzzlePicker() {
         ))}
       </div>
       <p className={home.modeNote}>
-        Three {spec.boardSize}×{spec.boardSize} boards, {spec.metaWords} meta words of 3 to{" "}
-        {spec.metaWords + 2} letters,{" "}
+        {spec.boards} boards of {spec.boardSize}×{spec.boardSize} (up to {spec.boards} players),{" "}
+        {spec.metaWords} meta words of 3 to {spec.metaWords + 2} letters,{" "}
         {spec.timeLimitMinutes === null
           ? `par ${spec.parMinutes} minutes.`
           : `a ${spec.timeLimitMinutes}-minute time limit. If it runs out, the score is the number of meta words obtained.`}

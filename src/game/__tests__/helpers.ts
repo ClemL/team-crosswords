@@ -6,7 +6,7 @@ import { joinRoom, markReady } from "../lobby";
 import { cellKey, splitPuzzle } from "../puzzle";
 import { mulberry32 } from "../rng";
 import { createRoomState } from "../state";
-import type { PuzzleGame, RoomState } from "../types";
+import type { BoardCell, PuzzleGame, RoomState } from "../types";
 
 export const ALL_GAMES = JSON.parse(
   readFileSync(path.resolve(import.meta.dirname, "../../../data/puzzles-v1.json"), "utf8"),
@@ -80,6 +80,52 @@ export function fillWord(
   clue.cells.forEach(([r, c], i) => {
     s.boards[board].entries[cellKey(r, c)] = override?.[i] ?? ctx.solution.boards[board][r][c];
   });
+}
+
+/** Every board index of the game, in ring order. */
+export function boardIndexes(ctx: GameCtx): number[] {
+  return ctx.puzzle.boards.map((b) => b.index);
+}
+
+/** Open cells of `board`. */
+export function openCells(ctx: GameCtx, board: number): number {
+  return ctx.solution.boards[board].join("").replace(/#/g, "").length;
+}
+
+/** For each cell of a meta word: its board and the across clue through it. */
+export function metaTiles(ctx: GameCtx, metaId: string): [board: number, clueId: string][] {
+  const meta = ctx.puzzle.metas.find((m) => m.id === metaId);
+  if (!meta) throw new Error(`no meta ${metaId}`);
+  return meta.cells.map(([b, r, c]) => {
+    const clue = ctx.puzzle.boards[b].clues.find(
+      (cl) => cl.dir === "A" && cl.cells.some(([cr, cc]) => cr === r && cc === c),
+    );
+    if (!clue) throw new Error(`no across clue through b${b} r${r}c${c}`);
+    return [b, clue.id];
+  });
+}
+
+/**
+ * Puts a wrong letter in the first cell of a meta word (on `board`, if given) (mutates), so that
+ * word, and the across and down words through the cell, stay open. Returns the cell.
+ */
+export function breakMetaCell(
+  s: RoomState,
+  ctx: GameCtx,
+  metaId = "M5",
+  board?: number,
+): BoardCell {
+  const cells = ctx.puzzle.metas.find((m) => m.id === metaId)!.cells;
+  const cell = cells.find(([b]) => board === undefined || b === board);
+  if (!cell) throw new Error(`${metaId} has no cell on board ${board}`);
+  const [b, r, c] = cell;
+  s.boards[b].entries[cellKey(r, c)] = ctx.solution.boards[b][r][c] === "Q" ? "Z" : "Q";
+  return cell;
+}
+
+/** Fills every board with its solution (mutates). */
+export function fillAll(s: RoomState, ctx: GameCtx): void {
+  for (const b of boardIndexes(ctx)) fillBoard(s, ctx, b);
 }
 
 export function fillBoard(s: RoomState, ctx: GameCtx, board: number): void {

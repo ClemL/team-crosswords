@@ -11,7 +11,9 @@ import { applyDueTransitions, hasDueTransition } from "../transitions";
 import type { RoomState } from "../types";
 import { buildBoardView } from "../views";
 import {
-  fillBoard,
+  boardIndexes,
+  breakMetaCell,
+  fillAll,
   fillWord,
   GAME1,
   makeCtx,
@@ -36,16 +38,19 @@ function rotateLeft(s: RoomState, c: GameCtx = ctx): RoomState {
 describe("seating", () => {
   it("seats at most one player per board", () => {
     let s = startedRoom(ctx);
-    s = unwrap(joinRoom(s, ctx, PID2, "Kris", T0)).state;
-    s = unwrap(joinRoom(s, ctx, "p-3", "Srini", T0)).state;
+    for (const [i, name] of ["Kris", "Srini", "Teja", "Parth"].entries()) {
+      expect(seatForNewPlayer(s, ctx)).not.toBeNull();
+      s = unwrap(joinRoom(s, ctx, `p-${i + 2}`, name, T0)).state;
+    }
+    expect(Object.keys(s.players)).toHaveLength(ctx.puzzle.boards.length);
     expect(seatForNewPlayer(s, ctx)).toBeNull();
   });
 
   it("spreads players around a larger ring, leaving empty seats between them", () => {
-    // A six-board ring (the boards are repeated; seating only looks at the count).
+    // A six-board ring (a board is repeated; seating only looks at the count).
     const six: GameCtx = {
       ...ctx,
-      puzzle: { ...ctx.puzzle, boards: [...ctx.puzzle.boards, ...ctx.puzzle.boards] },
+      puzzle: { ...ctx.puzzle, boards: [...ctx.puzzle.boards, ctx.puzzle.boards[0]] },
     };
     let s = createRoomState({ rid: "SIX", puzzle: six.puzzle, now: T0, rng, cfg: six.cfg });
     const seats: number[] = [];
@@ -60,31 +65,34 @@ describe("seating", () => {
 
 describe("wrong letters passed on", () => {
   it("counts, at each rotation, the wrong letters a player typed on the board leaving them", () => {
-    let s = startedDuo(ctx); // Clem holds board 0, Kris board 1
+    let s = startedDuo(ctx); // Clem holds board 0, Kris (seat 2) board 2
     s = unwrap(applyEntry(s, ctx, PID, 0, 2, 0, "X", T0)).state; // TABLE's T
     s = unwrap(applyEntry(s, ctx, PID, 0, 2, 1, "A", T0)).state; // right
-    s = unwrap(applyEntry(s, ctx, PID2, 1, 0, 0, "Q", T0)).state;
-    s = unwrap(applyEntry(s, ctx, PID2, 1, 0, 1, "Q", T0)).state;
+    s = unwrap(applyEntry(s, ctx, PID2, 2, 0, 0, "Q", T0)).state;
+    s = unwrap(applyEntry(s, ctx, PID2, 2, 0, 1, "Q", T0)).state;
     s = rotateLeft(s);
     expect(s.playerStats[PID].wrongLeft).toBe(1);
     expect(s.playerStats[PID2].wrongLeft).toBe(2);
-    // Next rotation: Clem holds board 1, whose wrong letters are Kris's, so nobody adds any.
+    // Two rotations later Clem holds board 2, whose wrong letters are Kris's: passing it on adds
+    // nothing to anyone.
+    s = rotateLeft(s);
+    expect(s.boardAtSeat[0]).toBe(2);
     s = rotateLeft(s);
     expect([s.playerStats[PID].wrongLeft, s.playerStats[PID2].wrongLeft]).toEqual([1, 2]);
   });
 
   it("shows on the scorecards and as a team total", () => {
     let s = startedRoom(ctx);
-    for (const b of [0, 1, 2]) fillBoard(s, ctx, b);
-    for (const b of [0, 1, 2]) {
+    fillAll(s, ctx);
+    for (const b of boardIndexes(ctx)) {
       for (const k of Object.keys(s.boards[b].entries)) s.boards[b].authors[k] = PID;
     }
-    // GALLERY's Y (board 0, r1c4) is wrong, so the first rotation cannot end the game.
-    s.boards[0].entries["1,4"] = "Q";
+    // A wrong letter in one of GALLERY's cells on board 0: the first rotation cannot end the game.
+    const [, r, c] = breakMetaCell(s, ctx, "M5", 0);
     s = rotateLeft(s);
     expect(s.status).toBe("playing");
-    expect(s.boardAtSeat[0]).toBe(0); // boards 1 and 2 are done; board 0 comes back
-    s.boards[0].entries["1,4"] = "Y";
+    expect(s.boardAtSeat[0]).toBe(0); // every other board is done; board 0 comes back
+    s.boards[0].entries[`${r},${c}`] = ctx.solution.boards[0][r][c];
     s = rotateLeft(s);
     expect(s.status).toBe("ended");
     expect(s.result!.players[0].wrongLeft).toBe(1);
@@ -114,7 +122,7 @@ describe("restart", () => {
       ready: [],
       masterPid: capt,
       seats: s.seats,
-      boardAtSeat: [0, 1, 2],
+      boardAtSeat: boardIndexes(ctx),
       boardEmojis: s.boardEmojis,
       version: s.version,
     });
@@ -136,11 +144,13 @@ describe("restart", () => {
 describe("unlock helper cells", () => {
   it("marks the cells whose letter unlocks a hidden clue on another board, until it unlocks", () => {
     let s = startedRoom(ctx);
-    const [e0, e1] = [s.boardEmojis[0].e, s.boardEmojis[1].e];
-    // Game 1, board 2 holds the letters that 1A, 5D (board 0) and 8A, 5D (board 1) wait on.
+    const [e0, e1, e3] = [s.boardEmojis[0].e, s.boardEmojis[1].e, s.boardEmojis[3].e];
+    // Game 1, board 2 holds the letters that 1A, 5D (board 0), 8A, 5D (board 1) and 7A (board 3)
+    // wait on.
     expect(buildBoardView(s, ctx, 2).helperCells).toEqual([
       { r: 0, c: 0, boards: [e0] },
       { r: 0, c: 3, boards: [e1] },
+      { r: 1, c: 1, boards: [e3] },
       { r: 2, c: 0, boards: [e1] },
       { r: 4, c: 2, boards: [e0] },
     ]);
@@ -148,6 +158,7 @@ describe("unlock helper cells", () => {
     s = runPulse(s, ctx, T0).state; // board 0's 1A unlocks
     expect(buildBoardView(s, ctx, 2).helperCells.map((h) => [h.r, h.c])).toEqual([
       [0, 3],
+      [1, 1],
       [2, 0],
       [4, 2],
     ]);
@@ -206,7 +217,7 @@ describe("time limit (7x)", () => {
 
   it("scores a game finished before the deadline as usual", () => {
     let s = startedRoom(timed);
-    for (const b of [0, 1, 2]) fillBoard(s, timed, b);
+    fillAll(s, timed);
     s = rotateLeft(s, timed);
     expect(s.result).toMatchObject({ endedBy: "metas", metasObtained: 5 });
     expect(s.result!.grade).not.toBeNull();

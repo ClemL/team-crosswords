@@ -27,17 +27,33 @@ function useQr(url: string | undefined): string | null {
   return src;
 }
 
+/**
+ * Ring layout for n seats, in % of the ring box: tile centers sit on a circle of radius `r` around
+ * (50%, cy). Rings of more than four seats get a wider box, a bigger circle and tiles narrow
+ * enough that neighbours do not overlap.
+ */
+function ringLayout(n: number) {
+  if (n <= 4) return { box: 520, r: 30, cy: 52, tile: 42, compact: false };
+  return { box: 760, r: 38, cy: 50, tile: Math.round(52 * Math.sin(Math.PI / n)), compact: true };
+}
+
 /** Tile positions around the ring: seat 0 at the top, then clockwise. */
 function seatPosition(seat: number, n: number): { left: string; top: string } {
+  const { r, cy } = ringLayout(n);
   const angle = -Math.PI / 2 + (seat * 2 * Math.PI) / n;
-  return { left: `${50 + 30 * Math.cos(angle)}%`, top: `${52 + 30 * Math.sin(angle)}%` };
+  return { left: `${50 + r * Math.cos(angle)}%`, top: `${cy + r * Math.sin(angle)}%` };
 }
 
 function Ring({ view }: { view: HostView }) {
   const n = view.seating.seats.length;
+  const layout = ringLayout(n);
   return (
-    <div className={h.ring} aria-label="Seating ring">
-      <div className={h.ringArrows} aria-hidden="true" />
+    <div
+      className={`${h.ring} ${layout.compact ? h.ringCompact : ""}`}
+      style={{ width: `min(${layout.box}px, 100%)` }}
+      aria-label="Seating ring"
+    >
+      <div className={h.ringArrows} style={{ inset: `${52 - layout.r}%` }} aria-hidden="true" />
       {view.seating.seats.map((seat) => {
         const idle = seat.playerName === null;
         const ready = view.seating.readySeats.includes(seat.seat);
@@ -45,7 +61,11 @@ function Ring({ view }: { view: HostView }) {
           <div
             key={seat.seat}
             className={`${h.tile} ${idle ? h.tileIdle : ""}`}
-            style={{ ...seatPosition(seat.seat, n), borderColor: seat.color }}
+            style={{
+              ...seatPosition(seat.seat, n),
+              width: `${layout.tile}%`,
+              borderColor: seat.color,
+            }}
           >
             <div className={h.tileEmoji} aria-hidden="true">
               {seat.emoji || "—"}
@@ -111,6 +131,7 @@ export function HostApp({ rid }: { rid: string }) {
 
   const pending = view.rotation.pending;
   const cooling = now < view.rotation.cooldownUntil;
+  const wideRing = ringLayout(view.seating.seats.length).compact;
 
   return (
     <main className={h.page}>
@@ -150,7 +171,7 @@ export function HostApp({ rid }: { rid: string }) {
       )}
 
       {view.status === "lobby" && (
-        <div className={h.lobby}>
+        <div className={`${h.lobby} ${wideRing ? h.lobbyWideRing : ""}`}>
           <div className={`${ui.card} ${h.join}`}>
             <div className={ui.muted}>Scan to join, or open</div>
             <div>

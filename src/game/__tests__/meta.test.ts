@@ -7,10 +7,12 @@ import { runPulse } from "../pulse";
 import { mulberry32 } from "../rng";
 import { toggleSuspect } from "../suspect";
 import {
-  fillBoard,
+  breakMetaCell,
+  fillAll,
   fillWord,
   GAME1,
   makeCtx,
+  metaTiles,
   PID,
   PID2,
   startedDuo,
@@ -136,9 +138,7 @@ describe("meta guesses", () => {
       error: { code: "BAD_REQUEST" },
     });
     // APE obtained by tiles first.
-    fillWord(s, ctx, 0, "B0-4A");
-    fillWord(s, ctx, 1, "B1-4A");
-    fillWord(s, ctx, 2, "B2-8A");
+    for (const [b, id] of metaTiles(ctx, "M1")) fillWord(s, ctx, b, id);
     s = runPulse(s, ctx, T0).state;
     expect(s.metaSolved.M1?.by).toBe("tiles");
     expect(guessMeta(s, ctx, PID, "ape", T0, rng)).toMatchObject({
@@ -150,9 +150,8 @@ describe("meta guesses", () => {
 
   it("ends the game when a guess obtains the last word", () => {
     let s = startedRoom(ctx);
-    for (const b of [0, 1, 2]) fillBoard(s, ctx, b);
-    // Break GALLERY's tiles: its "Y" (board 0 r1c4) is only in GRAY and EYE.
-    s.boards[0].entries["1,4"] = "Q";
+    fillAll(s, ctx);
+    breakMetaCell(s, ctx, "M5"); // GALLERY's tiles cannot all lock
     s = runPulse(s, ctx, T0 + 1).state;
     expect(s.status).toBe("playing");
     expect(Object.keys(s.metaSolved).sort()).toEqual(["M1", "M2", "M3", "M4"]);

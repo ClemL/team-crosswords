@@ -20,8 +20,8 @@ export function randomRoomCode(): string {
 }
 
 /**
- * Loads the whole room in one pipelined round trip, assuming the usual ring size (cfg.seats). A
- * room whose puzzle has another number of boards is read again with its own count.
+ * Loads the whole room in one pipelined round trip, reading cfg.seats boards (the largest ring);
+ * a smaller room drops the extra, empty ones. A room with more boards is read again with its count.
  */
 export async function loadRoom(
   store: Store,
@@ -54,9 +54,9 @@ export async function loadRoom(
   const boardAtSeat = res[3] as string | null;
   if (version === null || !meta.puzzleId || boardAtSeat === null) return null;
   const actual = (JSON.parse(boardAtSeat) as unknown[]).length;
-  if (actual !== boardCount) return loadRoom(store, rid, cfg, actual);
+  if (actual > boardCount) return loadRoom(store, rid, cfg, actual);
   const head = 8;
-  const boards: RedisShape["boards"] = k.boards.map((_, n) => ({
+  const boards: RedisShape["boards"] = k.boards.slice(0, actual).map((_, n) => ({
     entries: res[head + n * 3] as Record<string, string>,
     authors: res[head + 1 + n * 3] as Record<string, string>,
     suspects: res[head + 2 + n * 3] as Record<string, string>,

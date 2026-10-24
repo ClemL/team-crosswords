@@ -45,7 +45,7 @@ for (const { name, make } of storesUnderTest()) {
       fillWord(next, ctx, 0, "B0-4A");
       next = runPulse(next, ctx, now).state;
       next.knockedOut = { "p-out": now };
-      next.boardAtSeat = [0, null, 2];
+      next.boardAtSeat = [0, null, 2, 3, 4];
       const saved = await saveRoom(store, loaded, next, cfg);
       expect(saved.changed).toBe(true);
       expect(saved.state.version).toBe(1);
@@ -62,7 +62,10 @@ for (const { name, make } of storesUnderTest()) {
         guesses: [{ text: "WATER", metaId: "M3" }],
       });
       expect(again.knockedOut).toEqual({ "p-out": now });
-      expect(again.boardAtSeat).toEqual([0, null, 2]);
+      expect(again.boardAtSeat).toEqual([0, null, 2, 3, 4]);
+      // Read with the largest ring (seven boards), or with a smaller guess than the room's five.
+      expect(again.boards).toHaveLength(5);
+      expect(await loadRoom(store, created.rid, { ...cfg, seats: 3 })).toEqual(again);
 
       // A save without changes does not bump the version.
       const noop = await saveRoom(store, again, structuredClone(again), cfg);

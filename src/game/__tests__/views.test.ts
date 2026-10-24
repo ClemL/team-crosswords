@@ -36,21 +36,21 @@ describe("views", () => {
 
   it("marks the meta cells of the board with their word number and position", () => {
     const view = buildPlayerView(startedRoom(ctx), ctx, PID, T0);
-    // Board 0 holds BETTER's first two letters (r2c2, r3c0) among others.
+    // Board 0 holds BETTER's first letter (r2c2) among others.
     expect(view.board!.metaCells).toEqual(
-      expect.arrayContaining([
-        { r: 2, c: 2, meta: 4, slot: 1 },
-        { r: 3, c: 0, meta: 4, slot: 2 },
-      ]),
+      expect.arrayContaining([{ r: 2, c: 2, meta: 4, slot: 1 }]),
     );
-    const total = ALL_GAMES[0].metas.flatMap((m) => m.cells).filter(([b]) => b === 0).length;
-    expect(view.board!.metaCells).toHaveLength(total);
+    const onBoard0 = ALL_GAMES[0].metas.flatMap((m, mi) =>
+      m.cells.flatMap(([b, r, c], si) => (b === 0 ? [{ r, c, meta: mi + 1, slot: si + 1 }] : [])),
+    );
+    expect(view.board!.metaCells).toEqual(expect.arrayContaining(onBoard0));
+    expect(view.board!.metaCells).toHaveLength(onBoard0.length);
   });
 
   it("shows only the board at the player's seat", () => {
     const s = startedRoom(ctx);
     s.boards[1].entries["0,0"] = "O";
-    s.boardAtSeat = [2, 0, 1];
+    s.boardAtSeat = [2, 0, 3, 4, 1];
     const view = buildPlayerView(s, ctx, PID, T0);
     expect(view.board!.index).toBe(2);
     expect(view.board!.entries).toEqual({});
@@ -60,14 +60,14 @@ describe("views", () => {
 
   it("shows no board for a seat whose board left the ring, and lists finished boards", () => {
     const s = startedRoom(ctx);
-    s.boardAtSeat = [null, 0, 2];
+    s.boardAtSeat = [null, 0, 2, 3, 4];
     const view = buildPlayerView(s, ctx, PID, T0);
     expect(view.board).toBeNull();
     expect(view.seating.seats[0]).toMatchObject({ boardIndex: null, emoji: "", isYou: true });
-    expect(view.seating.boards.map((b) => b.done)).toEqual([false, true, false]);
+    expect(view.seating.boards.map((b) => b.done)).toEqual([false, true, false, false, false]);
     // Alone, either rotation still brings a board.
     expect(view.seating.nextIfLeft!.boardIndex).toBe(0);
-    expect(view.seating.nextIfRight!.boardIndex).toBe(2);
+    expect(view.seating.nextIfRight!.boardIndex).toBe(4);
   });
 
   it("reveals the full clue text once its word locks, even if the clue is still locked", () => {

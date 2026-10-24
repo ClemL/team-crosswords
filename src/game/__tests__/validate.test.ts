@@ -6,8 +6,9 @@ import { ALL_GAMES, SEVEN_GAMES, SIX_GAMES } from "./helpers";
 const copy = (): PuzzleGame => structuredClone(ALL_GAMES[0]);
 
 describe("puzzle validator", () => {
-  it("accepts all provided games", () => {
+  it("accepts all provided games: five 5×5 boards each, one per player", () => {
     for (const r of validatePuzzleSet(ALL_GAMES)) expect(r.errors).toEqual([]);
+    for (const g of ALL_GAMES) expect(g.boards).toHaveLength(5);
   });
 
   it.each([
@@ -84,23 +85,25 @@ describe("puzzle validator", () => {
     expect(validateGame(g).errors.length).toBeGreaterThan(0);
   });
 
-  it("accepts the 6× set: 6×6 boards, 6 meta words of 3–8 letters, par 6, solvable in 2–4", () => {
+  it("accepts the 6× set: six 6×6 boards, 6 meta words of 3–8 letters, par 6, solvable in 2–4", () => {
     expect(SIX_GAMES).toHaveLength(10);
     for (const r of validatePuzzleSet([...ALL_GAMES, ...SIX_GAMES])) expect(r.errors).toEqual([]);
     for (const g of SIX_GAMES) {
       expect(g).toMatchObject({ boardSize: 6, parMinutes: 6 });
+      expect(g.boards).toHaveLength(6);
       expect(g.metas.map((m) => m.answer.length)).toEqual([3, 4, 5, 6, 7, 8]);
       expect(simulateSolve(g)).toBeGreaterThanOrEqual(2);
       expect(simulateSolve(g)).toBeLessThanOrEqual(4);
     }
   });
 
-  it("accepts the 7× set: 7×7 boards, 7 meta words of 3–9 letters, par 7, solvable in 2–4", () => {
+  it("accepts the 7× set: seven 7×7 boards, 7 meta words of 3–9 letters, par 7, solvable in 2–4", () => {
     expect(SEVEN_GAMES).toHaveLength(10);
     const all = [...ALL_GAMES, ...SIX_GAMES, ...SEVEN_GAMES];
     for (const r of validatePuzzleSet(all)) expect(r.errors).toEqual([]);
     for (const g of SEVEN_GAMES) {
       expect(g).toMatchObject({ boardSize: 7, parMinutes: 7 });
+      expect(g.boards).toHaveLength(7);
       expect(g.metas.map((m) => m.answer.length)).toEqual([3, 4, 5, 6, 7, 8, 9]);
       const rotations = simulateSolve(g)!;
       expect(rotations).toBeGreaterThanOrEqual(2);
@@ -124,5 +127,25 @@ describe("puzzle validator", () => {
     const g = copy();
     g.boards[1].clues[0].answer = "OWE";
     expect(validateGame(g).errors.join("\n")).toContain("duplicate answer OWE");
+  });
+
+  it("lets a 7× game repeat a 3-letter answer on another board, never on the same one", () => {
+    const threes = (g: PuzzleGame, b: number) =>
+      g.boards[b].clues.filter((c) => c.answer.length === 3);
+    const other = structuredClone(SEVEN_GAMES[0]);
+    const word = threes(other, 0)[0].answer;
+    threes(other, 1)[0].answer = word;
+    expect(validateGame(other).errors.join("\n")).not.toContain(`duplicate answer ${word}`);
+
+    const same = structuredClone(SEVEN_GAMES[0]);
+    const [a, b] = threes(same, 0);
+    b.answer = a.answer;
+    expect(validateGame(same).errors.join("\n")).toContain(`duplicate answer ${a.answer}`);
+
+    // Longer answers stay unique across the game.
+    const long = structuredClone(SEVEN_GAMES[0]);
+    const seven = long.boards[0].clues.find((c) => c.answer.length === 7)!.answer;
+    long.boards[1].clues.find((c) => c.answer.length === 7)!.answer = seven;
+    expect(validateGame(long).errors.join("\n")).toContain(`duplicate answer ${seven}`);
   });
 });

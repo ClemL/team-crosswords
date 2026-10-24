@@ -1,12 +1,12 @@
 # Team Crossword
 
-A ring of three mini crosswords that rotate around the table, in three modes:
+A ring of mini crosswords, one per player, that rotate around the table, in three modes:
 
-| Mode | Boards | Meta words        | Time                 | Games                  |
-| ---- | ------ | ----------------- | -------------------- | ---------------------- |
-| 5×   | 5×5    | 5, of 3–7 letters | par 5 min            | `data/puzzles-v1.json` |
-| 6×   | 6×6    | 6, of 3–8 letters | par 6 min            | `data/puzzles-6x.json` |
-| 7×   | 7×7    | 7, of 3–9 letters | par and limit, 7 min | `data/puzzles-7x.json` |
+| Mode | Boards    | Players | Meta words        | Time                 | Games                  |
+| ---- | --------- | ------- | ----------------- | -------------------- | ---------------------- |
+| 5×   | five 5×5  | 1–5     | 5, of 3–7 letters | par 5 min            | `data/puzzles-v1.json` |
+| 6×   | six 6×6   | 1–6     | 6, of 3–8 letters | par 6 min            | `data/puzzles-6x.json` |
+| 7×   | seven 7×7 | 1–7     | 7, of 3–9 letters | par and limit, 7 min | `data/puzzles-7x.json` |
 
 Words lock green only when the ring rotates, and a board whose words are all green leaves the ring.
 Some clues stay hidden until a letter on another board is confirmed, enough rotations happen, or
@@ -18,7 +18,7 @@ words come from the themed answers of the sibling crossword app. The results sho
 on at rotations), an MVP per board and a tiles leaderboard. The Capt. can end a round and restart
 it. Portrait phones only; light, dark or automatic theme; normal, cosy or compact display size.
 
-Up to one player per board (three in every mode), ten pre-built games per mode. The server keeps all state
+Up to one player per board (5, 6 or 7 by mode), ten pre-built games per mode. The server keeps all state
 (seats, the Capt., versioned polling). Choices made where the spec was silent, and the rule changes
 made since V1, are listed in [`DECISIONS.md`](DECISIONS.md).
 

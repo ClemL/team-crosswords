@@ -21,7 +21,7 @@ export type PuzzleListItem = {
 export const ALL_PUZZLES = [...fiveFile, ...sixFile, ...sevenFile] as unknown as PuzzleGame[];
 
 /** Bumped whenever the stored puzzle shape changes; older seeds must be re-seeded. */
-export const PUZZLE_FORMAT = 3;
+export const PUZZLE_FORMAT = 4;
 type PuzzleIndex = { format: number; puzzles: PuzzleListItem[] };
 
 /** Parses the stored index. Returns null when missing; `stale` when seeded by an older version. */

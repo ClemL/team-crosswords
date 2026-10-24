@@ -417,3 +417,54 @@ These supersede the spec's §3.10, §4, §3.6 cooldown and the `meta`/`shaded` f
    model. Meta words are again themed answers of any player, one topic per word where possible.
 7. **Tests:** the time limit can be scaled (`timeLimitScale` in `CONFIG_V1`, overridable through
    `XW_CONFIG_OVERRIDES`); the end-to-end test runs 7× with a 4.2-second limit.
+
+## M. Changes requested after V1 (sixth round)
+
+1. **As many boards as the mode's number, one player per board.** 5× games have five 5×5 boards,
+   6× six 6×6 and 7× seven 7×7 (`MODES.boards`), so a room seats up to 5, 6 or 7 players. The
+   seat cap was already the puzzle's board count (K.8); what changed is the data. Spaced seating
+   (K.9) now matters: a second player sits across the ring (seat 3 of 5, not seat 2).
+2. **The games were extended, not replaced.** Every game keeps its three boards with their clues
+   and unlocks. `scripts/generate-games.ts --extend` fills the new boards with the same filler and
+   rules (5× now uses it too, with every symmetric 5×5 layout of 4 or 6 blocks, as in the hand-made
+   set), preferring
+   answers no other board of the set has used. Each game keeps its meta words, spelled again over
+   all of its boards: a word uses every board or, when it has fewer letters than the ring has
+   boards, as many boards as letters (the validator's existing rule). Only the new boards got
+   unlocks, drawn until the idealized solve takes 2–4 rotations; no game needed its old boards'
+   unlocks redrawn. The run saves after each game and skips finished ones, so it can be restarted.
+   Result: 90 new boards (20 in 5×, 30 in 6×, 40 in 7×), with every original board, clue and
+   unlock unchanged. The idealized solve takes 2–3 rotations in 5× and 3–4 in 6× and 7×. Distinct
+   answers per set: 459 of 500 in 5×, 536 of 720 in 6×, 514 of 1,540 in 7× (an answer may recur
+   in another game, as before).
+3. **7× may repeat a 3-letter answer on another board of the same game** (`MODES.repeatLength`,
+   checked by the validator; never twice on one board, and longer answers stay unique). The 7×7
+   layout has eighteen 3-letter entries, so seven boards need 126 per game, and the curated list
+   has 332: in a trial, every game needed repeats by its fourth or fifth board (by its sixth or
+   seventh with the extra words below); a 30-second search budget did not help, and the
+   14–16-entry layouts with 10–12 blocks filled none of 40 tries. The
+   generator tries repeat-free first and only then lets this game's 3-letter answers back in,
+   ranked after every other word. The 7× set has 126 such repeats among its 720 new 3-letter
+   entries (7 to 22 per game); the 5× and 6× sets have none.
+4. **More 3-letter fill:** `EXTRA_THREES` in `scripts/clues.ts` adds 76 three-letter words from
+   below crossword-app's curated tier (AFT, COY, FEZ, NAB, WRY, VEX…), each with a hand-written
+   clue; the filler ranks them after the curated words. With them, repeats in the trial fell from
+   226 to 116 of 720 new 3-letter entries. Names, crude words, religious terms and abbreviations
+   from those tiers were left out. Blocked as they came up: BAPTISM, BONDAGE, BRISTOL, BROTHEL,
+   DARBY, DOPE, MOULD, PADRE, PAULINE and PLUTO; also ACROSS and DOWN, which the clue list shows
+   as headings, so the leak check flags them as answers in the client bundle.
+5. **Clues:** 159 new answers got a hand-written clue in `scripts/clues.ts`; the rest came from
+   crossword-app's curated clues or from the clue the answer already had in a committed puzzle
+   file. `--reclue` now only fills in empty clues; it used to re-pick every clue, which would have
+   replaced the hand-written 5× clues.
+6. **Par and the 7× time limit are unchanged** (5, 6 and 7 minutes) although a game now has more
+   boards; par still shrinks with effective players (§4). Flagged for review: a solo player now
+   covers five to seven boards in the same par.
+7. **Redis:** rooms are read assuming seven boards (`CONFIG_V1.seats`, the largest ring) in one
+   round trip; a smaller room drops the extra, empty board hashes instead of being read again.
+   `PUZZLE_FORMAT` is 4, so a deployment seeded with three-board games reports a stale seed until
+   the seed route runs again.
+8. **Host ring:** more than four seats get a wider ring (760 px), a bigger circle and narrower,
+   compact tiles, so seven tiles do not overlap; in the lobby that ring takes two thirds of a wide
+   screen (900 px and up) beside the join card, or a row of its own below it. The home page and
+   README give each mode's board and player count.
