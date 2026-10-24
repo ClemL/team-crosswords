@@ -22,7 +22,7 @@ test("single player: seed → room → join → ready → solve → grade", asyn
   // The setup screen offers both modes; each lists its own games.
   await host.getByRole("radio", { name: /6×6/ }).click();
   await expect(
-    host.getByText(/Three 6×6 boards, 6 meta words of 3 to 8 letters, par 6/),
+    host.getByText(/6 boards of 6×6 \(up to 6 players\), 6 meta words of 3 to 8 letters, par 6/),
   ).toBeVisible();
   await expect(host.getByRole("button", { name: "Game 10", exact: true })).toBeVisible();
   await host.getByRole("radio", { name: /5×5/ }).click();
@@ -50,7 +50,7 @@ test("single player: seed → room → join → ready → solve → grade", asyn
   for (const m of V1_01.metaAnswers) expect(firstState.body).not.toContain(`"${m}"`);
 
   // Solve: fill the board at the seat, rotate left, repeat until every word locks.
-  for (let round = 0; round < 3; round++) {
+  for (let round = 0; round < V1_01.boards.length; round++) {
     const board = latest.view!.board!.index;
     await typeBoard(page, board);
     // Wait until the server holds every letter of this board.
@@ -105,7 +105,7 @@ test("single player: seed → room → join → ready → solve → grade", asyn
   await expect(page.getByLabel(/^Grade /)).toBeVisible();
   await expect(page.getByRole("heading", { name: "Your scorecard" })).toBeVisible();
   const card = page.getByRole("region", { name: "Scorecard: Clem Leung" });
-  await expect(card).toContainText("Tiles filled59"); // 19 + 19 + 21 open cells
+  await expect(card).toContainText("Tiles filled101"); // 19 + 19 + 21 + 21 + 21 open cells
   await expect(card).toContainText("BETTER ✓ word D, +5.6 · ZEBRA ✗");
   await expect(card).toContainText("Wrong letters passed on0");
   await expect(page.getByText(/guessed by Clem Leung, after 2 rotations/)).toBeVisible();

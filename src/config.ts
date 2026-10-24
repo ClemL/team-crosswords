@@ -1,8 +1,8 @@
 // Game configuration. All rule code reads from this object (§5). No magic numbers elsewhere.
 export const CONFIG_V1 = {
-  // Boards per game in every current mode. Rooms are read assuming this ring size; a room with
-  // another board count costs one more read (room-repo). Players: up to one per board.
-  seats: 3,
+  // The largest ring of any mode (MODES[mode].boards). Rooms are read assuming this many boards,
+  // and a smaller room drops the extra (empty) ones (room-repo). Players: up to one per board.
+  seats: 7,
   cooldownMs: 20_000, // multiplayer only; single player has no cooldown
   rotationWarningMs: 3_000,
   seatingFlashMs: 2_000,
@@ -26,12 +26,35 @@ export const CONFIG_V1 = {
  * Game modes. Board size, number of meta words (lengths 3 to metaWords + 2) and par scale
  * together; the mode of a game is read from its boardSize. `boards` is the ring size, which is
  * also the most players a room of that mode seats (one per board). A mode with a time limit ends
- * when it runs out, and the score is then the number of meta words obtained.
+ * when it runs out, and the score is then the number of meta words obtained. Answers of
+ * `repeatLength` letters may appear on more than one board of a game (never twice on one board):
+ * seven 7×7 boards need 126 three-letter answers, more than the word list can give without repeats.
  */
 export const MODES = {
-  "5x": { boardSize: 5, metaWords: 5, parMinutes: 5, boards: 3, timeLimitMinutes: null },
-  "6x": { boardSize: 6, metaWords: 6, parMinutes: 6, boards: 3, timeLimitMinutes: null },
-  "7x": { boardSize: 7, metaWords: 7, parMinutes: 7, boards: 3, timeLimitMinutes: 7 },
+  "5x": {
+    boardSize: 5,
+    metaWords: 5,
+    parMinutes: 5,
+    boards: 5,
+    timeLimitMinutes: null,
+    repeatLength: null,
+  },
+  "6x": {
+    boardSize: 6,
+    metaWords: 6,
+    parMinutes: 6,
+    boards: 6,
+    timeLimitMinutes: null,
+    repeatLength: null,
+  },
+  "7x": {
+    boardSize: 7,
+    metaWords: 7,
+    parMinutes: 7,
+    boards: 7,
+    timeLimitMinutes: 7,
+    repeatLength: 3,
+  },
 } as const;
 export type Mode = keyof typeof MODES;
 

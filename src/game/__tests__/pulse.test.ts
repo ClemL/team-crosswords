@@ -2,7 +2,17 @@ import { describe, expect, it } from "vitest";
 import { applyEntry } from "../entry";
 import { runPulse } from "../pulse";
 import { cellKey } from "../puzzle";
-import { fillBoard, fillWord, makeCtx, PID, startedRoom, T0, unwrap } from "./helpers";
+import {
+  fillAll,
+  fillBoard,
+  fillWord,
+  makeCtx,
+  metaTiles,
+  PID,
+  startedRoom,
+  T0,
+  unwrap,
+} from "./helpers";
 
 const ctx = makeCtx();
 
@@ -80,12 +90,12 @@ describe("runPulse", () => {
   it("obtains a meta word when all of its tiles lock, at the rotation count before the pulse", () => {
     const s = startedRoom(ctx);
     s.rotations = 2;
-    // APE = board 0 r1c3 (GRAY), board 1 r1c0 (PART), board 2 r3c4 (SURE).
-    fillWord(s, ctx, 0, "B0-4A");
-    fillWord(s, ctx, 1, "B1-4A");
+    // APE: one cell on each of three boards; lock the across words through the first two.
+    const [first, second, last] = metaTiles(ctx, "M1");
+    for (const [b, id] of [first, second]) fillWord(s, ctx, b, id);
     const half = runPulse(s, ctx, T0 + 1).state;
     expect(half.metaSolved.M1).toBeUndefined();
-    fillWord(half, ctx, 2, "B2-8A");
+    fillWord(half, ctx, last[0], last[1]);
     const { state } = runPulse(half, ctx, T0 + 2);
     expect(state.metaSolved.M1).toEqual({ at: T0 + 2, rotations: 2, by: "tiles" });
     expect(state.status).toBe("playing");
@@ -93,7 +103,7 @@ describe("runPulse", () => {
 
   it("ends the game once every meta word is obtained, even with clues unsolved", () => {
     const s = startedRoom(ctx);
-    for (const b of [0, 1, 2]) fillBoard(s, ctx, b);
+    fillAll(s, ctx);
     // Blank one cell that is not a meta cell: its two words stay unsolved, but every meta cell
     // still locks through its other word.
     const metaCells = new Set(
@@ -102,14 +112,14 @@ describe("runPulse", () => {
     const spare = Object.keys(s.boards[1].entries).find((k) => !metaCells.has(`1:${k}`))!;
     delete s.boards[1].entries[spare];
     const { state, ended } = runPulse(s, ctx, T0 + 60_000);
-    expect(state.locked.length).toBeLessThan(30);
+    expect(state.locked.length).toBeLessThan(ctx.puzzle.boards.flatMap((b) => b.clues).length);
     expect(ended).toBe(true);
     expect(state.status).toBe("ended");
   });
 
   it("ends the game when every word is locked", () => {
     const s = startedRoom(ctx);
-    for (const b of [0, 1, 2]) fillBoard(s, ctx, b);
+    fillAll(s, ctx);
     const { state, ended } = runPulse(s, ctx, T0 + 600_000);
     expect(ended).toBe(true);
     expect(state.status).toBe("ended");

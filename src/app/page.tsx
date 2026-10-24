@@ -22,11 +22,11 @@ export default function Home() {
         <h2>How to play</h2>
         <ol>
           <li>
-            Three boards sit in a ring: 5×5 in 5× mode, 6×6 in 6× mode, 7×7 in 7× mode. You can type
-            only on the board at your seat.
+            The boards sit in a ring: five 5×5 boards in 5× mode, six 6×6 in 6× mode, seven 7×7 in
+            7× mode. You can type only on the board at your seat.
           </li>
           <li>
-            Play alone or with up to one player per board (3 in either mode); players are seated
+            Play alone or with up to one player per board (5, 6 or 7 by mode); players are seated
             with empty seats between them where the ring allows. The{" "}
             <span className={ui.capt}>Capt.</span> rotates the ring (⟲ or ⟳); their phone is tinted
             red, and the role passes around after each rotation. Alone, you can rotate at any time;

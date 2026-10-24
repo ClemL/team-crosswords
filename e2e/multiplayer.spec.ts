@@ -73,7 +73,8 @@ test("two players: join, ready, Capt. hand-off, results with MVPs and leaderboar
   expect(clem.latest.view!.you.isMaster).toBe(true);
   expect(kris.latest.view!.you.isMaster).toBe(false);
 
-  // Round 1: each fills the board at their seat (Clem board 0, Kris board 1); Clem rotates.
+  // Round 1: each fills the board at their seat (Clem board 0; Kris, seated across the ring,
+  // board 2); Clem rotates.
   await fillMyBoard(clem);
   await fillMyBoard(kris);
   // Clem spends his single guess on a word whose letters are not even shown yet, typed on the
@@ -88,14 +89,22 @@ test("two players: join, ready, Capt. hand-off, results with MVPs and leaderboar
   await clem.page.keyboard.press("Escape");
   await captRotates(clem, kris);
 
-  // Boards 0 and 1 are complete, so they left the ring: Kris now holds board 2 and is Capt.,
-  // Clem has no board.
+  // Boards 0 and 2 are complete, so they left the ring: Clem now holds board 1, Kris board 3,
+  // and Kris is Capt.
   await expect.poll(() => kris.latest.view?.you.isMaster).toBe(true);
-  expect(kris.latest.view!.board!.index).toBe(2);
-  await expect(clem.page.getByText("No board at your seat this rotation.")).toBeVisible();
-  await expect(kris.page.getByRole("button", { name: /^Rotate left/ })).toBeVisible();
+  expect(clem.latest.view!.board!.index).toBe(1);
+  expect(kris.latest.view!.board!.index).toBe(3);
+  await fillMyBoard(clem);
   await fillMyBoard(kris);
   await captRotates(kris, clem);
+
+  // Only board 4 is left: Kris holds it, Clem has no board but is Capt. again.
+  await expect.poll(() => clem.latest.view?.you.isMaster).toBe(true);
+  await expect(clem.page.getByText("No board at your seat this rotation.")).toBeVisible();
+  await expect(clem.page.getByRole("button", { name: /^Rotate left/ })).toBeVisible();
+  expect(kris.latest.view!.board!.index).toBe(4);
+  await fillMyBoard(kris);
+  await captRotates(clem, kris);
 
   // Every meta word is now obtained: the game is over on both phones.
   for (const p of [clem, kris]) {
@@ -104,8 +113,8 @@ test("two players: join, ready, Capt. hand-off, results with MVPs and leaderboar
     await expect(p.page.getByRole("heading", { name: "Tiles leaderboard" })).toBeVisible();
   }
   const board = clem.page.locator("ol").filter({ hasText: "Kris" });
-  await expect(board.locator("li").nth(0)).toHaveText(/1\. Kris\s*40/);
-  await expect(board.locator("li").nth(1)).toHaveText(/2\. Clem Leung\s*19/);
+  await expect(board.locator("li").nth(0)).toHaveText(/1\. Kris\s*63/); // boards 2, 3 and 4
+  await expect(board.locator("li").nth(1)).toHaveText(/2\. Clem Leung\s*38/); // boards 0 and 1
   await expect(clem.page.getByRole("region", { name: "Scorecard: Clem Leung" })).toContainText(
     "CORN ✓ word B, +7",
   );

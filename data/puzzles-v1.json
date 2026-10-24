@@ -948,6 +948,656 @@
      "#SURE",
      "#TEND"
     ]
+   },
+   {
+    "index": 3,
+    "layout": [
+     "##...",
+     ".....",
+     ".....",
+     ".....",
+     "...##"
+    ],
+    "solution": [
+     "##SIP",
+     "OPERA",
+     "AUDIT",
+     "TRASH",
+     "HEN##"
+    ],
+    "clues": [
+     {
+      "id": "B3-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        3
+       ],
+       [
+        0,
+        4
+       ]
+      ],
+      "answer": "SIP",
+      "text": "Small drink",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-4A",
+      "num": 4,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        1,
+        4
+       ]
+      ],
+      "answer": "OPERA",
+      "text": "Show with arias",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-6A",
+      "num": 6,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "AUDIT",
+      "text": "Close look at the books",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 24
+      }
+     },
+     {
+      "id": "B3-7A",
+      "num": 7,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "TRASH",
+      "text": "Talk ___",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        1,
+        1
+       ]
+      }
+     },
+     {
+      "id": "B3-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        1
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "HEN",
+      "text": "Egg layer",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 3
+      }
+     },
+     {
+      "id": "B3-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "SEDAN",
+      "text": "Four-door car",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 4,
+       "cell": [
+        2,
+        2
+       ]
+      }
+     },
+     {
+      "id": "B3-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        3
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ]
+      ],
+      "answer": "IRIS",
+      "text": "Eye part",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        4
+       ],
+       [
+        1,
+        4
+       ],
+       [
+        2,
+        4
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "PATH",
+      "text": "Route",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-4D",
+      "num": 4,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        4,
+        0
+       ]
+      ],
+      "answer": "OATH",
+      "text": "Courtroom swearing",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 7
+      }
+     },
+     {
+      "id": "B3-5D",
+      "num": 5,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        4,
+        1
+       ]
+      ],
+      "answer": "PURE",
+      "text": "Unmixed",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 4,
+       "cell": [
+        2,
+        4
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "index": 4,
+    "layout": [
+     "#....",
+     "#....",
+     ".....",
+     "....#",
+     "....#"
+    ],
+    "solution": [
+     "#ALAS",
+     "#DALE",
+     "ROBOT",
+     "IRON#",
+     "BERG#"
+    ],
+    "clues": [
+     {
+      "id": "B4-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        3
+       ],
+       [
+        0,
+        4
+       ]
+      ],
+      "answer": "ALAS",
+      "text": "Old-fashioned \"Sadly…\"",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 1,
+       "cell": [
+        0,
+        1
+       ]
+      }
+     },
+     {
+      "id": "B4-5A",
+      "num": 5,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        1,
+        4
+       ]
+      ],
+      "answer": "DALE",
+      "text": "Valley",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-6A",
+      "num": 6,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "ROBOT",
+      "text": "Factory worker of metal",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 14
+      }
+     },
+     {
+      "id": "B4-7A",
+      "num": 7,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ]
+      ],
+      "answer": "IRON",
+      "text": "Golf club",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 6
+      }
+     },
+     {
+      "id": "B4-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        1
+       ],
+       [
+        4,
+        2
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "BERG",
+      "text": "Iceberg, for short",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        4,
+        1
+       ]
+      ],
+      "answer": "ADORE",
+      "text": "Love to bits",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 1,
+       "cell": [
+        2,
+        0
+       ]
+      }
+     },
+     {
+      "id": "B4-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "LABOR",
+      "text": "Hard work",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 2
+      }
+     },
+     {
+      "id": "B4-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        3
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "ALONG",
+      "text": "Come ___",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-4D",
+      "num": 4,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        4
+       ],
+       [
+        1,
+        4
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "SET",
+      "text": "Movie backdrop",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-6D",
+      "num": 6,
+      "dir": "D",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        4,
+        0
+       ]
+      ],
+      "answer": "RIB",
+      "text": "Tease",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 1,
+       "cell": [
+        0,
+        2
+       ]
+      }
+     }
+    ]
    }
   ],
   "metas": [
@@ -957,9 +1607,9 @@
     "enumeration": "(3)",
     "cells": [
      [
-      0,
-      1,
-      3
+      3,
+      3,
+      2
      ],
      [
       1,
@@ -967,9 +1617,9 @@
       0
      ],
      [
-      2,
+      0,
       3,
-      4
+      0
      ]
     ]
    },
@@ -984,19 +1634,19 @@
       0
      ],
      [
+      1,
       0,
+      0
+     ],
+     [
       0,
+      1,
       2
      ],
      [
-      1,
-      2,
-      1
-     ],
-     [
-      2,
+      3,
       4,
-      3
+      2
      ]
     ]
    },
@@ -1012,23 +1662,23 @@
      ],
      [
       2,
-      0,
-      0
-     ],
-     [
-      0,
-      4,
-      2
-     ],
-     [
-      1,
-      4,
-      3
-     ],
-     [
       2,
-      3,
       3
+     ],
+     [
+      3,
+      2,
+      4
+     ],
+     [
+      0,
+      2,
+      4
+     ],
+     [
+      4,
+      2,
+      0
      ]
     ]
    },
@@ -1043,29 +1693,29 @@
       2
      ],
      [
-      0,
-      3,
-      0
+      4,
+      1,
+      4
      ],
      [
       1,
-      0,
-      2
-     ],
-     [
-      1,
-      2,
-      0
-     ],
-     [
-      2,
       1,
       3
      ],
      [
       2,
-      2,
-      4
+      4,
+      1
+     ],
+     [
+      3,
+      4,
+      1
+     ],
+     [
+      4,
+      4,
+      2
      ]
     ]
    },
@@ -1075,23 +1725,23 @@
     "enumeration": "(7)",
     "cells": [
      [
-      0,
-      1,
-      1
+      2,
+      2,
+      2
      ],
      [
+      3,
       1,
-      2,
-      3
+      4
+     ],
+     [
+      4,
+      0,
+      2
      ],
      [
       0,
       3,
-      3
-     ],
-     [
-      0,
-      2,
       3
      ],
      [
@@ -2062,6 +2712,656 @@
      "#NOTE",
      "##WAG"
     ]
+   },
+   {
+    "index": 3,
+    "layout": [
+     "##...",
+     ".....",
+     ".....",
+     ".....",
+     "...##"
+    ],
+    "solution": [
+     "##NOD",
+     "ABOVE",
+     "URBAN",
+     "RALLY",
+     "ATE##"
+    ],
+    "clues": [
+     {
+      "id": "B3-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        3
+       ],
+       [
+        0,
+        4
+       ]
+      ],
+      "answer": "NOD",
+      "text": "Doze off",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 0,
+       "cell": [
+        4,
+        1
+       ]
+      }
+     },
+     {
+      "id": "B3-4A",
+      "num": 4,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        1,
+        4
+       ]
+      ],
+      "answer": "ABOVE",
+      "text": "Overhead",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-6A",
+      "num": 6,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "URBAN",
+      "text": "Not rural",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 3
+      }
+     },
+     {
+      "id": "B3-7A",
+      "num": 7,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "RALLY",
+      "text": "Political gathering",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 1,
+       "cell": [
+        3,
+        2
+       ]
+      }
+     },
+     {
+      "id": "B3-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        1
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "ATE",
+      "text": "Had dinner",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "NOBLE",
+      "text": "High-minded",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 20
+      }
+     },
+     {
+      "id": "B3-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        3
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ]
+      ],
+      "answer": "OVAL",
+      "text": "Track outline",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        4
+       ],
+       [
+        1,
+        4
+       ],
+       [
+        2,
+        4
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "DENY",
+      "text": "Say it isn't so",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-4D",
+      "num": 4,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        4,
+        0
+       ]
+      ],
+      "answer": "AURA",
+      "text": "Mystical glow",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 4,
+       "cell": [
+        2,
+        2
+       ]
+      }
+     },
+     {
+      "id": "B3-5D",
+      "num": 5,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        4,
+        1
+       ]
+      ],
+      "answer": "BRAT",
+      "text": "Spoiled child",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 8
+      }
+     }
+    ]
+   },
+   {
+    "index": 4,
+    "layout": [
+     "....#",
+     "....#",
+     ".....",
+     "#....",
+     "#...."
+    ],
+    "solution": [
+     "HEAT#",
+     "ARCH#",
+     "METER",
+     "#COMA",
+     "#TREY"
+    ],
+    "clues": [
+     {
+      "id": "B4-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        3
+       ]
+      ],
+      "answer": "HEAT",
+      "text": "Preliminary race",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-5A",
+      "num": 5,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ]
+      ],
+      "answer": "ARCH",
+      "text": "Curved support over a doorway",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 1,
+       "cell": [
+        2,
+        4
+       ]
+      }
+     },
+     {
+      "id": "B4-6A",
+      "num": 6,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "METER",
+      "text": "Poetic rhythm",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 5
+      }
+     },
+     {
+      "id": "B4-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "COMA",
+      "text": "Deep, lasting unconsciousness",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-9A",
+      "num": 9,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        1
+       ],
+       [
+        4,
+        2
+       ],
+       [
+        4,
+        3
+       ],
+       [
+        4,
+        4
+       ]
+      ],
+      "answer": "TREY",
+      "text": "Three, on a die or a card",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 6
+      }
+     },
+     {
+      "id": "B4-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ]
+      ],
+      "answer": "HAM",
+      "text": "Overactor",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 4
+      }
+     },
+     {
+      "id": "B4-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        4,
+        1
+       ]
+      ],
+      "answer": "ERECT",
+      "text": "Put up, as a tent",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        2,
+        3
+       ]
+      }
+     },
+     {
+      "id": "B4-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "ACTOR",
+      "text": "Stage or screen performer",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-4D",
+      "num": 4,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        3
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "THEME",
+      "text": "Motif",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-7D",
+      "num": 7,
+      "dir": "D",
+      "cells": [
+       [
+        2,
+        4
+       ],
+       [
+        3,
+        4
+       ],
+       [
+        4,
+        4
+       ]
+      ],
+      "answer": "RAY",
+      "text": "Manta ___",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 3,
+       "cell": [
+        2,
+        4
+       ]
+      }
+     }
+    ]
    }
   ],
   "metas": [
@@ -2071,19 +3371,19 @@
     "enumeration": "(3)",
     "cells": [
      [
-      1,
-      0,
-      4
-     ],
-     [
-      2,
-      0,
-      1
-     ],
-     [
-      0,
       4,
-      1
+      0,
+      3
+     ],
+     [
+      0,
+      3,
+      3
+     ],
+     [
+      3,
+      4,
+      2
      ]
     ]
    },
@@ -2093,24 +3393,24 @@
     "enumeration": "(4)",
     "cells": [
      [
-      2,
-      1,
-      3
+      3,
+      0,
+      4
      ],
      [
-      0,
+      1,
+      1,
+      2
+     ],
+     [
+      2,
+      3,
+      4
+     ],
+     [
+      4,
       4,
       2
-     ],
-     [
-      1,
-      1,
-      2
-     ],
-     [
-      2,
-      0,
-      0
      ]
     ]
    },
@@ -2125,24 +3425,24 @@
       2
      ],
      [
-      1,
-      0,
+      3,
+      2,
       3
      ],
      [
+      0,
       2,
+      4
+     ],
+     [
+      4,
       3,
       1
      ],
      [
-      0,
       1,
+      4,
       1
-     ],
-     [
-      1,
-      2,
-      3
      ]
     ]
    },
@@ -2152,34 +3452,34 @@
     "enumeration": "(6)",
     "cells": [
      [
+      1,
       0,
-      0,
-      2
+      4
      ],
      [
-      0,
-      3,
-      0
-     ],
-     [
-      1,
-      1,
-      3
-     ],
-     [
-      1,
       4,
+      1,
       0
      ],
      [
-      2,
+      3,
       2,
       1
      ],
      [
       2,
-      3,
-      3
+      4,
+      4
+     ],
+     [
+      0,
+      1,
+      4
+     ],
+     [
+      0,
+      4,
+      0
      ]
     ]
    },
@@ -2189,14 +3489,14 @@
     "enumeration": "(7)",
     "cells": [
      [
-      2,
-      2,
-      0
+      4,
+      3,
+      3
      ],
      [
       0,
-      1,
-      4
+      4,
+      2
      ],
      [
       1,
@@ -2209,18 +3509,18 @@
       1
      ],
      [
-      0,
+      2,
       1,
-      2
+      0
      ],
      [
-      2,
+      1,
       4,
-      4
+      0
      ],
      [
-      2,
       3,
+      1,
       4
      ]
     ]
@@ -3160,6 +4460,656 @@
      "#HIVE",
      "##SEW"
     ]
+   },
+   {
+    "index": 3,
+    "layout": [
+     "#....",
+     "#....",
+     ".....",
+     "....#",
+     "....#"
+    ],
+    "solution": [
+     "#BABE",
+     "#LIRA",
+     "LASER",
+     "IDLE#",
+     "DEED#"
+    ],
+    "clues": [
+     {
+      "id": "B3-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        3
+       ],
+       [
+        0,
+        4
+       ]
+      ],
+      "answer": "BABE",
+      "text": "Infant, informally",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 4,
+       "cell": [
+        4,
+        0
+       ]
+      }
+     },
+     {
+      "id": "B3-5A",
+      "num": 5,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        1,
+        4
+       ]
+      ],
+      "answer": "LIRA",
+      "text": "Italian money before the euro",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-6A",
+      "num": 6,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "LASER",
+      "text": "Light amplifier",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 0,
+       "cell": [
+        2,
+        4
+       ]
+      }
+     },
+     {
+      "id": "B3-7A",
+      "num": 7,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ]
+      ],
+      "answer": "IDLE",
+      "text": "Doing nothing",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 11
+      }
+     },
+     {
+      "id": "B3-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        1
+       ],
+       [
+        4,
+        2
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "DEED",
+      "text": "Good ___",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 27
+      }
+     },
+     {
+      "id": "B3-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        4,
+        1
+       ]
+      ],
+      "answer": "BLADE",
+      "text": "Grass strand",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 4,
+       "cell": [
+        2,
+        2
+       ]
+      }
+     },
+     {
+      "id": "B3-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "AISLE",
+      "text": "Theater path",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        3
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "BREED",
+      "text": "Poodle or beagle, for a dog",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 4
+      }
+     },
+     {
+      "id": "B3-4D",
+      "num": 4,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        4
+       ],
+       [
+        1,
+        4
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "EAR",
+      "text": "Corn unit",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-6D",
+      "num": 6,
+      "dir": "D",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        4,
+        0
+       ]
+      ],
+      "answer": "LID",
+      "text": "Put a ___ on it",
+      "unlock": {
+       "type": "base"
+      }
+     }
+    ]
+   },
+   {
+    "index": 4,
+    "layout": [
+     "##...",
+     ".....",
+     ".....",
+     ".....",
+     "...##"
+    ],
+    "solution": [
+     "##RIM",
+     "SPACE",
+     "ALTER",
+     "GUIDE",
+     "EGO##"
+    ],
+    "clues": [
+     {
+      "id": "B4-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        3
+       ],
+       [
+        0,
+        4
+       ]
+      ],
+      "answer": "RIM",
+      "text": "Wheel edge",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 0,
+       "cell": [
+        0,
+        2
+       ]
+      }
+     },
+     {
+      "id": "B4-4A",
+      "num": 4,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        1,
+        4
+       ]
+      ],
+      "answer": "SPACE",
+      "text": "Room",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-6A",
+      "num": 6,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "ALTER",
+      "text": "Take in a hem",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 22
+      }
+     },
+     {
+      "id": "B4-7A",
+      "num": 7,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "GUIDE",
+      "text": "Field ___",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        1
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "EGO",
+      "text": "Big ___",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "RATIO",
+      "text": "Odds figure",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 28
+      }
+     },
+     {
+      "id": "B4-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        3
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ]
+      ],
+      "answer": "ICED",
+      "text": "Frosted, as a cake",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 3,
+       "cell": [
+        0,
+        3
+       ]
+      }
+     },
+     {
+      "id": "B4-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        4
+       ],
+       [
+        1,
+        4
+       ],
+       [
+        2,
+        4
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "MERE",
+      "text": "Nothing more than",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        3,
+        1
+       ]
+      }
+     },
+     {
+      "id": "B4-4D",
+      "num": 4,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        4,
+        0
+       ]
+      ],
+      "answer": "SAGE",
+      "text": "Herb in turkey stuffing",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 2
+      }
+     },
+     {
+      "id": "B4-5D",
+      "num": 5,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        4,
+        1
+       ]
+      ],
+      "answer": "PLUG",
+      "text": "Stopper",
+      "unlock": {
+       "type": "base"
+      }
+     }
+    ]
    }
   ],
   "metas": [
@@ -3169,19 +5119,19 @@
     "enumeration": "(3)",
     "cells": [
      [
-      2,
-      0,
-      0
-     ],
-     [
-      0,
-      2,
-      0
-     ],
-     [
       1,
+      0,
+      3
+     ],
+     [
       4,
-      2
+      4,
+      1
+     ],
+     [
+      0,
+      0,
+      1
      ]
     ]
    },
@@ -3196,9 +5146,9 @@
       2
      ],
      [
-      2,
+      3,
       1,
-      1
+      2
      ],
      [
       2,
@@ -3218,19 +5168,19 @@
     "enumeration": "(5)",
     "cells": [
      [
-      1,
-      3,
+      4,
+      2,
       3
      ],
      [
-      2,
+      0,
       1,
-      2
+      1
      ],
      [
-      0,
-      2,
-      1
+      3,
+      1,
+      3
      ],
      [
       1,
@@ -3255,29 +5205,29 @@
       2
      ],
      [
-      0,
+      3,
       2,
-      3
+      1
      ],
      [
-      1,
+      4,
+      0,
+      2
+     ],
+     [
       2,
+      1,
       2
      ],
      [
       1,
+      2,
+      4
+     ],
+     [
       3,
-      1
-     ],
-     [
-      2,
-      0,
-      1
-     ],
-     [
-      2,
       4,
-      3
+      2
      ]
     ]
    },
@@ -3297,29 +5247,29 @@
       0
      ],
      [
-      0,
-      1,
-      1
-     ],
-     [
-      0,
-      1,
-      2
-     ],
-     [
-      2,
-      1,
-      3
-     ],
-     [
-      0,
-      3,
-      2
-     ],
-     [
-      1,
+      4,
       2,
       0
+     ],
+     [
+      1,
+      2,
+      2
+     ],
+     [
+      3,
+      2,
+      4
+     ],
+     [
+      0,
+      2,
+      2
+     ],
+     [
+      2,
+      4,
+      4
      ]
     ]
    }
@@ -4274,6 +6224,656 @@
      "OPEN#",
      "WENT#"
     ]
+   },
+   {
+    "index": 3,
+    "layout": [
+     "##...",
+     ".....",
+     ".....",
+     ".....",
+     "...##"
+    ],
+    "solution": [
+     "##DAM",
+     "CHILI",
+     "LEGAL",
+     "ARISE",
+     "POT##"
+    ],
+    "clues": [
+     {
+      "id": "B3-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        3
+       ],
+       [
+        0,
+        4
+       ]
+      ],
+      "answer": "DAM",
+      "text": "Hoover ___",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 7
+      }
+     },
+     {
+      "id": "B3-4A",
+      "num": 4,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        1,
+        4
+       ]
+      ],
+      "answer": "CHILI",
+      "text": "Spicy bowl of beans and beef",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        2,
+        3
+       ]
+      }
+     },
+     {
+      "id": "B3-6A",
+      "num": 6,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "LEGAL",
+      "text": "___ pad",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-7A",
+      "num": 7,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "ARISE",
+      "text": "Get up",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        1
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "POT",
+      "text": "Planter",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "DIGIT",
+      "text": "Finger",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 1,
+       "cell": [
+        2,
+        1
+       ]
+      }
+     },
+     {
+      "id": "B3-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        3
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ]
+      ],
+      "answer": "ALAS",
+      "text": "Old-fashioned \"Sadly…\"",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        4,
+        0
+       ]
+      }
+     },
+     {
+      "id": "B3-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        4
+       ],
+       [
+        1,
+        4
+       ],
+       [
+        2,
+        4
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "MILE",
+      "text": "5,280 feet",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 4
+      }
+     },
+     {
+      "id": "B3-4D",
+      "num": 4,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        4,
+        0
+       ]
+      ],
+      "answer": "CLAP",
+      "text": "Applaud",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-5D",
+      "num": 5,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        4,
+        1
+       ]
+      ],
+      "answer": "HERO",
+      "text": "Comic book star",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 8
+      }
+     }
+    ]
+   },
+   {
+    "index": 4,
+    "layout": [
+     "...##",
+     ".....",
+     ".....",
+     ".....",
+     "##..."
+    ],
+    "solution": [
+     "RAP##",
+     "OCEAN",
+     "SHARE",
+     "EERIE",
+     "##LAD"
+    ],
+    "clues": [
+     {
+      "id": "B4-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        2
+       ]
+      ],
+      "answer": "RAP",
+      "text": "Knock",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-4A",
+      "num": 4,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        1,
+        4
+       ]
+      ],
+      "answer": "OCEAN",
+      "text": "Blue expanse",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-7A",
+      "num": 7,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "SHARE",
+      "text": "Stock unit",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "EERIE",
+      "text": "Spooky",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 3
+      }
+     },
+     {
+      "id": "B4-9A",
+      "num": 9,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        2
+       ],
+       [
+        4,
+        3
+       ],
+       [
+        4,
+        4
+       ]
+      ],
+      "answer": "LAD",
+      "text": "Young man",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 10
+      }
+     },
+     {
+      "id": "B4-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ]
+      ],
+      "answer": "ROSE",
+      "text": "Valentine's flower",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 27
+      }
+     },
+     {
+      "id": "B4-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ]
+      ],
+      "answer": "ACHE",
+      "text": "Throb",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 0,
+       "cell": [
+        3,
+        1
+       ]
+      }
+     },
+     {
+      "id": "B4-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "PEARL",
+      "text": "String of them",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 0,
+       "cell": [
+        3,
+        2
+       ]
+      }
+     },
+     {
+      "id": "B4-5D",
+      "num": 5,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "ARIA",
+      "text": "Diva's number",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 0,
+       "cell": [
+        2,
+        4
+       ]
+      }
+     },
+     {
+      "id": "B4-6D",
+      "num": 6,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        4
+       ],
+       [
+        2,
+        4
+       ],
+       [
+        3,
+        4
+       ],
+       [
+        4,
+        4
+       ]
+      ],
+      "answer": "NEED",
+      "text": "Must have",
+      "unlock": {
+       "type": "base"
+      }
+     }
+    ]
    }
   ],
   "metas": [
@@ -4283,14 +6883,14 @@
     "enumeration": "(3)",
     "cells": [
      [
-      0,
+      3,
       4,
       2
      ],
      [
-      2,
-      3,
-      0
+      0,
+      0,
+      3
      ],
      [
       1,
@@ -4305,9 +6905,9 @@
     "enumeration": "(4)",
     "cells": [
      [
-      2,
-      0,
-      1
+      3,
+      3,
+      3
      ],
      [
       0,
@@ -4337,19 +6937,19 @@
       2
      ],
      [
-      1,
       2,
-      0
-     ],
-     [
-      2,
-      0,
+      4,
       3
      ],
      [
-      1,
-      2,
+      4,
+      0,
       1
+     ],
+     [
+      3,
+      1,
+      4
      ],
      [
       1,
@@ -4365,33 +6965,33 @@
     "cells": [
      [
       0,
-      3,
-      3
-     ],
-     [
-      0,
-      4,
-      1
-     ],
-     [
       1,
-      0,
-      0
-     ],
-     [
-      1,
-      3,
       2
      ],
      [
-      2,
-      0,
+      4,
+      1,
       4
      ],
      [
+      3,
       2,
+      2
+     ],
+     [
+      1,
       2,
+      1
+     ],
+     [
+      2,
+      3,
       3
+     ],
+     [
+      0,
+      2,
+      1
      ]
     ]
    },
@@ -4402,38 +7002,38 @@
     "cells": [
      [
       2,
-      4,
+      0,
+      2
+     ],
+     [
+      1,
+      1,
       0
      ],
      [
-      0,
-      1,
-      2
-     ],
-     [
-      1,
-      1,
-      2
-     ],
-     [
-      2,
       4,
-      3
+      2,
+      2
      ],
      [
       0,
-      2,
-      4
+      4,
+      2
+     ],
+     [
+      3,
+      1,
+      1
      ],
      [
       1,
-      2,
-      3
+      4,
+      4
      ],
      [
+      4,
       2,
-      2,
-      4
+      3
      ]
     ]
    }
@@ -5372,6 +7972,656 @@
      "#LAVA",
      "##DEN"
     ]
+   },
+   {
+    "index": 3,
+    "layout": [
+     "...##",
+     ".....",
+     ".....",
+     ".....",
+     "##..."
+    ],
+    "solution": [
+     "HUT##",
+     "ASHES",
+     "NERVE",
+     "GREEN",
+     "##END"
+    ],
+    "clues": [
+     {
+      "id": "B3-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        2
+       ]
+      ],
+      "answer": "HUT",
+      "text": "Quarterback's call",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 1,
+       "cell": [
+        2,
+        0
+       ]
+      }
+     },
+     {
+      "id": "B3-4A",
+      "num": 4,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        1,
+        4
+       ]
+      ],
+      "answer": "ASHES",
+      "text": "Fireplace remains",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-7A",
+      "num": 7,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "NERVE",
+      "text": "Touch a ___",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 25
+      }
+     },
+     {
+      "id": "B3-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "GREEN",
+      "text": "Putting surface",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 3
+      }
+     },
+     {
+      "id": "B3-9A",
+      "num": 9,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        2
+       ],
+       [
+        4,
+        3
+       ],
+       [
+        4,
+        4
+       ]
+      ],
+      "answer": "END",
+      "text": "The ___",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ]
+      ],
+      "answer": "HANG",
+      "text": "Get the ___ of",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 6
+      }
+     },
+     {
+      "id": "B3-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ]
+      ],
+      "answer": "USER",
+      "text": "Account holder",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 0,
+       "cell": [
+        0,
+        4
+       ]
+      }
+     },
+     {
+      "id": "B3-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "THREE",
+      "text": "Blind mice number",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-5D",
+      "num": 5,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "EVEN",
+      "text": "Not odd",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-6D",
+      "num": 6,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        4
+       ],
+       [
+        2,
+        4
+       ],
+       [
+        3,
+        4
+       ],
+       [
+        4,
+        4
+       ]
+      ],
+      "answer": "SEND",
+      "text": "Press the button",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        3,
+        1
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "index": 4,
+    "layout": [
+     "#....",
+     "#....",
+     ".....",
+     "....#",
+     "....#"
+    ],
+    "solution": [
+     "#BRAT",
+     "#ROSE",
+     "CABIN",
+     "AVID#",
+     "BONE#"
+    ],
+    "clues": [
+     {
+      "id": "B4-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        3
+       ],
+       [
+        0,
+        4
+       ]
+      ],
+      "answer": "BRAT",
+      "text": "Spoiled child",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 20
+      }
+     },
+     {
+      "id": "B4-5A",
+      "num": 5,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        1,
+        4
+       ]
+      ],
+      "answer": "ROSE",
+      "text": "Got up",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-6A",
+      "num": 6,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "CABIN",
+      "text": "Woodsy retreat",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 10
+      }
+     },
+     {
+      "id": "B4-7A",
+      "num": 7,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ]
+      ],
+      "answer": "AVID",
+      "text": "Keen",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        1
+       ],
+       [
+        4,
+        2
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "BONE",
+      "text": "Dog's treat",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        2,
+        3
+       ]
+      }
+     },
+     {
+      "id": "B4-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        4,
+        1
+       ]
+      ],
+      "answer": "BRAVO",
+      "text": "\"Well done!\"",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 0,
+       "cell": [
+        1,
+        2
+       ]
+      }
+     },
+     {
+      "id": "B4-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "ROBIN",
+      "text": "Red-breasted songbird",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 3,
+       "cell": [
+        3,
+        2
+       ]
+      }
+     },
+     {
+      "id": "B4-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        3
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "ASIDE",
+      "text": "Set ___",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-4D",
+      "num": 4,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        4
+       ],
+       [
+        1,
+        4
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "TEN",
+      "text": "Bowling pin number",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 2
+      }
+     },
+     {
+      "id": "B4-6D",
+      "num": 6,
+      "dir": "D",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        4,
+        0
+       ]
+      ],
+      "answer": "CAB",
+      "text": "Yellow ride",
+      "unlock": {
+       "type": "base"
+      }
+     }
+    ]
    }
   ],
   "metas": [
@@ -5381,14 +8631,14 @@
     "enumeration": "(3)",
     "cells": [
      [
+      3,
       2,
-      0,
-      1
+      2
      ],
      [
       0,
-      1,
-      2
+      4,
+      1
      ],
      [
       1,
@@ -5403,18 +8653,18 @@
     "enumeration": "(4)",
     "cells": [
      [
+      4,
+      0,
+      1
+     ],
+     [
+      2,
+      3,
+      2
+     ],
+     [
       0,
       2,
-      2
-     ],
-     [
-      1,
-      3,
-      2
-     ],
-     [
-      2,
-      3,
       1
      ],
      [
@@ -5431,28 +8681,28 @@
     "cells": [
      [
       1,
-      2,
-      0
-     ],
-     [
-      2,
-      0,
-      0
-     ],
-     [
-      0,
-      2,
+      4,
       4
      ],
      [
+      2,
       1,
-      3,
+      1
+     ],
+     [
+      0,
+      2,
       4
      ],
      [
-      2,
-      2,
-      4
+      3,
+      1,
+      3
+     ],
+     [
+      4,
+      0,
+      2
      ]
     ]
    },
@@ -5462,24 +8712,24 @@
     "enumeration": "(6)",
     "cells": [
      [
-      0,
       2,
+      3,
       1
      ],
      [
-      0,
+      4,
       3,
       2
      ],
      [
       1,
-      1,
-      3
+      2,
+      0
      ],
      [
-      1,
+      0,
       4,
-      4
+      2
      ],
      [
       2,
@@ -5487,9 +8737,9 @@
       1
      ],
      [
-      2,
+      3,
       4,
-      3
+      2
      ]
     ]
    },
@@ -5504,34 +8754,34 @@
       0
      ],
      [
-      0,
-      4,
-      1
-     ],
-     [
-      1,
       2,
-      3
-     ],
-     [
-      2,
-      4,
+      3,
       4
      ],
      [
       0,
+      3,
+      2
+     ],
+     [
+      4,
       4,
       2
      ],
      [
-      1,
-      4,
+      3,
+      0,
+      2
+     ],
+     [
+      3,
+      3,
       3
      ],
      [
-      2,
+      4,
       1,
-      2
+      1
      ]
     ]
    }
@@ -6470,6 +9720,656 @@
      "PINK#",
      "ADD##"
     ]
+   },
+   {
+    "index": 3,
+    "layout": [
+     "##...",
+     ".....",
+     ".....",
+     ".....",
+     "...##"
+    ],
+    "solution": [
+     "##AWE",
+     "RABID",
+     "OWING",
+     "BADGE",
+     "EYE##"
+    ],
+    "clues": [
+     {
+      "id": "B3-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        3
+       ],
+       [
+        0,
+        4
+       ]
+      ],
+      "answer": "AWE",
+      "text": "Leave speechless",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 13
+      }
+     },
+     {
+      "id": "B3-4A",
+      "num": 4,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        1,
+        4
+       ]
+      ],
+      "answer": "RABID",
+      "text": "Fanatical, as a fan",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 0,
+       "cell": [
+        1,
+        2
+       ]
+      }
+     },
+     {
+      "id": "B3-6A",
+      "num": 6,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "OWING",
+      "text": "Unpaid, as a debt",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-7A",
+      "num": 7,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "BADGE",
+      "text": "Pin-on identifier",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 4
+      }
+     },
+     {
+      "id": "B3-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        1
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "EYE",
+      "text": "Needle opening",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "ABIDE",
+      "text": "Put up with",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        3
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ]
+      ],
+      "answer": "WING",
+      "text": "Building extension",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        3,
+        2
+       ]
+      }
+     },
+     {
+      "id": "B3-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        4
+       ],
+       [
+        1,
+        4
+       ],
+       [
+        2,
+        4
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "EDGE",
+      "text": "Slight advantage",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        2,
+        3
+       ]
+      }
+     },
+     {
+      "id": "B3-4D",
+      "num": 4,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        4,
+        0
+       ]
+      ],
+      "answer": "ROBE",
+      "text": "Judge's garment",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-5D",
+      "num": 5,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        4,
+        1
+       ]
+      ],
+      "answer": "AWAY",
+      "text": "Far off",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 9
+      }
+     }
+    ]
+   },
+   {
+    "index": 4,
+    "layout": [
+     "....#",
+     "....#",
+     ".....",
+     "#....",
+     "#...."
+    ],
+    "solution": [
+     "AREA#",
+     "SOAR#",
+     "KARMA",
+     "#SLOT",
+     "#TYRE"
+    ],
+    "clues": [
+     {
+      "id": "B4-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        3
+       ]
+      ],
+      "answer": "AREA",
+      "text": "Region",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-5A",
+      "num": 5,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ]
+      ],
+      "answer": "SOAR",
+      "text": "Fly high",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-6A",
+      "num": 6,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "KARMA",
+      "text": "What goes around comes around, some say",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 1,
+       "cell": [
+        4,
+        2
+       ]
+      }
+     },
+     {
+      "id": "B4-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "SLOT",
+      "text": "Coin opening on a vending machine",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 6
+      }
+     },
+     {
+      "id": "B4-9A",
+      "num": 9,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        1
+       ],
+       [
+        4,
+        2
+       ],
+       [
+        4,
+        3
+       ],
+       [
+        4,
+        4
+       ]
+      ],
+      "answer": "TYRE",
+      "text": "Wheel's rubber, in Britain",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        1,
+        3
+       ]
+      }
+     },
+     {
+      "id": "B4-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ]
+      ],
+      "answer": "ASK",
+      "text": "Pose a question",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        4,
+        1
+       ]
+      ],
+      "answer": "ROAST",
+      "text": "Cook in the oven",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "EARLY",
+      "text": "Ahead of time",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 12
+      }
+     },
+     {
+      "id": "B4-4D",
+      "num": 4,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        3
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "ARMOR",
+      "text": "Knight's protective suit",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 0,
+       "cell": [
+        0,
+        4
+       ]
+      }
+     },
+     {
+      "id": "B4-7D",
+      "num": 7,
+      "dir": "D",
+      "cells": [
+       [
+        2,
+        4
+       ],
+       [
+        3,
+        4
+       ],
+       [
+        4,
+        4
+       ]
+      ],
+      "answer": "ATE",
+      "text": "Devoured",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 4
+      }
+     }
+    ]
    }
   ],
   "metas": [
@@ -6480,18 +10380,18 @@
     "cells": [
      [
       0,
-      3,
-      1
+      2,
+      2
      ],
      [
       2,
       1,
-      2
+      3
      ],
      [
-      1,
-      0,
-      1
+      3,
+      3,
+      3
      ]
     ]
    },
@@ -6506,9 +10406,9 @@
       0
      ],
      [
-      1,
-      2,
-      1
+      4,
+      3,
+      2
      ],
      [
       2,
@@ -6516,9 +10416,9 @@
       1
      ],
      [
-      0,
-      1,
-      1
+      3,
+      2,
+      4
      ]
     ]
    },
@@ -6533,14 +10433,14 @@
       3
      ],
      [
-      1,
-      3,
-      3
+      4,
+      2,
+      4
      ],
      [
-      2,
       3,
-      2
+      2,
+      3
      ],
      [
       0,
@@ -6549,8 +10449,8 @@
      ],
      [
       1,
-      3,
-      2
+      0,
+      0
      ]
     ]
    },
@@ -6561,23 +10461,23 @@
     "cells": [
      [
       0,
-      1,
-      3
-     ],
-     [
-      0,
       2,
-      0
+      4
      ],
      [
-      1,
+      4,
       1,
       0
      ],
      [
       1,
       2,
-      3
+      1
+     ],
+     [
+      3,
+      4,
+      2
      ],
      [
       2,
@@ -6586,8 +10486,8 @@
      ],
      [
       2,
-      3,
-      0
+      0,
+      2
      ]
     ]
    },
@@ -6597,14 +10497,14 @@
     "enumeration": "(7)",
     "cells": [
      [
-      2,
       0,
-      2
+      3,
+      0
      ],
      [
-      2,
       3,
-      1
+      1,
+      3
      ],
      [
       1,
@@ -6617,19 +10517,19 @@
       4
      ],
      [
+      4,
+      4,
+      4
+     ],
+     [
       0,
-      1,
-      2
-     ],
-     [
-      1,
-      2,
-      2
-     ],
-     [
-      2,
       0,
       3
+     ],
+     [
+      1,
+      1,
+      2
      ]
     ]
    }
@@ -7600,6 +11500,656 @@
      "EASY#",
      "ART##"
     ]
+   },
+   {
+    "index": 3,
+    "layout": [
+     "##...",
+     ".....",
+     ".....",
+     ".....",
+     "...##"
+    ],
+    "solution": [
+     "##OUR",
+     "HORSE",
+     "ANGEL",
+     "SCARY",
+     "HEN##"
+    ],
+    "clues": [
+     {
+      "id": "B3-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        3
+       ],
+       [
+        0,
+        4
+       ]
+      ],
+      "answer": "OUR",
+      "text": "Belonging to us",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        4,
+        1
+       ]
+      }
+     },
+     {
+      "id": "B3-4A",
+      "num": 4,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        1,
+        4
+       ]
+      ],
+      "answer": "HORSE",
+      "text": "Dark ___",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        1,
+        1
+       ]
+      }
+     },
+     {
+      "id": "B3-6A",
+      "num": 6,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "ANGEL",
+      "text": "Winged helper",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-7A",
+      "num": 7,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "SCARY",
+      "text": "Like a haunted house",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 4
+      }
+     },
+     {
+      "id": "B3-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        0
+       ],
+       [
+        4,
+        1
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "HEN",
+      "text": "Egg layer",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "ORGAN",
+      "text": "Body part",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        3
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ]
+      ],
+      "answer": "USER",
+      "text": "Account holder",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 1,
+       "cell": [
+        0,
+        3
+       ]
+      }
+     },
+     {
+      "id": "B3-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        4
+       ],
+       [
+        1,
+        4
+       ],
+       [
+        2,
+        4
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "RELY",
+      "text": "Trust in",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 23
+      }
+     },
+     {
+      "id": "B3-4D",
+      "num": 4,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ],
+       [
+        4,
+        0
+       ]
+      ],
+      "answer": "HASH",
+      "text": "Diner potatoes",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-5D",
+      "num": 5,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        4,
+        1
+       ]
+      ],
+      "answer": "ONCE",
+      "text": "One time",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 15
+      }
+     }
+    ]
+   },
+   {
+    "index": 4,
+    "layout": [
+     "#...#",
+     ".....",
+     ".....",
+     ".....",
+     "#...#"
+    ],
+    "solution": [
+     "#BUS#",
+     "HOLLY",
+     "UNTIE",
+     "BURNT",
+     "#SAG#"
+    ],
+    "clues": [
+     {
+      "id": "B4-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        3
+       ]
+      ],
+      "answer": "BUS",
+      "text": "City ride",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 3,
+       "cell": [
+        2,
+        0
+       ]
+      }
+     },
+     {
+      "id": "B4-4A",
+      "num": 4,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        1,
+        4
+       ]
+      ],
+      "answer": "HOLLY",
+      "text": "Prickly holiday greenery",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 1,
+       "cell": [
+        4,
+        1
+       ]
+      }
+     },
+     {
+      "id": "B4-6A",
+      "num": 6,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "UNTIE",
+      "text": "Loosen, as a shoelace",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 1,
+       "cell": [
+        0,
+        3
+       ]
+      }
+     },
+     {
+      "id": "B4-7A",
+      "num": 7,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "BURNT",
+      "text": "Like overdone toast",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        1
+       ],
+       [
+        4,
+        2
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "SAG",
+      "text": "Lose firmness",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 10
+      }
+     },
+     {
+      "id": "B4-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        4,
+        1
+       ]
+      ],
+      "answer": "BONUS",
+      "text": "Perk",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 7
+      }
+     },
+     {
+      "id": "B4-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "ULTRA",
+      "text": "Prefix with sound or violet",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        3
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "SLING",
+      "text": "Arm support after a break",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 4
+      }
+     },
+     {
+      "id": "B4-4D",
+      "num": 4,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ]
+      ],
+      "answer": "HUB",
+      "text": "Wheel's center",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-5D",
+      "num": 5,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        4
+       ],
+       [
+        2,
+        4
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "YET",
+      "text": "So far",
+      "unlock": {
+       "type": "base"
+      }
+     }
+    ]
    }
   ],
   "metas": [
@@ -7609,19 +12159,19 @@
     "enumeration": "(3)",
     "cells": [
      [
+      3,
       2,
-      4,
       0
      ],
      [
+      2,
       0,
-      0,
-      2
+      4
      ],
      [
       1,
-      2,
-      2
+      4,
+      3
      ]
     ]
    },
@@ -7631,14 +12181,14 @@
     "enumeration": "(4)",
     "cells": [
      [
-      1,
-      4,
-      3
+      0,
+      3,
+      1
      ],
      [
-      2,
+      4,
       1,
-      2
+      1
      ],
      [
       1,
@@ -7646,9 +12196,9 @@
       1
      ],
      [
-      0,
       3,
-      3
+      2,
+      1
      ]
     ]
    },
@@ -7658,29 +12208,29 @@
     "enumeration": "(5)",
     "cells": [
      [
-      0,
+      2,
       1,
+      2
+     ],
+     [
+      1,
+      1,
+      1
+     ],
+     [
+      0,
+      2,
       0
      ],
      [
-      1,
-      0,
-      2
-     ],
-     [
-      2,
-      4,
-      2
-     ],
-     [
-      0,
       3,
+      1,
       4
      ],
      [
-      1,
+      4,
       3,
-      3
+      2
      ]
     ]
    },
@@ -7695,29 +12245,29 @@
       3
      ],
      [
-      0,
-      2,
+      3,
+      1,
       1
      ],
      [
       1,
-      3,
-      2
-     ],
-     [
       1,
-      4,
-      0
-     ],
-     [
-      2,
-      0,
       4
      ],
      [
+      4,
       2,
-      3,
-      3
+      2
+     ],
+     [
+      2,
+      4,
+      1
+     ],
+     [
+      1,
+      0,
+      4
      ]
     ]
    },
@@ -7728,38 +12278,38 @@
     "cells": [
      [
       2,
-      2,
-      1
+      0,
+      2
      ],
      [
-      0,
-      0,
+      4,
+      1,
       0
      ],
      [
       1,
-      1,
+      4,
+      1
+     ],
+     [
+      0,
+      3,
+      2
+     ],
+     [
+      4,
+      3,
       4
      ],
      [
-      2,
       3,
-      1
+      2,
+      3
      ],
      [
+      3,
       0,
-      2,
-      0
-     ],
-     [
-      1,
-      4,
-      1
-     ],
-     [
-      2,
-      4,
-      1
+      4
      ]
     ]
    }
@@ -8714,6 +13264,656 @@
      "USER#",
      "TENT#"
     ]
+   },
+   {
+    "index": 3,
+    "layout": [
+     "#...#",
+     ".....",
+     ".....",
+     ".....",
+     "#...#"
+    ],
+    "solution": [
+     "#LAP#",
+     "ROGUE",
+     "IVORY",
+     "DENSE",
+     "#RYE#"
+    ],
+    "clues": [
+     {
+      "id": "B3-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        3
+       ]
+      ],
+      "answer": "LAP",
+      "text": "Track circuit",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 1,
+       "cell": [
+        4,
+        0
+       ]
+      }
+     },
+     {
+      "id": "B3-4A",
+      "num": 4,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        1,
+        4
+       ]
+      ],
+      "answer": "ROGUE",
+      "text": "Scoundrel",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 2
+      }
+     },
+     {
+      "id": "B3-6A",
+      "num": 6,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "IVORY",
+      "text": "Piano key material, once",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-7A",
+      "num": 7,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "DENSE",
+      "text": "Thick, like fog",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 16
+      }
+     },
+     {
+      "id": "B3-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        1
+       ],
+       [
+        4,
+        2
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "RYE",
+      "text": "Deli bread",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        4,
+        3
+       ]
+      }
+     },
+     {
+      "id": "B3-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        4,
+        1
+       ]
+      ],
+      "answer": "LOVER",
+      "text": "Romeo, to Juliet",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "AGONY",
+      "text": "Intense pain",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 0,
+       "cell": [
+        0,
+        4
+       ]
+      }
+     },
+     {
+      "id": "B3-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        3
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "PURSE",
+      "text": "Handbag",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 10
+      }
+     },
+     {
+      "id": "B3-4D",
+      "num": 4,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ]
+      ],
+      "answer": "RID",
+      "text": "Clear away",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-5D",
+      "num": 5,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        4
+       ],
+       [
+        2,
+        4
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "EYE",
+      "text": "Needle opening",
+      "unlock": {
+       "type": "base"
+      }
+     }
+    ]
+   },
+   {
+    "index": 4,
+    "layout": [
+     "...##",
+     ".....",
+     ".....",
+     ".....",
+     "##..."
+    ],
+    "solution": [
+     "APT##",
+     "JUROR",
+     "ARENA",
+     "REACT",
+     "##TEE"
+    ],
+    "clues": [
+     {
+      "id": "B4-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        2
+       ]
+      ],
+      "answer": "APT",
+      "text": "Likely to",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-4A",
+      "num": 4,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        1,
+        4
+       ]
+      ],
+      "answer": "JUROR",
+      "text": "One of twelve in a box",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-7A",
+      "num": 7,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "ARENA",
+      "text": "Sports venue",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 1,
+       "cell": [
+        0,
+        2
+       ]
+      }
+     },
+     {
+      "id": "B4-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "REACT",
+      "text": "Have a reaction",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-9A",
+      "num": 9,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        2
+       ],
+       [
+        4,
+        3
+       ],
+       [
+        4,
+        4
+       ]
+      ],
+      "answer": "TEE",
+      "text": "Golf peg",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        4,
+        3
+       ]
+      }
+     },
+     {
+      "id": "B4-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ]
+      ],
+      "answer": "AJAR",
+      "text": "Like a cracked door",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ]
+      ],
+      "answer": "PURE",
+      "text": "Clean",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 29
+      }
+     },
+     {
+      "id": "B4-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "TREAT",
+      "text": "Pay for someone",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 4
+      }
+     },
+     {
+      "id": "B4-5D",
+      "num": 5,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "ONCE",
+      "text": "One time",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 18
+      }
+     },
+     {
+      "id": "B4-6D",
+      "num": 6,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        4
+       ],
+       [
+        2,
+        4
+       ],
+       [
+        3,
+        4
+       ],
+       [
+        4,
+        4
+       ]
+      ],
+      "answer": "RATE",
+      "text": "Speed",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 3,
+       "cell": [
+        0,
+        2
+       ]
+      }
+     }
+    ]
    }
   ],
   "metas": [
@@ -8723,14 +13923,14 @@
     "enumeration": "(3)",
     "cells": [
      [
-      2,
-      0,
-      3
-     ],
-     [
-      0,
+      4,
       2,
       0
+     ],
+     [
+      3,
+      3,
+      3
      ],
      [
       1,
@@ -8745,13 +13945,13 @@
     "enumeration": "(4)",
     "cells": [
      [
+      4,
       1,
-      2,
-      4
+      2
      ],
      [
-      2,
-      2,
+      1,
+      3,
       1
      ],
      [
@@ -8760,9 +13960,9 @@
       1
      ],
      [
-      0,
-      0,
-      4
+      3,
+      4,
+      3
      ]
     ]
    },
@@ -8777,24 +13977,24 @@
       3
      ],
      [
-      2,
-      4,
-      1
-     ],
-     [
-      0,
-      2,
-      2
-     ],
-     [
-      1,
+      3,
       3,
       1
      ],
      [
       2,
-      4,
+      1,
+      3
+     ],
+     [
+      0,
+      3,
       2
+     ],
+     [
+      4,
+      2,
+      3
      ]
     ]
    },
@@ -8809,29 +14009,29 @@
       4
      ],
      [
-      0,
       4,
+      4,
+      3
+     ],
+     [
+      2,
+      0,
       1
      ],
      [
-      1,
       3,
-      0
+      3,
+      4
      ],
      [
       1,
-      4,
+      1,
       2
      ],
      [
-      2,
-      2,
-      2
-     ],
-     [
-      2,
       4,
-      0
+      4,
+      2
      ]
     ]
    },
@@ -8841,39 +14041,39 @@
     "enumeration": "(7)",
     "cells": [
      [
+      4,
+      0,
+      2
+     ],
+     [
+      3,
+      4,
+      1
+     ],
+     [
+      2,
+      0,
+      3
+     ],
+     [
+      0,
+      2,
+      3
+     ],
+     [
+      1,
+      3,
+      2
+     ],
+     [
       2,
       4,
-      3
+      1
      ],
      [
-      0,
-      0,
-      3
-     ],
-     [
-      1,
-      2,
-      0
-     ],
-     [
-      2,
-      1,
-      2
-     ],
-     [
-      0,
-      1,
-      2
-     ],
-     [
-      1,
-      1,
-      3
-     ],
-     [
-      2,
+      4,
       3,
-      3
+      0
      ]
     ]
    }
@@ -9812,6 +15012,656 @@
      "TEST#",
      "SEE##"
     ]
+   },
+   {
+    "index": 3,
+    "layout": [
+     "#...#",
+     ".....",
+     ".....",
+     ".....",
+     "#...#"
+    ],
+    "solution": [
+     "#COD#",
+     "LOWER",
+     "OUNCE",
+     "BREAD",
+     "#TRY#"
+    ],
+    "clues": [
+     {
+      "id": "B3-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        3
+       ]
+      ],
+      "answer": "COD",
+      "text": "Cape ___",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 3
+      }
+     },
+     {
+      "id": "B3-4A",
+      "num": 4,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        1,
+        4
+       ]
+      ],
+      "answer": "LOWER",
+      "text": "Beneath",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-6A",
+      "num": 6,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "OUNCE",
+      "text": "An ___ of prevention",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 22
+      }
+     },
+     {
+      "id": "B3-7A",
+      "num": 7,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "BREAD",
+      "text": "Sandwich basis",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 14
+      }
+     },
+     {
+      "id": "B3-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        1
+       ],
+       [
+        4,
+        2
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "TRY",
+      "text": "Give it a shot",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        4,
+        1
+       ]
+      ],
+      "answer": "COURT",
+      "text": "Tennis surface",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "OWNER",
+      "text": "Title holder",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        0,
+        2
+       ]
+      }
+     },
+     {
+      "id": "B3-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        3
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "DECAY",
+      "text": "Break down",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-4D",
+      "num": 4,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ]
+      ],
+      "answer": "LOB",
+      "text": "Toss gently",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        1,
+        4
+       ]
+      }
+     },
+     {
+      "id": "B3-5D",
+      "num": 5,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        4
+       ],
+       [
+        2,
+        4
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "RED",
+      "text": "Fire truck hue",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 0,
+       "cell": [
+        0,
+        3
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "index": 4,
+    "layout": [
+     "...##",
+     ".....",
+     ".....",
+     ".....",
+     "##..."
+    ],
+    "solution": [
+     "AMP##",
+     "TIRED",
+     "OLIVE",
+     "MEDIA",
+     "##ELF"
+    ],
+    "clues": [
+     {
+      "id": "B4-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        2
+       ]
+      ],
+      "answer": "AMP",
+      "text": "Current unit",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        3,
+        1
+       ]
+      }
+     },
+     {
+      "id": "B4-4A",
+      "num": 4,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        1,
+        4
+       ]
+      ],
+      "answer": "TIRED",
+      "text": "Worn out",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-7A",
+      "num": 7,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "OLIVE",
+      "text": "Martini garnish",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 3
+      }
+     },
+     {
+      "id": "B4-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "MEDIA",
+      "text": "The press",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 1,
+       "cell": [
+        1,
+        1
+       ]
+      }
+     },
+     {
+      "id": "B4-9A",
+      "num": 9,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        2
+       ],
+       [
+        4,
+        3
+       ],
+       [
+        4,
+        4
+       ]
+      ],
+      "answer": "ELF",
+      "text": "Tolkien creature",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ]
+      ],
+      "answer": "ATOM",
+      "text": "Element's unit",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 29
+      }
+     },
+     {
+      "id": "B4-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ]
+      ],
+      "answer": "MILE",
+      "text": "___ marker",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "PRIDE",
+      "text": "Lion group",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 1,
+       "cell": [
+        0,
+        3
+       ]
+      }
+     },
+     {
+      "id": "B4-5D",
+      "num": 5,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "EVIL",
+      "text": "Wicked",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-6D",
+      "num": 6,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        4
+       ],
+       [
+        2,
+        4
+       ],
+       [
+        3,
+        4
+       ],
+       [
+        4,
+        4
+       ]
+      ],
+      "answer": "DEAF",
+      "text": "Unable to hear",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 25
+      }
+     }
+    ]
    }
   ],
   "metas": [
@@ -9821,19 +15671,19 @@
     "enumeration": "(3)",
     "cells": [
      [
-      0,
-      2,
-      3
-     ],
-     [
-      1,
-      2,
+      3,
+      4,
       1
      ],
      [
-      2,
-      0,
+      4,
+      3,
       4
+     ],
+     [
+      0,
+      2,
+      0
      ]
     ]
    },
@@ -9843,24 +15693,24 @@
     "enumeration": "(4)",
     "cells": [
      [
-      0,
-      0,
+      3,
+      3,
+      0
+     ],
+     [
+      2,
+      2,
+      0
+     ],
+     [
+      1,
+      4,
       2
      ],
      [
-      2,
-      2,
-      0
-     ],
-     [
-      1,
-      2,
-      0
-     ],
-     [
-      1,
-      2,
-      4
+      4,
+      3,
+      2
      ]
     ]
    },
@@ -9875,8 +15725,8 @@
       1
      ],
      [
-      1,
-      4,
+      0,
+      2,
       2
      ],
      [
@@ -9885,14 +15735,14 @@
       3
      ],
      [
+      4,
       0,
-      2,
-      0
+      2
      ],
      [
-      1,
       3,
-      2
+      2,
+      4
      ]
     ]
    },
@@ -9902,14 +15752,9 @@
     "enumeration": "(6)",
     "cells": [
      [
-      0,
-      1,
-      3
-     ],
-     [
-      0,
-      4,
-      1
+      3,
+      2,
+      2
      ],
      [
       1,
@@ -9917,19 +15762,24 @@
       4
      ],
      [
-      1,
-      3,
-      3
-     ],
-     [
-      2,
-      0,
-      2
-     ],
-     [
       2,
       4,
       1
+     ],
+     [
+      4,
+      1,
+      4
+     ],
+     [
+      0,
+      3,
+      1
+     ],
+     [
+      4,
+      2,
+      4
      ]
     ]
    },
@@ -9939,39 +15789,39 @@
     "enumeration": "(7)",
     "cells": [
      [
-      1,
-      1,
-      3
-     ],
-     [
-      1,
-      2,
-      3
-     ],
-     [
-      2,
-      2,
-      3
-     ],
-     [
-      2,
       4,
-      2
-     ],
-     [
       0,
-      2,
-      2
+      1
      ],
      [
       1,
-      3,
-      0
+      2,
+      3
      ],
      [
       0,
+      1,
+      3
+     ],
+     [
       3,
+      1,
+      3
+     ],
+     [
+      2,
+      2,
       1
+     ],
+     [
+      0,
+      1,
+      4
+     ],
+     [
+      4,
+      4,
+      3
      ]
     ]
    }
@@ -10926,6 +16776,640 @@
      "HOLD#",
      "EEL##"
     ]
+   },
+   {
+    "index": 3,
+    "layout": [
+     "...##",
+     "....#",
+     ".....",
+     "#....",
+     "##..."
+    ],
+    "solution": [
+     "AMP##",
+     "PAIR#",
+     "TROOP",
+     "#TUBE",
+     "##SEA"
+    ],
+    "clues": [
+     {
+      "id": "B3-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        2
+       ]
+      ],
+      "answer": "AMP",
+      "text": "Current unit",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-4A",
+      "num": 4,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ]
+      ],
+      "answer": "PAIR",
+      "text": "Two of a kind",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        3,
+        2
+       ]
+      }
+     },
+     {
+      "id": "B3-6A",
+      "num": 6,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "TROOP",
+      "text": "Scout group",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 19
+      }
+     },
+     {
+      "id": "B3-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "TUBE",
+      "text": "London subway",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-9A",
+      "num": 9,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        2
+       ],
+       [
+        4,
+        3
+       ],
+       [
+        4,
+        4
+       ]
+      ],
+      "answer": "SEA",
+      "text": "Salt water",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 1,
+       "cell": [
+        1,
+        2
+       ]
+      }
+     },
+     {
+      "id": "B3-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ]
+      ],
+      "answer": "APT",
+      "text": "Well-chosen",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 3
+      }
+     },
+     {
+      "id": "B3-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ]
+      ],
+      "answer": "MART",
+      "text": "Store, in shop names",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 21
+      }
+     },
+     {
+      "id": "B3-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "PIOUS",
+      "text": "Devout",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-5D",
+      "num": 5,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "ROBE",
+      "text": "Judge's garment",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B3-7D",
+      "num": 7,
+      "dir": "D",
+      "cells": [
+       [
+        2,
+        4
+       ],
+       [
+        3,
+        4
+       ],
+       [
+        4,
+        4
+       ]
+      ],
+      "answer": "PEA",
+      "text": "Green sphere",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 1,
+       "cell": [
+        0,
+        4
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "index": 4,
+    "layout": [
+     "...##",
+     ".....",
+     ".....",
+     ".....",
+     "##..."
+    ],
+    "solution": [
+     "ATE##",
+     "FIXED",
+     "ALIVE",
+     "RELIC",
+     "##ELK"
+    ],
+    "clues": [
+     {
+      "id": "B4-1A",
+      "num": 1,
+      "dir": "A",
+      "cells": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        2
+       ]
+      ],
+      "answer": "ATE",
+      "text": "Devoured",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 20
+      }
+     },
+     {
+      "id": "B4-4A",
+      "num": 4,
+      "dir": "A",
+      "cells": [
+       [
+        1,
+        0
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        1,
+        4
+       ]
+      ],
+      "answer": "FIXED",
+      "text": "Repaired",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-7A",
+      "num": 7,
+      "dir": "A",
+      "cells": [
+       [
+        2,
+        0
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        2,
+        4
+       ]
+      ],
+      "answer": "ALIVE",
+      "text": "Not dead",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 2,
+       "cell": [
+        1,
+        2
+       ]
+      }
+     },
+     {
+      "id": "B4-8A",
+      "num": 8,
+      "dir": "A",
+      "cells": [
+       [
+        3,
+        0
+       ],
+       [
+        3,
+        1
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        3,
+        4
+       ]
+      ],
+      "answer": "RELIC",
+      "text": "Ancient artifact",
+      "unlock": {
+       "type": "rotations",
+       "atLeast": 2
+      }
+     },
+     {
+      "id": "B4-9A",
+      "num": 9,
+      "dir": "A",
+      "cells": [
+       [
+        4,
+        2
+       ],
+       [
+        4,
+        3
+       ],
+       [
+        4,
+        4
+       ]
+      ],
+      "answer": "ELK",
+      "text": "Big deer",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-1D",
+      "num": 1,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        0
+       ],
+       [
+        1,
+        0
+       ],
+       [
+        2,
+        0
+       ],
+       [
+        3,
+        0
+       ]
+      ],
+      "answer": "AFAR",
+      "text": "From a long way off",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-2D",
+      "num": 2,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        1
+       ],
+       [
+        1,
+        1
+       ],
+       [
+        2,
+        1
+       ],
+       [
+        3,
+        1
+       ]
+      ],
+      "answer": "TILE",
+      "text": "Roof piece",
+      "unlock": {
+       "type": "solvedCount",
+       "atLeast": 6
+      }
+     },
+     {
+      "id": "B4-3D",
+      "num": 3,
+      "dir": "D",
+      "cells": [
+       [
+        0,
+        2
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        2,
+        2
+       ],
+       [
+        3,
+        2
+       ],
+       [
+        4,
+        2
+       ]
+      ],
+      "answer": "EXILE",
+      "text": "Banishment from one's homeland",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 0,
+       "cell": [
+        3,
+        1
+       ]
+      }
+     },
+     {
+      "id": "B4-5D",
+      "num": 5,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        3
+       ],
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        4,
+        3
+       ]
+      ],
+      "answer": "EVIL",
+      "text": "Wicked",
+      "unlock": {
+       "type": "base"
+      }
+     },
+     {
+      "id": "B4-6D",
+      "num": 6,
+      "dir": "D",
+      "cells": [
+       [
+        1,
+        4
+       ],
+       [
+        2,
+        4
+       ],
+       [
+        3,
+        4
+       ],
+       [
+        4,
+        4
+       ]
+      ],
+      "answer": "DECK",
+      "text": "Ship's floor",
+      "unlock": {
+       "type": "crossLetter",
+       "board": 1,
+       "cell": [
+        3,
+        0
+       ]
+      }
+     }
+    ]
    }
   ],
   "metas": [
@@ -10936,18 +17420,18 @@
     "cells": [
      [
       0,
-      2,
-      0
-     ],
-     [
       1,
-      4,
       1
      ],
      [
       2,
-      2,
-      0
+      3,
+      1
+     ],
+     [
+      1,
+      1,
+      1
      ]
     ]
    },
@@ -10957,14 +17441,14 @@
     "enumeration": "(4)",
     "cells": [
      [
-      2,
-      3,
-      3
+      4,
+      1,
+      4
      ],
      [
-      2,
       3,
-      1
+      2,
+      3
      ],
      [
       1,
@@ -10973,8 +17457,8 @@
      ],
      [
       0,
-      4,
-      2
+      3,
+      3
      ]
     ]
    },
@@ -10984,29 +17468,29 @@
     "enumeration": "(5)",
     "cells": [
      [
+      4,
       1,
-      2,
       0
      ],
      [
       2,
-      4,
+      3,
       2
+     ],
+     [
+      3,
+      3,
+      2
+     ],
+     [
+      1,
+      2,
+      4
      ],
      [
       0,
-      3,
-      0
-     ],
-     [
       1,
-      4,
-      2
-     ],
-     [
-      2,
-      4,
-      1
+      4
      ]
     ]
    },
@@ -11016,34 +17500,34 @@
     "enumeration": "(6)",
     "cells": [
      [
-      0,
+      4,
       1,
+      3
+     ],
+     [
+      1,
+      0,
       4
      ],
      [
-      0,
-      2,
-      2
-     ],
-     [
-      1,
-      2,
-      4
-     ],
-     [
-      1,
+      3,
       3,
       1
      ],
      [
       2,
-      1,
-      4
+      2,
+      2
      ],
      [
-      2,
+      0,
       4,
-      0
+      3
+     ],
+     [
+      4,
+      4,
+      2
      ]
     ]
    },
@@ -11053,38 +17537,38 @@
     "enumeration": "(7)",
     "cells": [
      [
-      0,
-      0,
-      1
-     ],
-     [
-      1,
-      1,
-      2
-     ],
-     [
-      2,
-      2,
-      3
-     ],
-     [
-      0,
-      2,
-      3
-     ],
-     [
-      1,
-      0,
-      3
-     ],
-     [
-      2,
       3,
+      4,
+      2
+     ],
+     [
+      1,
+      1,
       2
      ],
      [
       2,
-      1,
+      2,
+      3
+     ],
+     [
+      0,
+      2,
+      3
+     ],
+     [
+      4,
+      2,
+      0
+     ],
+     [
+      2,
+      4,
+      2
+     ],
+     [
+      0,
+      0,
       1
      ]
     ]

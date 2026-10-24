@@ -5,6 +5,9 @@ import { mulberry32 } from "../rng";
 import { finalCheck, requestRotation } from "../rotation";
 import { applyDueTransitions, hasDueTransition } from "../transitions";
 import {
+  boardIndexes,
+  breakMetaCell,
+  fillAll,
   fillBoard,
   fillWord,
   GAME1,
@@ -43,17 +46,20 @@ describe("lobby", () => {
     expect(s.cooldownUntil).toBe(T0 + duoCtx.cfg.cooldownMs);
   });
 
-  it("reclaims the seat for a known player id, seats up to 3 players, then is full", () => {
+  it("reclaims the seat for a known player id, seats one player per board, then is full", () => {
     let s = startedRoom(ctx);
     const again = unwrap(joinRoom(s, ctx, PID, "", T0 + 10));
     expect(again).toMatchObject({ seat: 0, rejoined: true });
     expect(again.state.players[PID].name).toBe("Clem Leung");
     s = again.state;
-    const second = unwrap(joinRoom(s, ctx, "p-2", "Kris", T0));
-    expect(second.seat).toBe(1);
-    const third = unwrap(joinRoom(second.state, ctx, "p-3", "Srini", T0));
-    expect(third.seat).toBe(2);
-    expect(joinRoom(third.state, ctx, "p-4", "Teja", T0)).toMatchObject({
+    // A 5× game has five boards: four more players fit, spread around the ring.
+    const seats = ["Kris", "Srini", "Teja", "Parth"].map((name, i) => {
+      const j = unwrap(joinRoom(s, ctx, `p-${i + 2}`, name, T0));
+      s = j.state;
+      return j.seat;
+    });
+    expect(seats).toEqual([2, 1, 3, 4]);
+    expect(joinRoom(s, ctx, "p-6", "Steven", T0)).toMatchObject({
       error: { code: "ROOM_FULL" },
     });
   });
@@ -73,12 +79,12 @@ describe("single-player rotation", () => {
     s = unwrap(requestRotation(s, ctx, PID, "L", T0 + 1, rng)).state;
     expect(s.pendingRotation).toBeNull();
     expect(s.locked).toEqual(["B0-4A"]);
-    expect(s.boardAtSeat).toEqual([1, 2, 0]);
+    expect(s.boardAtSeat).toEqual([1, 2, 3, 4, 0]);
     expect(s.rotations).toBe(1);
     expect(s.cooldownUntil).toBe(T0 + 1);
     // And again immediately.
     s = unwrap(requestRotation(s, ctx, PID, "R", T0 + 1, rng)).state;
-    expect(s.boardAtSeat).toEqual([0, 1, 2]);
+    expect(s.boardAtSeat).toEqual([0, 1, 2, 3, 4]);
     expect(s.rotations).toBe(2);
   });
 
@@ -135,7 +141,7 @@ describe("multiplayer rotation", () => {
     const { state, changed } = applyDueTransitions(s, duoCtx, at + 250, rng);
     expect(changed).toBe(true);
     expect(state.locked).toEqual(["B0-4A"]);
-    expect(state.boardAtSeat).toEqual([1, 2, 0]);
+    expect(state.boardAtSeat).toEqual([1, 2, 3, 4, 0]);
     expect(state.rotations).toBe(1);
     expect(state.cooldownUntil).toBe(at + 250 + 19_000);
     expect(state.pendingRotation).toBeNull();
@@ -157,23 +163,24 @@ describe("finalCheck", () => {
   it("requires every cell filled, then pulses without rotating", () => {
     let s = startedRoom(ctx);
     const t = T0 + 1;
-    fillBoard(s, ctx, 0);
-    fillBoard(s, ctx, 1);
+    const [last, ...rest] = boardIndexes(ctx).reverse();
+    for (const b of rest) fillBoard(s, ctx, b);
     expect(finalCheck(s, ctx, PID, t)).toMatchObject({ error: { code: "NOT_FILLED" } });
-    fillBoard(s, ctx, 2);
-    s.boards[2].entries["0,0"] = "Z"; // one wrong letter keeps the game going
+    fillBoard(s, ctx, last);
+    breakMetaCell(s, ctx); // one wrong letter, on a meta cell, keeps the game going
     s = unwrap(finalCheck(s, ctx, PID, t)).state;
     expect(s.rotations).toBe(0);
-    expect(s.boardAtSeat).toEqual([0, 1, 2]);
+    expect(s.boardAtSeat).toEqual(boardIndexes(ctx));
     expect(s.finalCheckAt).toBe(t);
     expect(s.cooldownUntil).toBe(t); // no cooldown alone
     expect(s.status).toBe("playing");
-    expect(s.locked.length).toBe(28); // 30 words minus AWAY and ARC
+    // Every word but the two through the wrong letter.
+    expect(s.locked.length).toBe(ctx.puzzle.boards.flatMap((b) => b.clues).length - 2);
   });
 
   it("respects the cooldown in multiplayer", () => {
     const s = startedDuo(duoCtx);
-    for (const b of [0, 1, 2]) fillBoard(s, duoCtx, b);
+    fillAll(s, duoCtx);
     expect(finalCheck(s, duoCtx, s.masterPid!, s.cooldownUntil - 1)).toMatchObject({
       error: { code: "COOLDOWN" },
     });
@@ -181,7 +188,7 @@ describe("finalCheck", () => {
 
   it("ends the game and freezes the result when everything locks", () => {
     let s = startedRoom(ctx);
-    for (const b of [0, 1, 2]) fillBoard(s, ctx, b);
+    fillAll(s, ctx);
     const t = T0 + 4 * 60_000;
     s.players[PID].lastSeen = t - 500;
     s = unwrap(finalCheck(s, ctx, PID, t)).state;
@@ -200,21 +207,21 @@ describe("completed boards leave the ring", () => {
     let s = startedRoom(ctx);
     fillBoard(s, ctx, 0);
     s = unwrap(requestRotation(s, ctx, PID, "L", T0, rng)).state;
-    // Board 0 locked completely: it leaves instead of moving to seat 2; Left brings board 1.
-    expect(s.boardAtSeat).toEqual([1, 2, null]);
-    // Alone, a Left rotation would now bring the gap, so the next board along is taken instead.
-    s = unwrap(requestRotation(s, ctx, PID, "L", T0 + 1, rng)).state;
-    expect(s.boardAtSeat).toEqual([2, null, 1]);
+    // Board 0 locked completely: it leaves instead of moving to seat 4; Left brings board 1.
+    expect(s.boardAtSeat).toEqual([1, 2, 3, 4, null]);
+    // Alone, a Right rotation would now bring the gap, so the next board along is taken instead.
+    s = unwrap(requestRotation(s, ctx, PID, "R", T0 + 1, rng)).state;
+    expect(s.boardAtSeat).toEqual([4, 1, 2, 3, null]);
   });
 
   it("keeps a board completed by Final Check until the next rotation", () => {
     let s = startedRoom(ctx);
-    for (const b of [0, 1, 2]) fillBoard(s, ctx, b);
-    s.boards[2].entries["0,0"] = "Q"; // AWAY / ARC stay unlocked, so the game goes on
+    fillAll(s, ctx);
+    const [open] = breakMetaCell(s, ctx); // its words stay unlocked, so the game goes on
     s = unwrap(finalCheck(s, ctx, PID, T0)).state;
     expect(s.status).toBe("playing");
-    expect(s.boardAtSeat).toEqual([0, 1, 2]);
+    expect(s.boardAtSeat).toEqual([0, 1, 2, 3, 4]);
     s = unwrap(requestRotation(s, ctx, PID, "R", T0 + 1, rng)).state;
-    expect(s.boardAtSeat).toEqual([2, null, null]);
+    expect(s.boardAtSeat).toEqual([open, null, null, null, null]);
   });
 });

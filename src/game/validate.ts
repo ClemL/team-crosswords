@@ -251,14 +251,21 @@ export function validateGame(game: PuzzleGame): ValidationReport {
     errors.push(`parMinutes should be ${MODES[mode].parMinutes} for ${mode}`);
   game.boards.forEach((b, bi) => validateBoard(game, b, bi, errors));
 
-  // 5. Duplicate ids and answers within a game.
+  // 5. Duplicate ids and answers within a game. An answer of the mode's repeatLength may come back
+  // on another board, never on the same one.
   const ids = new Set<string>();
   const answers = new Set<string>();
-  for (const b of game.boards) {
+  const boardsOf = new Map<string, Set<number>>();
+  const { repeatLength } = MODES[mode];
+  for (const [bi, b] of game.boards.entries()) {
     for (const c of b.clues) {
       if (ids.has(c.id)) errors.push(`duplicate clue id ${c.id}`);
       ids.add(c.id);
-      if (answers.has(c.answer)) errors.push(`duplicate answer ${c.answer}`);
+      const seenOn = boardsOf.get(c.answer) ?? new Set<number>();
+      if (seenOn.size > 0 && (c.answer.length !== repeatLength || seenOn.has(bi)))
+        errors.push(`duplicate answer ${c.answer}`);
+      seenOn.add(bi);
+      boardsOf.set(c.answer, seenOn);
       answers.add(c.answer);
     }
   }
