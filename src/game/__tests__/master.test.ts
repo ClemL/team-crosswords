@@ -21,6 +21,7 @@ describe("pickNextMaster", () => {
       players: { a: player(0), b: player(1), c: player(2) },
       masterPid: "a",
       masterCounts: { a: 1, b: 3, c: 1 },
+      knockedOut: {},
     };
     for (let seed = 0; seed < 20; seed++) {
       expect(pickNextMaster(state, NOW, mulberry32(seed), cfg)).toBe("c");
@@ -32,6 +33,7 @@ describe("pickNextMaster", () => {
       players: { a: player(0), b: player(1), c: player(2) },
       masterPid: "a",
       masterCounts: { a: 0, b: 2, c: 2 },
+      knockedOut: {},
     };
     const picks = new Set(
       Array.from({ length: 40 }, (_, s) => pickNextMaster(state, NOW, mulberry32(s), cfg)),
@@ -40,7 +42,12 @@ describe("pickNextMaster", () => {
   });
 
   it("keeps the only active player as master (single-player fallback)", () => {
-    const state = { players: { a: player(0) }, masterPid: "a", masterCounts: { a: 5 } };
+    const state = {
+      players: { a: player(0) },
+      masterPid: "a",
+      masterCounts: { a: 5 },
+      knockedOut: {},
+    };
     expect(pickNextMaster(state, NOW, mulberry32(1), cfg)).toBe("a");
   });
 
@@ -50,6 +57,7 @@ describe("pickNextMaster", () => {
       players: { a: player(0), b: player(1, stale), c: player(2) },
       masterPid: "a",
       masterCounts: { a: 3, b: 0, c: 2 },
+      knockedOut: {},
     };
     expect(pickNextMaster(state, NOW, mulberry32(1), cfg)).toBe("c");
     // With everyone else inactive, the current master stays.
@@ -57,20 +65,46 @@ describe("pickNextMaster", () => {
     expect(pickNextMaster(alone, NOW, mulberry32(1), cfg)).toBe("a");
   });
 
+  it("never picks a knocked-out player, and replaces a knocked-out Capt.", () => {
+    const state = {
+      players: { a: player(0), b: player(1), c: player(2) },
+      masterPid: "a",
+      masterCounts: { a: 3, b: 0, c: 2 },
+      knockedOut: { b: NOW },
+    };
+    for (let seed = 0; seed < 20; seed++) {
+      expect(pickNextMaster(state, NOW, mulberry32(seed), cfg)).toBe("c");
+    }
+    // A knocked-out Capt. with nobody else active hands over to anyone still in the game.
+    const stale = NOW - cfg.inactiveAfterMs - 1;
+    const out = { ...state, players: { a: player(0), b: player(1), c: player(2, stale) } };
+    expect(pickNextMaster({ ...out, knockedOut: { a: NOW } }, NOW, mulberry32(1), cfg)).toBe("b");
+    expect(masterNeedsReplacement({ ...state, knockedOut: { a: NOW } }, NOW, cfg)).toBe(true);
+  });
+
   it("flags an inactive master for replacement only when someone else is active", () => {
     const stale = NOW - cfg.inactiveAfterMs - 1;
+    const ko = {};
     expect(
       masterNeedsReplacement(
-        { players: { a: player(0, stale), b: player(1) }, masterPid: "a" },
+        { players: { a: player(0, stale), b: player(1) }, masterPid: "a", knockedOut: ko },
         NOW,
         cfg,
       ),
     ).toBe(true);
     expect(
-      masterNeedsReplacement({ players: { a: player(0, stale) }, masterPid: "a" }, NOW, cfg),
+      masterNeedsReplacement(
+        { players: { a: player(0, stale) }, masterPid: "a", knockedOut: ko },
+        NOW,
+        cfg,
+      ),
     ).toBe(false);
     expect(
-      masterNeedsReplacement({ players: { a: player(0), b: player(1) }, masterPid: "a" }, NOW, cfg),
+      masterNeedsReplacement(
+        { players: { a: player(0), b: player(1) }, masterPid: "a", knockedOut: ko },
+        NOW,
+        cfg,
+      ),
     ).toBe(false);
   });
 });

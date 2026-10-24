@@ -2,9 +2,19 @@ import type { GameCtx } from "./context";
 import { fail, type Result } from "./errors";
 import { guardMaster, guardPlayer, guardPlaying } from "./guards";
 import { assignMaster, pickNextMaster } from "./master";
+import { parseCellKey, solutionLetter } from "./puzzle";
 import { runPulse } from "./pulse";
-import { shiftRing } from "./ring";
-import { allCellsFilled, cloneState, cooldownFor, isSinglePlayer, statsFor } from "./state";
+import { rotateRing } from "./ring";
+import {
+  allCellsFilled,
+  boardComplete,
+  cloneState,
+  cooldownFor,
+  inGame,
+  isSinglePlayer,
+  seatedInGame,
+  statsFor,
+} from "./state";
 import type { RoomState, RotationDir } from "./types";
 
 function guardCooldown(state: RoomState, now: number) {
@@ -41,8 +51,29 @@ export function requestRotation(
 }
 
 /**
+ * Adds, for every player still in the game, the wrong letters they typed on the board at their
+ * seat, which the rotation is about to pass on (mutates `state`). A letter left wrong through
+ * several rotations counts at each one.
+ */
+function countWrongLeft(state: RoomState, ctx: GameCtx): void {
+  state.seats.forEach((pid, seat) => {
+    const board = state.boardAtSeat[seat];
+    if (pid === null || board === null || !inGame(state, pid)) return;
+    const b = state.boards[board];
+    let wrong = 0;
+    for (const [k, letter] of Object.entries(b.entries)) {
+      const [r, c] = parseCellKey(k);
+      if (b.authors[k] === pid && letter !== solutionLetter(ctx.solution, board, r, c)) wrong++;
+    }
+    if (wrong > 0) statsFor(state, pid).wrongLeft += wrong;
+  });
+}
+
+/**
  * Completes a due rotation (§3.6.4), in the order the spec gives:
  * pulse → shift → rotations++ → cooldown → next master.
+ * Before the shift, every board whose words are all locked leaves the ring, so nobody is handed a
+ * finished board; players left without one take a board from a seat nobody plays (rotateRing).
  */
 export function completeRotation(
   state: RoomState,
@@ -52,11 +83,18 @@ export function completeRotation(
 ): RoomState {
   const pending = state.pendingRotation;
   if (!pending) return state;
-  // Credit the Capt. before the pulse: a pulse that ends the game freezes the scorecards.
+  // Credit the Capt. and count the wrong letters each player passes on before the pulse: a pulse
+  // that ends the game freezes the scorecards.
   const credited = cloneState(state);
   if (credited.masterPid) statsFor(credited, credited.masterPid).rotations += 1;
+  countWrongLeft(credited, ctx);
   const next = runPulse(credited, ctx, now).state;
-  next.boardAtSeat = shiftRing(next.boardAtSeat, pending.dir);
+  if (next.status === "playing") {
+    next.boardAtSeat = next.boardAtSeat.map((b) =>
+      b !== null && boardComplete(next, ctx, b) ? null : b,
+    );
+  }
+  next.boardAtSeat = rotateRing(next.boardAtSeat, pending.dir, seatedInGame(next));
   next.rotations += 1;
   next.cooldownUntil = now + cooldownFor(next, ctx.cfg);
   next.pendingRotation = null;

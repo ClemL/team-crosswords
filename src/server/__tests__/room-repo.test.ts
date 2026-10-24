@@ -41,9 +41,11 @@ for (const { name, make } of storesUnderTest()) {
       next = unwrap(markReady(next, ctx, PID, now)).state;
       next = unwrap(applyEntry(next, ctx, PID, 0, 2, 0, "T", now)).state;
       next = unwrap(toggleSuspect(next, ctx, PID, 0, 2, 0, true, now)).state;
-      next = unwrap(guessMeta(next, ctx, PID, "water", now)).state;
+      next = unwrap(guessMeta(next, ctx, PID, "water", now, Math.random)).state;
       fillWord(next, ctx, 0, "B0-4A");
       next = runPulse(next, ctx, now).state;
+      next.knockedOut = { "p-out": now };
+      next.boardAtSeat = [0, null, 2];
       const saved = await saveRoom(store, loaded, next, cfg);
       expect(saved.changed).toBe(true);
       expect(saved.state.version).toBe(1);
@@ -57,8 +59,10 @@ for (const { name, make } of storesUnderTest()) {
       expect(again.boards[0].authors["2,0"]).toBe(PID);
       expect(again.playerStats[PID]).toMatchObject({
         lettersTyped: 1,
-        guess: { text: "WATER", metaId: "M3" },
+        guesses: [{ text: "WATER", metaId: "M3" }],
       });
+      expect(again.knockedOut).toEqual({ "p-out": now });
+      expect(again.boardAtSeat).toEqual([0, null, 2]);
 
       // A save without changes does not bump the version.
       const noop = await saveRoom(store, again, structuredClone(again), cfg);

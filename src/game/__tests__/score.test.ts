@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { CONFIG_V1 } from "@/config";
-import { gradeFor, metaPoints, parSeconds, scoreGame, type ScoreInput } from "../score";
+import {
+  gradeFor,
+  metaPoints,
+  metaPointsExact,
+  parSeconds,
+  scoreGame,
+  type ScoreInput,
+} from "../score";
 
 const PAR = 5 * 60;
 const perfect: ScoreInput = {
@@ -43,9 +50,15 @@ describe("scoreGame components", () => {
 
 describe("metaPoints", () => {
   it("is 7 before any rotation and loses 10% of it per rotation, floor 10%", () => {
-    expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 30].map((r) => metaPoints(r, CONFIG_V1))).toEqual([
+    expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 30].map((r) => metaPoints(r, CONFIG_V1, 5))).toEqual([
       7, 6.3, 5.6, 4.9, 4.2, 3.5, 2.8, 2.1, 1.4, 0.7, 0.7, 0.7,
     ]);
+  });
+
+  it("splits 35 points across six words in 6x mode, adding up before rounding", () => {
+    expect(metaPoints(0, CONFIG_V1, 6)).toBe(5.8);
+    expect(metaPoints(3, CONFIG_V1, 6)).toBe(4.1);
+    expect(6 * metaPointsExact(0, CONFIG_V1, 6)).toBeCloseTo(35, 10);
   });
 });
 

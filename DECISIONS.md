@@ -1,8 +1,9 @@
 # Decisions
 
 Choices made where the V1 spec was silent, and rules implemented as written but flagged for review.
-Section numbers refer to the V1 spec. Sections H and I list rule changes requested after V1; where
-they conflict with the spec or with an earlier entry here, the later section wins (I over H).
+Section numbers refer to the V1 spec. Sections H to L list rule changes requested after V1; where
+they conflict with the spec or with an earlier entry here, the later section wins (L over K over J
+over I over H).
 
 ## A. Rules implemented as written, flagged for review
 
@@ -267,3 +268,152 @@ These supersede the spec's §3.10, §4, §3.6 cooldown and the `meta`/`shaded` f
    pages never flash the wrong theme. All colors are theme tokens; dark text colors were chosen for
    contrast (for example green text is lighter than the green tile fill). The QR code keeps a white
    background so phones can scan it.
+
+## J. Rule changes requested after V1 (third round)
+
+1. **Guesses depend on the number of players** (replaces I.2).
+   - **Alone:** guess as often as you like until a guess is wrong. The wrong guess ends your
+     guessing, nothing else: you keep playing, and words can still be obtained by tiles.
+   - **With others:** one guess each. A right one is used up; a wrong one **knocks you out**. A
+     knocked-out player stays in the room as a spectator: they see the board at their seat but
+     cannot type, mark cells, guess or be Capt. The Capt. role passes at once if they
+     held it. Their active time stops at the knock-out, so `effPlayers` (and par) follow the players
+     still in the game; tiles they typed before keep counting.
+   - **Everyone knocked out ends the game.** Words not obtained score 0 and, like every answer at
+     the end, are revealed (D.8); the results list them as "not obtained".
+   - The rule follows the current player count, so a solo player's guesses count toward the one
+     multiplayer guess once someone joins. A solo wrong guess made before that is never turned into
+     a knock-out.
+   - Storage: player stats hold `guesses[]` (a stored `guess` from an older room reads as a
+     one-element list). Knock-outs live in the meta hash as `knockedOut` (player id → time), not in
+     the stats, because the polling fast path needs them to decide whether the Capt. must be
+     replaced (B.10). Views report knock-outs per seat (`out`), never by player id.
+2. **Completed boards leave the ring.** Read as: a board (one 5×5 or 6×6 puzzle) whose every word
+   is locked green is taken out of the rotating pool at the next rotation, so nobody is handed a
+   finished board. Words only lock in a pulse, so a board completed by a rotation leaves in that same
+   rotation, before the shift; a board completed by Final Check leaves at the next one. The other
+   reading, removing finished games from the home page, would need a pool rotation schedule the
+   spec does not have; it is not implemented.
+   - A seat can now hold no board (`boardAtSeat` entries are `null`). A rotation still shifts the
+     ring, gaps included; then every seat with a player still in the game but no board takes the
+     nearest board at a seat nobody plays (empty or knocked out), looking the way boards arrive
+     from. Alone, you therefore always get a board, and the one you get is the one the next
+     rotation in that direction would have brought.
+   - With more players than boards left, someone sits out each rotation. That phone shows a "No
+     board at your seat" screen with the timer, the Capt. controls and the meta guesses.
+   - The rotate buttons and the countdown preview use the current ring. They do not predict which
+     boards the coming pulse will complete: that would tell players which boards are fully correct.
+   - The seating card, the seating flash and the host list finished boards as done.
+3. **6× mode:** three 6×6 boards, 6 meta words of 3–8 letters, par 6 minutes. `MODES` in
+   `src/config.ts` holds both modes; a game's mode is read from its `boardSize`.
+   - **Meta points:** the words share 35 points, 7 each in 5× and 35/6 ≈ 5.83 each in 6×, with the
+     same 10%-per-rotation decay. Each word's points are shown to one decimal (5.8), but the meta
+     total adds the unrounded values, so six words still make 35. The score stays Time 50 · Metas 35
+     · Suspects 15 in both modes.
+   - **Validator:** per mode, exactly `metaWords` words with one of each length from 3 to
+     `metaWords + 2`, and `parMinutes` equal to the mode's. `npm run validate:puzzles` checks both
+     files together, so a game id used twice is caught.
+   - **Seeding:** the seed route loads both files. The index now carries each game's mode, size,
+     meta count and par, so `PUZZLE_FORMAT` is 3 and older seeds read as stale until re-seeded.
+   - The phone grid keeps cells at least 46 px (276 px for a 6×6), and a sixth meta color was added
+     for light and dark themes.
+4. **The 6× games** (`data/puzzles-6x.json`) are built by `scripts/generate-games.ts` (then
+   `generate-6x.ts`; renamed in L) with the sibling
+   crossword-app's lexicon, grid code and filler (it needs that checkout).
+   - **Grids:** 180°-symmetric, every entry 3+ letters, 8 or 10 blocks. Fewer blocks did not fill
+     with everyday vocabulary: every 4- and 6-block pattern failed eight 5-second attempts, while
+     every 10-block and some 8-block patterns filled in under a few seconds.
+   - **Vocabulary:** three-letter fill must have a hand-written crossword-app clue; longer fill may
+     come from its frequency list up to "familiar". Names, places, nationalities and crude words are
+     blocked (`BLOCKED`). Every clue is hand-written: crossword-app's, or `scripts/clues.ts`
+     for answers it has none for (no dictionary-derived clues). No board repeats, and an answer
+     from an earlier game is reused only when nothing else fills (3–4 letters only).
+   - **Unlocks** follow the 5× set's mix per board (about 40% base, a third waiting on a letter of
+     another board, one on a rotation count of 2–4, the rest on a solved count), re-drawn until the
+     idealized solve (G.3) takes 2–4 rotations.
+   - **Meta words** are themed answers of any player in crossword-app (the shared, Clem and Lori
+     sets: climbing, golf, MBTA and other rail lines, programming, pharma, travel, …), one topic per
+     word where possible, each used once across the set and never a clue answer of its own game.
+     They are spelled by cells spread over all three boards, as in 5×. The 5× meta words were left
+     as they were.
+5. **Setup UI:** the home page has 5×5 / 6×6 mode tabs, each listing its own games, with the
+   mode's boards, meta count and par spelled out; the choice is remembered per device
+   (`localStorage["xw:mode"]`). The lobby and host titles show the board size. The rules on the
+   home page describe both modes, the guess rules and board removal.
+
+## K. Changes requested after V1 (fourth round)
+
+1. **Unlock helper cells.** A cell whose correct letter would unlock a still-hidden clue on another
+   board has a dashed amber outline and, in its bottom-left corner, the emoji of the board it helps.
+   The marker goes once that clue unlocks (or its word locks). This reveals nothing new: the other
+   board's clue already names the cell ("Needs 🦊 r1c3"). Views carry it as `board.helperCells`.
+2. **Meta words are lettered A, B, C…** on the grid, in the meta bar and panel, and in the results,
+   so they never read as clue numbers. The API still numbers them (`metaNumber`, `meta`); the letter
+   is display only.
+3. **Meta panel:** the help paragraph and the "(n)" under each unsolved word are gone. A disabled
+   guess field says why in its placeholder ("No guesses left", "Knocked out").
+4. **The guess field uses the on-screen keyboard** (letters, ⌫ and a Guess key in place of the
+   suspect key). The field has `inputMode="none"`, so phones never raise their own keyboard, and a
+   physical keyboard still types into it.
+5. **Portrait only.** The web manifest declares `orientation: "portrait"` (honored when the game is
+   added to a home screen). In a browser, a phone turned sideways (landscape and under 520 px tall)
+   sees a "Turn your phone upright" cover on the play page; desktop windows and the host screen are
+   unaffected.
+6. **The Capt.'s phone:** the rotate buttons, cooldown and Final Check take the top row instead of
+   the board progress and the clock, and the header and the area around the grid are tinted red
+   instead of showing the word "Capt.". Other phones keep progress and clock. The seating map now
+   shows the clock and the rotation count for everyone.
+7. **Display density:** a Normal / Cosy / Compact button next to the theme button (home, host,
+   lobby, seating map). It scales text through the root font size (100%, 93.75%, 87.5%) and controls
+   through `--tap`, `--key-h` and `--cell-min` (44/46/46 px, 40/42/42, 36/38/38). Compact goes below
+   the 44 px tap target of F.1, by choice. Stored per device (`localStorage["xw:density"]`) and
+   applied before the first paint, like the theme.
+8. **Players: up to one per board, the board count coming from the mode.** `MODES` has `boards`
+   (3 in both modes today), the validator checks it, and a room seats at most as many players as its
+   puzzle has boards. `maxPlayers` is gone from the config. The ring size is no longer fixed in the
+   engine; the Redis layout reads `cfg.seats` boards first and re-reads with the room's own count if
+   it differs, so a mode with another board count costs one more read per load.
+9. **Spaced seating** (the V2 spacing idea of D.4, generalized): a new player takes the free seat
+   farthest from every taken seat, the lowest on a tie. In a three-seat ring every seat is next to
+   every other, so this changes nothing today; it starts to matter at four boards or more. Seats with
+   no player are labeled "Empty" instead of "idle".
+10. **Wrong letters passed on.** At every rotation, each player still in the game is charged the
+    wrong letters they typed that sit on the board leaving their seat. A letter left wrong through
+    several rotations counts each time; letters typed by someone else, or on a board at an empty
+    seat, are not charged. Counted before the pulse, so a rotation that ends the game is included.
+    Shown on each scorecard and as a team total in the results; not scored.
+11. **End round & restart.** `POST /api/rooms/[rid]/restart` puts the same puzzle back in the lobby
+    with the same players, seats, Capt. and board emojis, and wipes everything else (letters, locks,
+    unlocks, meta words, stats, knock-outs, the timer). While a game is on only the Capt. may do it,
+    from the seating map, with a confirm step; once it has ended anyone may ("Play this game again"
+    on the results screen). The version keeps increasing, so every phone and the host pick it up on
+    their next poll.
+
+## L. Changes requested after V1 (fifth round)
+
+1. **The game is called Team Crossword** (page titles, home heading, manifest, README).
+2. **7× mode:** three 7×7 boards, 7 meta words of 3–9 letters (labeled A–G, a seventh meta color),
+   par 7 minutes, and a **7-minute time limit**. The 35 meta points split 5 per word. Only 7× has a
+   limit (`MODES.timeLimitMinutes`); 5× and 6× are unchanged.
+3. **Time limit.** The deadline is fixed when the timer starts (`timeUpAt`, in the room meta hash so
+   the polling fast path sees it). It is a lazy transition like a rotation: the first request at or
+   after the deadline ends the game, recorded as ending at the deadline itself. A rotation that was
+   due before the deadline still completes, as of its due time, so its locks and meta words count;
+   one due after it is dropped. After the deadline every action is rejected as `GAME_ENDED`.
+4. **Score when time runs out** is the number of meta words obtained, by guess or by tiles: the
+   result has `endedBy: "time"`, `total` = that count and no grade, and the results screen shows
+   "4/7" and "Time's up" instead of a grade out of 100. A 7× game whose meta words are all obtained
+   in time is scored as before (out of 100, with a grade); so is one where everyone is knocked out.
+   Results record `endedBy` (`metas`, `time`, `knockout`) and `metasObtained` in every mode.
+5. **The clock** counts down ("03:12 left") in a mode with a limit: in the non-Capt. phone header,
+   the seating map and the host screen. The Capt.'s header still has no clock (K.6); it is on the map.
+6. **The 7× games** (`data/puzzles-7x.json`) come from the same generator, now
+   `scripts/generate-games.ts --mode=7x`, with the clues in `scripts/clues.ts` (both renamed from
+   their 6× names). Every board uses the classic 7×7 layout of 8 blocks and 22 entries (eighteen of
+   3 letters, four of 7). That is the only layout that filled with everyday words: all 51 layouts
+   of 14–16 entries failed, and even with rarer 6- and 7-letter words allowed, 1 of 30 filled, with
+   a name and a star in it. Every 7-letter answer has a hand-written clue (238 more in `scripts/clues.ts`, a few for words a later run replaced); names, nationalities, religious terms, a brand and crude words were blocked
+   as they came up. Unlocks follow the same mix; every game solves in 3–4 rotations in the idealized
+   model. Meta words are again themed answers of any player, one topic per word where possible.
+7. **Tests:** the time limit can be scaled (`timeLimitScale` in `CONFIG_V1`, overridable through
+   `XW_CONFIG_OVERRIDES`); the end-to-end test runs 7× with a 4.2-second limit.

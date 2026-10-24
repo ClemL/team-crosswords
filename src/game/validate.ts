@@ -1,4 +1,4 @@
-import { CONFIG_V1, type GameConfig } from "@/config";
+import { CONFIG_V1, MODES, modeForSize, type GameConfig } from "@/config";
 import type { GameCtx } from "./context";
 import { cellKey, indexPuzzle, splitPuzzle } from "./puzzle";
 import { runPulse } from "./pulse";
@@ -140,14 +140,19 @@ function validateBoard(game: PuzzleGame, board: PuzzleBoard, bi: number, errors:
 }
 
 /**
- * Meta words (§3.10, revised): exactly CONFIG_V1.metaWords words of differing lengths, each spelled
- * by open cells that use every board, no cell shared between words, and no word equal to a clue
- * answer of the same game.
+ * Meta words (§3.10, revised): one word per length from 3 to metaWords + 2 letters for the game's
+ * mode (5x: 3–7, 6x: 3–8), each spelled by open cells that use every board, no cell shared between
+ * words, and no word equal to a clue answer of the same game.
  */
-function validateMetas(game: PuzzleGame, clueAnswers: Set<string>, errors: string[]): void {
+function validateMetas(
+  game: PuzzleGame,
+  metaWords: number,
+  clueAnswers: Set<string>,
+  errors: string[],
+): void {
   const metas = Array.isArray(game.metas) ? game.metas : [];
-  if (metas.length !== CONFIG_V1.metaWords) {
-    errors.push(`expected ${CONFIG_V1.metaWords} meta words, found ${metas.length}`);
+  if (metas.length !== metaWords) {
+    errors.push(`expected ${metaWords} meta words, found ${metas.length}`);
   }
   const ids = new Set<string>();
   const lengths = new Set<number>();
@@ -162,6 +167,8 @@ function validateMetas(game: PuzzleGame, clueAnswers: Set<string>, errors: strin
     }
     if (lengths.has(m.answer.length))
       errors.push(`${where}: another meta word also has ${m.answer.length} letters`);
+    if (m.answer.length < 3 || m.answer.length > metaWords + 2)
+      errors.push(`${where}: meta words run from 3 to ${metaWords + 2} letters`);
     lengths.add(m.answer.length);
     if (m.enumeration !== `(${m.answer.length})`)
       errors.push(`${where}: enumeration should be (${m.answer.length})`);
@@ -226,19 +233,22 @@ export function simulateSolve(game: PuzzleGame, cfg: GameConfig = { ...CONFIG_V1
   return null;
 }
 
-export function validateGame(
-  game: PuzzleGame,
-  expectedBoards: number = CONFIG_V1.seats,
-): ValidationReport {
+export function validateGame(game: PuzzleGame): ValidationReport {
   const errors: string[] = [];
   const warnings: string[] = [];
   const id = typeof game?.id === "string" ? game.id : "(missing id)";
-  if (!Array.isArray(game?.boards) || game.boards.length !== expectedBoards) {
+  const mode = modeForSize(game?.boardSize);
+  if (!mode) {
+    errors.push(`no game mode has ${game?.boardSize}×${game?.boardSize} boards`);
+    return { id, errors, warnings, solvedAtRotation: null };
+  }
+  const expectedBoards = MODES[mode].boards;
+  if (!Array.isArray(game.boards) || game.boards.length !== expectedBoards) {
     errors.push(`expected ${expectedBoards} boards`);
     return { id, errors, warnings, solvedAtRotation: null };
   }
-  if (!Number.isFinite(game.parMinutes) || game.parMinutes <= 0)
-    errors.push("parMinutes must be positive");
+  if (game.parMinutes !== MODES[mode].parMinutes)
+    errors.push(`parMinutes should be ${MODES[mode].parMinutes} for ${mode}`);
   game.boards.forEach((b, bi) => validateBoard(game, b, bi, errors));
 
   // 5. Duplicate ids and answers within a game.
@@ -254,7 +264,7 @@ export function validateGame(
   }
 
   // 7. Meta words.
-  validateMetas(game, answers, errors);
+  validateMetas(game, MODES[mode].metaWords, answers, errors);
 
   // 9. Solvability (only meaningful once the structure is valid).
   let solvedAtRotation: number | null = null;

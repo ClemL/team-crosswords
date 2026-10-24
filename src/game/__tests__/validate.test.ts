@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { validateGame, validatePuzzleSet } from "../validate";
+import { simulateSolve, validateGame, validatePuzzleSet } from "../validate";
 import type { PuzzleGame } from "../types";
-import { ALL_GAMES } from "./helpers";
+import { ALL_GAMES, SEVEN_GAMES, SIX_GAMES } from "./helpers";
 
 const copy = (): PuzzleGame => structuredClone(ALL_GAMES[0]);
 
@@ -82,6 +82,42 @@ describe("puzzle validator", () => {
     const g = copy();
     mutate(g);
     expect(validateGame(g).errors.length).toBeGreaterThan(0);
+  });
+
+  it("accepts the 6× set: 6×6 boards, 6 meta words of 3–8 letters, par 6, solvable in 2–4", () => {
+    expect(SIX_GAMES).toHaveLength(10);
+    for (const r of validatePuzzleSet([...ALL_GAMES, ...SIX_GAMES])) expect(r.errors).toEqual([]);
+    for (const g of SIX_GAMES) {
+      expect(g).toMatchObject({ boardSize: 6, parMinutes: 6 });
+      expect(g.metas.map((m) => m.answer.length)).toEqual([3, 4, 5, 6, 7, 8]);
+      expect(simulateSolve(g)).toBeGreaterThanOrEqual(2);
+      expect(simulateSolve(g)).toBeLessThanOrEqual(4);
+    }
+  });
+
+  it("accepts the 7× set: 7×7 boards, 7 meta words of 3–9 letters, par 7, solvable in 2–4", () => {
+    expect(SEVEN_GAMES).toHaveLength(10);
+    const all = [...ALL_GAMES, ...SIX_GAMES, ...SEVEN_GAMES];
+    for (const r of validatePuzzleSet(all)) expect(r.errors).toEqual([]);
+    for (const g of SEVEN_GAMES) {
+      expect(g).toMatchObject({ boardSize: 7, parMinutes: 7 });
+      expect(g.metas.map((m) => m.answer.length)).toEqual([3, 4, 5, 6, 7, 8, 9]);
+      const rotations = simulateSolve(g)!;
+      expect(rotations).toBeGreaterThanOrEqual(2);
+      expect(rotations).toBeLessThanOrEqual(4);
+    }
+  });
+
+  it("checks a game against its mode", () => {
+    const six = structuredClone(SIX_GAMES[0]);
+    six.parMinutes = 5;
+    expect(validateGame(six).errors).toContain("parMinutes should be 6 for 6x");
+    const short = structuredClone(SIX_GAMES[0]);
+    short.metas.pop();
+    expect(validateGame(short).errors).toContain("expected 6 meta words, found 5");
+    const odd = copy();
+    odd.boardSize = 8;
+    expect(validateGame(odd).errors).toContain("no game mode has 8×8 boards");
   });
 
   it("rejects duplicate answers within a game", () => {

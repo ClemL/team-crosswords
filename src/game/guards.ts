@@ -13,6 +13,13 @@ export function guardPlaying(state: RoomState): Failure | null {
   return null;
 }
 
+/** Knocked-out players stay in the room as spectators. */
+export function guardInGame(state: RoomState, pid: string): Failure | null {
+  return state.knockedOut[pid] === undefined
+    ? null
+    : fail("KNOCKED_OUT", "You were knocked out by a wrong guess.");
+}
+
 export function guardMaster(state: RoomState, pid: string): Failure | null {
   return state.masterPid === pid ? null : fail("NOT_MASTER", "Only the Capt. can do that.");
 }

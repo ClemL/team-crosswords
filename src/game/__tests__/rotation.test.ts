@@ -18,7 +18,7 @@ import {
 } from "./helpers";
 
 const ctx = makeCtx();
-const duoCtx = makeCtx(GAME1, { maxPlayers: 2 });
+const duoCtx = makeCtx(GAME1);
 const rng = mulberry32(3);
 
 describe("lobby", () => {
@@ -192,5 +192,29 @@ describe("finalCheck", () => {
       total: 100,
       details: { gameSeconds: 240, effPlayers: 1 },
     });
+  });
+});
+
+describe("completed boards leave the ring", () => {
+  it("drops a board whose words all lock in the rotation, and hands over the next one", () => {
+    let s = startedRoom(ctx);
+    fillBoard(s, ctx, 0);
+    s = unwrap(requestRotation(s, ctx, PID, "L", T0, rng)).state;
+    // Board 0 locked completely: it leaves instead of moving to seat 2; Left brings board 1.
+    expect(s.boardAtSeat).toEqual([1, 2, null]);
+    // Alone, a Left rotation would now bring the gap, so the next board along is taken instead.
+    s = unwrap(requestRotation(s, ctx, PID, "L", T0 + 1, rng)).state;
+    expect(s.boardAtSeat).toEqual([2, null, 1]);
+  });
+
+  it("keeps a board completed by Final Check until the next rotation", () => {
+    let s = startedRoom(ctx);
+    for (const b of [0, 1, 2]) fillBoard(s, ctx, b);
+    s.boards[2].entries["0,0"] = "Q"; // AWAY / ARC stay unlocked, so the game goes on
+    s = unwrap(finalCheck(s, ctx, PID, T0)).state;
+    expect(s.status).toBe("playing");
+    expect(s.boardAtSeat).toEqual([0, 1, 2]);
+    s = unwrap(requestRotation(s, ctx, PID, "R", T0 + 1, rng)).state;
+    expect(s.boardAtSeat).toEqual([2, null, null]);
   });
 });

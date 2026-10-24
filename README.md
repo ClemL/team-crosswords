@@ -1,15 +1,26 @@
-# Rotating Co-op Crossword (V1)
+# Team Crossword
 
-A ring of three 5×5 mini crosswords that rotate around the table. Words lock green only when the
-ring rotates; some clues stay hidden until a letter on another board is confirmed, enough rotations
-happen, or enough words are solved. Circled cells spell 5 meta words (3–7 letters); the game ends when
-all 5 are obtained, by completing their tiles or by guessing (one guess per player). Par is 5
-minutes. Play alone or with up to 3 players; the results show scorecards, an MVP per board and a
-tiles leaderboard. Light, dark or automatic theme.
+A ring of three mini crosswords that rotate around the table, in three modes:
 
-One to three players, one per board, ten pre-built games (`data/puzzles-v1.json`). The server keeps
-all state (seats, the Capt., versioned polling). Choices made where the spec was silent, and the rule
-changes made since V1, are listed in [`DECISIONS.md`](DECISIONS.md).
+| Mode | Boards | Meta words        | Time                 | Games                  |
+| ---- | ------ | ----------------- | -------------------- | ---------------------- |
+| 5×   | 5×5    | 5, of 3–7 letters | par 5 min            | `data/puzzles-v1.json` |
+| 6×   | 6×6    | 6, of 3–8 letters | par 6 min            | `data/puzzles-6x.json` |
+| 7×   | 7×7    | 7, of 3–9 letters | par and limit, 7 min | `data/puzzles-7x.json` |
+
+Words lock green only when the ring rotates, and a board whose words are all green leaves the ring.
+Some clues stay hidden until a letter on another board is confirmed, enough rotations happen, or
+enough words are solved. Circled cells spell the meta words; the game ends when all are obtained, by
+completing their tiles or by guessing. Alone, you can guess until a guess is wrong; with others, each
+player gets one guess and a wrong one knocks them out. In 7× mode the game also ends when its
+7-minute limit runs out, and the score is then the number of meta words obtained. The 6× and 7× meta
+words come from the themed answers of the sibling crossword app. The results show scorecards (with the wrong letters each player passed
+on at rotations), an MVP per board and a tiles leaderboard. The Capt. can end a round and restart
+it. Portrait phones only; light, dark or automatic theme; normal, cosy or compact display size.
+
+Up to one player per board (three in every mode), ten pre-built games per mode. The server keeps all state
+(seats, the Capt., versioned polling). Choices made where the spec was silent, and the rule changes
+made since V1, are listed in [`DECISIONS.md`](DECISIONS.md).
 
 ## Quick start (no Redis needed)
 
@@ -18,7 +29,7 @@ npm install
 npm run dev            # http://localhost:3000, in-process store, auto-seeded
 ```
 
-Open `/`, pick a game, then open the join link (or scan the QR code) on a phone or the same device.
+Open `/`, pick a mode and a game, then open the join link (or scan the QR code) on a phone or the same device.
 
 ## Environment
 
@@ -49,7 +60,8 @@ Without the Upstash variables, `next dev` uses the in-process store. A productio
    curl -X POST https://<your-app>.vercel.app/api/admin/seed -H "x-seed-secret: change-me"
    ```
 
-5. `/api/health` should now return `"ok": true` with `"puzzlesSeeded": 10`.
+5. `/api/health` should now return `"ok": true` with `"puzzlesSeeded": 30`. After an update that
+   changes the stored puzzle format, it reports a stale seed until you seed again.
 
 Rooms expire 24 hours after their last change. Puzzle keys do not expire. Server-side errors are
 logged under the deployment's Runtime Logs with a `[store]` or `[api]` prefix.
@@ -62,7 +74,7 @@ logged under the deployment's Runtime Logs with a `[store]` or `[api]` prefix.
 | `npm run build` / `npm start`                                 | Production build and server                                              |
 | `npm test`                                                    | Vitest: rule engine, scoring, validator, store contract, room repository |
 | `npm run test:e2e`                                            | Playwright happy path (run `npm run build` first)                        |
-| `npm run validate:puzzles`                                    | Validates `data/puzzles-v1.json` against spec §6.1 (exit 1 on failure)   |
+| `npm run validate:puzzles`                                    | Validates both puzzle files against spec §6.1 (exit 1 on failure)        |
 | `npm run check:leaks`                                         | After a build, fails if client output contains answers or clue text      |
 | `npm run lint` / `npm run format:check` / `npm run typecheck` | ESLint, Prettier, `tsc`                                                  |
 | `npm run shim:upstash`                                        | Upstash-REST-compatible proxy in front of a local Redis (see below)      |
@@ -80,7 +92,9 @@ XW_TEST_UPSTASH_URL=http://127.0.0.1:8079 XW_TEST_UPSTASH_TOKEN=dev npm test
 ## Layout
 
 ```
-data/puzzles-v1.json        10 games (server only: contains answers)
+data/puzzles-v1.json        10 5× games (server only: contains answers)
+data/puzzles-6x.json        10 6× games (server only: contains answers)
+data/puzzles-7x.json        10 7× games (server only: contains answers)
 src/config.ts               CONFIG_V1 — every rule reads from it
 src/game/                   Pure, synchronous rule engine (no I/O) and its tests
   pulse.ts rotation.ts      Validation pulse, rotation, Final Check
@@ -95,7 +109,7 @@ src/app/api/                Route handlers (§7.4)
 src/app/{page,host,play}    Puzzle picker, host screen, phone
 src/components/             UI components
 e2e/                        Playwright test and its test-only fixture
-scripts/                    Validator, leak checker, Upstash shim, meta word generator
+scripts/                    Validator, leak checker, Upstash shim, meta word and 6×/7× generators
 ```
 
 Each request loads the room, applies due transitions (rotation, master hand-off), runs one pure rule

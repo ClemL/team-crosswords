@@ -1,9 +1,17 @@
+import { modeForSize, type Mode } from "@/config";
 import type { GameCtx } from "./context";
 import { maskClue } from "./mask";
 import { hasGuessLeft, metaWords, type MetaWordState } from "./meta";
 import { metaPoints } from "./score";
 import { boardReceived } from "./ring";
-import { allCellsFilled, boardLockedCount, boardPercent, lockedCellKeys } from "./state";
+import {
+  allCellsFilled,
+  boardLockedCount,
+  boardPercent,
+  isSinglePlayer,
+  lockedCellKeys,
+  seatedInGame,
+} from "./state";
 import type {
   Cell,
   Dir,
@@ -39,6 +47,11 @@ export type BoardView = {
   suspects: Record<string, string>;
   /** Cells that belong to a meta word: `meta` is the word's 1-based number, `slot` its position. */
   metaCells: Array<{ r: number; c: number; meta: number; slot: number }>;
+  /**
+   * Cells whose correct letter unlocks a still-hidden clue on another board, with the emojis of
+   * the boards it helps. The other board's clue already names the cell ("Needs 🦊 r1c3").
+   */
+  helperCells: Array<{ r: number; c: number; boards: string[] }>;
   clues: ClueView[];
   percent: number;
   lockedCount: number;
@@ -50,16 +63,28 @@ export type BoardRef = { emoji: string; boardIndex: number };
 export type SeatingView = {
   seats: Array<{
     seat: number;
-    boardIndex: number;
+    /** Null once the board that sat here has left the ring and no other took its place. */
+    boardIndex: number | null;
     emoji: string;
     color: string;
     playerName: string | null;
     isYou: boolean;
     isMaster: boolean;
+    /** Knocked out by a wrong guess. */
+    out: boolean;
     percent: number;
   }>;
-  nextIfLeft: BoardRef;
-  nextIfRight: BoardRef;
+  /** Every board, by index. `done`: every word locked, so it has left the ring. */
+  boards: Array<{
+    boardIndex: number;
+    emoji: string;
+    color: string;
+    percent: number;
+    done: boolean;
+  }>;
+  /** Null when the rotation would leave you without a board. */
+  nextIfLeft: BoardRef | null;
+  nextIfRight: BoardRef | null;
   /** Seats whose player tapped Ready. Seats, not player ids: a pid is a credential (DECISIONS.md). */
   readySeats: number[];
   timerStarted: boolean;
@@ -68,7 +93,7 @@ export type SeatingView = {
 export type RotationView = {
   count: number;
   cooldownUntil: number;
-  pending?: { dir: RotationDir; at: number; youReceive: BoardRef };
+  pending?: { dir: RotationDir; at: number; youReceive: BoardRef | null };
   /** Every cell on every board is filled and you are Capt. The client also waits for cooldown. */
   canFinalCheck: boolean;
 };
@@ -81,7 +106,9 @@ export type MetaWordView = Omit<MetaWordState, "slots"> & {
 export type MetaView = {
   words: MetaWordView[];
   solvedCount: number;
-  /** Seats of players who still have their one guess. */
+  /** One player: guesses until one is wrong. Otherwise one guess each; wrong knocks you out. */
+  solo: boolean;
+  /** Seats of players who may still guess. */
   guessesLeftBySeat: number[];
   /** Points a correct guess would earn now (each word), given the current rotation count. */
   pointsNow: number;
@@ -94,21 +121,26 @@ export type PlayerView = {
   now: number;
   rid: string;
   puzzleTitle: string;
+  mode: Mode;
   you: {
     pid: string;
     name: string;
     seat: number;
     isMaster: boolean;
     ready: boolean;
-    /** False once this player has used their single meta guess. */
+    /** False once this player may not guess any more (see MetaView.solo), or the game is over. */
     canGuess: boolean;
-    guess: { text: string; correct: boolean; metaNumber: number | null } | null;
+    guesses: Array<{ text: string; correct: boolean; metaNumber: number | null }>;
+    /** Knocked out by a wrong guess: watching, no longer playing. */
+    out: boolean;
   };
-  board: BoardView;
+  /** The board at your seat; null when your seat has none this rotation. */
+  board: BoardView | null;
   seating: SeatingView;
   rotation: RotationView;
   meta: MetaView;
-  timer: { startedAt: number | null; endedAt: number | null };
+  /** `endsAt`: when the time limit runs out, in a mode with one. */
+  timer: { startedAt: number | null; endedAt: number | null; endsAt: number | null };
   result?: GameResult;
 };
 
@@ -121,11 +153,12 @@ export type HostView = Omit<PlayerView, "you" | "board"> & {
     ready: boolean;
     isMaster: boolean;
     hasGuess: boolean;
+    out: boolean;
   }>;
 };
 
-function boardRef(state: RoomState, boardIndex: number): BoardRef {
-  return { emoji: state.boardEmojis[boardIndex]?.e ?? "", boardIndex };
+function boardRef(state: RoomState, boardIndex: number | null): BoardRef | null {
+  return boardIndex === null ? null : { emoji: state.boardEmojis[boardIndex]?.e ?? "", boardIndex };
 }
 
 /** Human-readable unlock condition for a clue that is not unlocked yet (§3.5.6). */
@@ -141,6 +174,23 @@ export function conditionText(state: RoomState, clue: PublicClue): string | unde
     case "solvedCount":
       return `Unlocks at ${u.atLeast} solved (now ${state.locked.length})`;
   }
+}
+
+function helperCells(state: RoomState, ctx: GameCtx, boardIndex: number): BoardView["helperCells"] {
+  const byCell = new Map<string, { r: number; c: number; boards: string[] }>();
+  ctx.puzzle.boards.forEach((b, bi) => {
+    for (const clue of b.clues) {
+      const u = clue.unlock;
+      if (u.type !== "crossLetter" || u.board !== boardIndex) continue;
+      if (state.unlocked.includes(clue.id) || state.locked.includes(clue.id)) continue;
+      const [r, c] = u.cell;
+      const hit = byCell.get(`${r},${c}`) ?? { r, c, boards: [] };
+      const emoji = state.boardEmojis[bi]?.e ?? "";
+      if (!hit.boards.includes(emoji)) hit.boards.push(emoji);
+      byCell.set(`${r},${c}`, hit);
+    }
+  });
+  return [...byCell.values()].sort((a, b) => a.r - b.r || a.c - b.c);
 }
 
 export function buildBoardView(state: RoomState, ctx: GameCtx, boardIndex: number): BoardView {
@@ -182,6 +232,7 @@ export function buildBoardView(state: RoomState, ctx: GameCtx, boardIndex: numbe
         .filter((x) => x.b === boardIndex)
         .map(({ r, c, meta, slot }) => ({ r, c, meta, slot })),
     ),
+    helperCells: helperCells(state, ctx, boardIndex),
     clues,
     percent: boardPercent(state, ctx, boardIndex),
     lockedCount: boardLockedCount(state, ctx, boardIndex),
@@ -195,10 +246,12 @@ function buildSeating(
   viewerSeat: number,
   viewerPid: string | null,
 ): SeatingView {
+  const seated = seatedInGame(state);
+  const inRing = new Set(state.boardAtSeat);
   return {
     seats: state.boardAtSeat.map((boardIndex, seat) => {
       const pid = state.seats[seat];
-      const style = state.boardEmojis[boardIndex];
+      const style = boardIndex === null ? undefined : state.boardEmojis[boardIndex];
       return {
         seat,
         boardIndex,
@@ -207,11 +260,19 @@ function buildSeating(
         playerName: pid ? (state.players[pid]?.name ?? null) : null,
         isYou: pid !== null && pid === viewerPid,
         isMaster: pid !== null && pid === state.masterPid,
-        percent: boardPercent(state, ctx, boardIndex),
+        out: pid !== null && state.knockedOut[pid] !== undefined,
+        percent: boardIndex === null ? 0 : boardPercent(state, ctx, boardIndex),
       };
     }),
-    nextIfLeft: boardRef(state, boardReceived(state.boardAtSeat, viewerSeat, "L")),
-    nextIfRight: boardRef(state, boardReceived(state.boardAtSeat, viewerSeat, "R")),
+    boards: ctx.puzzle.boards.map((_, bi) => ({
+      boardIndex: bi,
+      emoji: state.boardEmojis[bi]?.e ?? "",
+      color: state.boardEmojis[bi]?.color ?? "#555555",
+      percent: boardPercent(state, ctx, bi),
+      done: !inRing.has(bi),
+    })),
+    nextIfLeft: boardRef(state, boardReceived(state.boardAtSeat, viewerSeat, "L", seated)),
+    nextIfRight: boardRef(state, boardReceived(state.boardAtSeat, viewerSeat, "R", seated)),
     readySeats: state.ready
       .map((id) => state.players[id]?.seat)
       .filter((seat): seat is number => seat !== undefined)
@@ -227,21 +288,23 @@ function buildShared(
   viewerSeat: number,
   viewerPid: string | null,
 ) {
-  // An answer is included only once its word is solved, or at the end (auto-completed).
+  // An answer is included only once its word is obtained, or once the game is over.
   const words = metaWords(state, ctx).map((w, i) => ({
     ...w,
     number: i + 1,
     slots: w.slots.map((x) => ({ emoji: x.emoji, letter: x.letter })),
   }));
+  const count = ctx.puzzle.metas.length;
   const meta: MetaView = {
     words,
     solvedCount: words.filter((w) => w.solved).length,
+    solo: isSinglePlayer(state),
     guessesLeftBySeat: Object.entries(state.players)
-      .filter(([id]) => hasGuessLeft(state, id))
+      .filter(([id]) => hasGuessLeft(state, id, ctx.cfg))
       .map(([, p]) => p.seat)
       .sort((a, b) => a - b),
-    pointsNow: metaPoints(state.rotations, ctx.cfg),
-    maxPointsPerWord: ctx.cfg.metaWordPoints,
+    pointsNow: metaPoints(state.rotations, ctx.cfg, count),
+    maxPointsPerWord: metaPoints(0, ctx.cfg, count),
   };
   const filled = state.status === "playing" && allCellsFilled(state, ctx);
   const rotation: RotationView = {
@@ -255,7 +318,12 @@ function buildShared(
       at: state.pendingRotation.at,
       youReceive: boardRef(
         state,
-        boardReceived(state.boardAtSeat, viewerSeat, state.pendingRotation.dir),
+        boardReceived(
+          state.boardAtSeat,
+          viewerSeat,
+          state.pendingRotation.dir,
+          seatedInGame(state),
+        ),
       ),
     };
   }
@@ -265,19 +333,20 @@ function buildShared(
     now,
     rid: state.rid,
     puzzleTitle: ctx.puzzle.title,
+    mode: modeForSize(ctx.puzzle.boardSize) ?? "5x",
     seating: buildSeating(state, ctx, viewerSeat, viewerPid),
     rotation,
     meta,
-    timer: { startedAt: state.timerStartedAt, endedAt: state.endedAt },
+    timer: { startedAt: state.timerStartedAt, endedAt: state.endedAt, endsAt: state.timeUpAt },
   } satisfies Omit<PlayerView, "you" | "board">;
   return state.result ? { ...view, result: state.result } : view;
 }
 
-function yourGuess(state: RoomState, ctx: GameCtx, pid: string): PlayerView["you"]["guess"] {
-  const g = state.playerStats[pid]?.guess;
-  if (!g) return null;
-  const i = g.metaId ? ctx.puzzle.metas.findIndex((m) => m.id === g.metaId) : -1;
-  return { text: g.text, correct: g.metaId !== null, metaNumber: i >= 0 ? i + 1 : null };
+function yourGuesses(state: RoomState, ctx: GameCtx, pid: string): PlayerView["you"]["guesses"] {
+  return (state.playerStats[pid]?.guesses ?? []).map((g) => {
+    const i = g.metaId ? ctx.puzzle.metas.findIndex((m) => m.id === g.metaId) : -1;
+    return { text: g.text, correct: g.metaId !== null, metaNumber: i >= 0 ? i + 1 : null };
+  });
 }
 
 export function buildPlayerView(
@@ -288,6 +357,7 @@ export function buildPlayerView(
 ): PlayerView {
   const p = state.players[pid];
   if (!p) throw new Error("player not in room");
+  const boardIndex = state.boardAtSeat[p.seat];
   return {
     ...buildShared(state, ctx, now, p.seat, pid),
     you: {
@@ -296,10 +366,11 @@ export function buildPlayerView(
       seat: p.seat,
       isMaster: state.masterPid === pid,
       ready: state.ready.includes(pid),
-      canGuess: state.status === "playing" && hasGuessLeft(state, pid),
-      guess: yourGuess(state, ctx, pid),
+      canGuess: state.status === "playing" && hasGuessLeft(state, pid, ctx.cfg),
+      guesses: yourGuesses(state, ctx, pid),
+      out: state.knockedOut[pid] !== undefined,
     },
-    board: buildBoardView(state, ctx, state.boardAtSeat[p.seat]),
+    board: boardIndex === null ? null : buildBoardView(state, ctx, boardIndex),
   };
 }
 
@@ -321,7 +392,8 @@ export function buildHostView(
         seat: p.seat,
         ready: state.ready.includes(id),
         isMaster: id === state.masterPid,
-        hasGuess: hasGuessLeft(state, id),
+        hasGuess: hasGuessLeft(state, id, ctx.cfg),
+        out: state.knockedOut[id] !== undefined,
       }))
       .sort((a, b) => a.seat - b.seat),
   };

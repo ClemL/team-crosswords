@@ -19,7 +19,27 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
+  min-height: var(--tap);
+}
+
+/* The Capt.'s phone: header and the area around the grid tinted red. */
+.captScreen .header,
+.captScreen .gridWrap {
+  background: var(--red-tint);
+}
+
+.captScreen .header {
+  border-bottom-color: var(--red);
+}
+
+.mapBtn {
+  margin-left: auto;
+}
+
+/* Already pushed right by the clock or the Final Check button. */
+.timer + .mapBtn,
+.finalBtn + .mapBtn {
+  margin-left: 0;
 }
 
 .boardEmoji {
@@ -39,8 +59,8 @@
 }
 
 .iconBtn {
-  min-width: 44px;
-  min-height: 44px;
+  min-width: var(--tap);
+  min-height: var(--tap);
   border-radius: 10px;
   border: 1px solid var(--line-strong);
   background: var(--card);
@@ -56,7 +76,7 @@
 
 .rotateBtn {
   min-width: 64px;
-  min-height: 44px;
+  min-height: var(--tap);
   padding: 0 10px;
   border-radius: 10px;
   border: 1px solid var(--line-strong);
@@ -81,7 +101,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 44px;
+  min-height: var(--tap);
   font-size: 0.9rem;
 }
 
@@ -97,7 +117,7 @@
 
 .finalBtn {
   margin-left: auto;
-  min-height: 44px;
+  min-height: var(--tap);
   padding: 0 10px;
   border-radius: 10px;
   border: 2px solid var(--green);
@@ -114,7 +134,12 @@
 }
 
 .grid {
-  --size: clamp(230px, min(calc(100vw - 32px), calc(100dvh - 530px)), 330px);
+  /* At least --cell-min a cell (46 px normally: 230 px for a 5×5, 276 px for a 6×6). */
+  --size: clamp(
+    calc(var(--cell-min) * var(--n)),
+    min(calc(100vw - 32px), calc(100dvh - 530px)),
+    calc(330px * var(--scale))
+  );
   width: var(--size);
   height: var(--size);
   display: grid;
@@ -140,8 +165,8 @@
   font-weight: 700;
   text-transform: uppercase;
   color: var(--ink);
-  min-width: 44px;
-  min-height: 44px;
+  min-width: var(--tap);
+  min-height: var(--tap);
 }
 
 .black {
@@ -232,6 +257,20 @@
   line-height: 1;
 }
 
+/* A cell whose correct letter unlocks a hidden clue on another board (shown on that board). */
+.helper {
+  outline: 2px dashed var(--amber);
+  outline-offset: -4px;
+}
+
+.helperTag {
+  position: absolute;
+  left: 2px;
+  bottom: 1px;
+  font-size: 0.55rem;
+  line-height: 1;
+}
+
 .suspect {
   position: absolute;
   top: 2px;
@@ -252,7 +291,7 @@
   align-items: center;
   gap: 4px;
   background: var(--accent-tint);
-  min-height: 48px;
+  min-height: calc(var(--tap) + 4px);
   padding: 0 4px;
 }
 
@@ -262,7 +301,7 @@
   border: 0;
   background: transparent;
   text-align: left;
-  min-height: 44px;
+  min-height: var(--tap);
   max-height: 60px;
   overflow: hidden;
   font-size: 0.95rem;
@@ -313,7 +352,7 @@
   border-radius: 6px;
   background: transparent;
   padding: 6px 6px;
-  min-height: 44px;
+  min-height: var(--tap);
   font-size: 0.92rem;
   line-height: 1.3;
 }
@@ -350,7 +389,7 @@
 .key {
   flex: 1 1 0;
   max-width: 48px;
-  height: 46px;
+  height: var(--key-h);
   padding: 3px 2px;
   border: 0;
   background: transparent;
@@ -374,6 +413,12 @@
   max-width: 64px;
 }
 
+.keyEnter {
+  flex: 1.5 1 0;
+  max-width: 72px;
+  font-size: 0.8rem;
+}
+
 .key:disabled > span {
   opacity: 0.45;
 }
@@ -391,6 +436,22 @@
 
 .checkBtn {
   flex: 1;
+}
+
+.outBanner {
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--red);
+}
+
+.noBoard {
+  flex: 1;
+  padding: 24px 16px;
+  text-align: center;
+  line-height: 1.5;
 }
 
 .metaWrap {
@@ -412,6 +473,33 @@
   padding: 12px 16px;
   font-size: 1.1rem;
   font-weight: 700;
+}
+
+.portraitOnly {
+  display: none;
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .portraitOnly {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    background: var(--bg);
+    color: var(--ink);
+  }
+}
+
+.portraitIcon {
+  font-size: 3rem;
+  transform: rotate(90deg);
+  margin-bottom: 12px;
 }
 
 .flash {

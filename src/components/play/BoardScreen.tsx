@@ -14,8 +14,8 @@ import {
   prevInWord,
   type Selection,
 } from "@/client/board-nav";
-import { formatClock, useServerNow } from "@/client/usePoll";
-import type { ClueView, PlayerView } from "@/game/views";
+import { formatClock, gameClock, useServerNow } from "@/client/usePoll";
+import type { BoardView, ClueView, PlayerView } from "@/game/views";
 import type { RotationDir } from "@/game/types";
 import { MapIcon } from "../MapIcon";
 import { MetaBar } from "../MetaBar";
@@ -34,25 +34,208 @@ export type Actions = {
   toast: (msg: string) => void;
 };
 
-export function BoardScreen({
-  view,
-  rid,
-  pid,
-  offset,
-  actions,
-  onMap,
-}: {
+type ScreenProps = {
   view: PlayerView;
   rid: string;
   pid: string;
   offset: number;
   actions: Actions;
   onMap: () => void;
-}) {
-  const { enqueue, refresh, reset, toast } = actions;
+};
+
+/** The phone while playing: the board at your seat, or a waiting screen when the seat has none. */
+export function BoardScreen(props: ScreenProps) {
+  return props.view.board ? (
+    <BoardPlay {...props} board={props.view.board} />
+  ) : (
+    <NoBoard {...props} />
+  );
+}
+
+/** Header: board, progress, timer, seating map and the Capt.'s rotation controls. */
+function ScreenHeader({ view, rid, pid, offset, actions, onMap }: ScreenProps) {
+  const { enqueue, refresh, toast } = actions;
   const board = view.board;
   const now = useServerNow(offset);
   const playing = view.status === "playing";
+
+  const rotate = useCallback(
+    (dir: RotationDir) => {
+      void enqueue(() => post(`/api/rooms/${rid}/rotate`, { pid, dir })).then((res) => {
+        if (!res.ok) toast(res.message);
+        refresh();
+      });
+    },
+    [enqueue, pid, refresh, rid, toast],
+  );
+
+  const finalCheck = useCallback(() => {
+    void enqueue(() => post(`/api/rooms/${rid}/final-check`, { pid })).then((res) => {
+      if (!res.ok) toast(res.message);
+      refresh();
+    });
+  }, [enqueue, pid, refresh, rid, toast]);
+
+  const pending = view.rotation.pending;
+  const cooling = now < view.rotation.cooldownUntil;
+  const canRotate = playing && view.you.isMaster && !cooling && !pending;
+  const left = view.seating.nextIfLeft?.emoji ?? "—";
+  const right = view.seating.nextIfRight?.emoji ?? "—";
+
+  // The Capt.'s phone is tinted red (screen class) instead of saying "Capt.", and the rotation
+  // controls take the top row in place of the progress and the clock (both are on the map).
+  const controls = (
+    <>
+      <button
+        type="button"
+        className={s.rotateBtn}
+        disabled={!canRotate}
+        onClick={() => rotate("L")}
+        aria-label={`Rotate left: you receive ${view.seating.nextIfLeft?.emoji ?? "no board"}`}
+      >
+        ⟲ <span className={s.rotateEmoji}>{left}</span>
+      </button>
+      <button
+        type="button"
+        className={s.rotateBtn}
+        disabled={!canRotate}
+        onClick={() => rotate("R")}
+        aria-label={`Rotate right: you receive ${view.seating.nextIfRight?.emoji ?? "no board"}`}
+      >
+        ⟳ <span className={s.rotateEmoji}>{right}</span>
+      </button>
+      {(pending || cooling) && (
+        <span className={s.cooldown} aria-live="off">
+          {pending ? "rotating…" : formatClock(view.rotation.cooldownUntil - now)}
+        </span>
+      )}
+      {view.rotation.canFinalCheck && (
+        <button type="button" className={s.finalBtn} disabled={!canRotate} onClick={finalCheck}>
+          Final Check
+        </button>
+      )}
+    </>
+  );
+
+  return (
+    <header className={s.header}>
+      <div className={s.headerRow}>
+        <span className={s.boardEmoji} aria-label="Your board">
+          {board?.emoji ?? "—"}
+        </span>
+        {view.you.isMaster ? (
+          controls
+        ) : (
+          <>
+            <span className={s.progress}>
+              {board ? `${board.lockedCount}/${board.totalCount} · ${board.percent}%` : "no board"}
+            </span>
+            <span className={s.timer} aria-label="Game time">
+              ⏱ {gameClock(view.timer, now)}
+            </span>
+          </>
+        )}
+        <button
+          type="button"
+          className={`${s.iconBtn} ${s.mapBtn}`}
+          onClick={onMap}
+          aria-label="Seating map"
+        >
+          <MapIcon />
+        </button>
+      </div>
+      {view.you.out ? (
+        <div className={s.outBanner} role="status">
+          Knocked out by a wrong guess. You can watch, but not type, mark or guess.
+        </div>
+      ) : (
+        !view.you.isMaster && (
+          <div className={s.controlRow}>
+            <span className={s.cooldown}>
+              Rotation #{view.rotation.count} ·{" "}
+              {cooling
+                ? `cooldown ${formatClock(view.rotation.cooldownUntil - now)}`
+                : "waiting on the "}
+              {!cooling && <span className={ui.capt}>Capt.</span>}
+            </span>
+          </div>
+        )
+      )}
+    </header>
+  );
+}
+
+/** The meta bar and its guess form. */
+function GuessBar({
+  view,
+  rid,
+  pid,
+  actions,
+}: Pick<ScreenProps, "view" | "rid" | "pid" | "actions">) {
+  const { enqueue, refresh, toast } = actions;
+  const guess = useCallback(
+    async (g: string) => {
+      const res = await enqueue(() =>
+        post<{
+          correct: boolean;
+          metaId: string | null;
+          points: number | null;
+          knockedOut: boolean;
+        }>(`/api/rooms/${rid}/meta`, {
+          pid,
+          guess: g,
+        }),
+      );
+      refresh();
+      if (!res.ok) {
+        toast(res.message);
+        return null;
+      }
+      return res.data;
+    },
+    [enqueue, pid, refresh, rid, toast],
+  );
+  return (
+    <div className={s.metaWrap}>
+      <MetaBar meta={view.meta} onGuess={guess} canGuess={view.you.canGuess} out={view.you.out} />
+    </div>
+  );
+}
+
+/** Your seat has no board: completed boards have left the ring and there are more players. */
+function NoBoard(props: ScreenProps) {
+  const done = props.view.seating.boards.filter((b) => b.done);
+  return (
+    <div className={`${s.screen} ${props.view.you.isMaster ? s.captScreen : ""}`}>
+      <ScreenHeader {...props} />
+      <div className={s.noBoard} role="status">
+        <p>
+          <strong>No board at your seat this rotation.</strong>
+        </p>
+        <p className={ui.muted}>
+          A board leaves the ring once every word on it is green
+          {done.length > 0 && <> ({done.map((b) => b.emoji).join(" ")} done)</>}. With fewer boards
+          than players, someone sits out each rotation
+          {props.view.you.canGuess ? "; you can still guess meta words." : "."}
+        </p>
+      </div>
+      <GuessBar {...props} />
+    </div>
+  );
+}
+
+function BoardPlay({
+  view,
+  rid,
+  pid,
+  offset,
+  actions,
+  onMap,
+  board,
+}: ScreenProps & { board: BoardView }) {
+  const { enqueue, refresh, reset, toast } = actions;
+  // A knocked-out player watches: the board stays visible, but nothing can be typed or marked.
+  const playing = view.status === "playing" && !view.you.out;
 
   // Selection resets when a different board arrives.
   const [sel, setSel] = useState<Selection>(() => defaultSelection(board));
@@ -230,45 +413,6 @@ export function BoardScreen({
     });
   }, [board.index, enqueue, locked, pid, playing, refresh, rid, sel, suspectHere, toast]);
 
-  const rotate = useCallback(
-    (dir: RotationDir) => {
-      void enqueue(() => post(`/api/rooms/${rid}/rotate`, { pid, dir })).then((res) => {
-        if (!res.ok) toast(res.message);
-        refresh();
-      });
-    },
-    [enqueue, pid, refresh, rid, toast],
-  );
-
-  const finalCheck = useCallback(() => {
-    void enqueue(() => post(`/api/rooms/${rid}/final-check`, { pid })).then((res) => {
-      if (!res.ok) toast(res.message);
-      refresh();
-    });
-  }, [enqueue, pid, refresh, rid, toast]);
-
-  const guess = useCallback(
-    async (g: string) => {
-      const res = await enqueue(() =>
-        post<{
-          correct: boolean;
-          metaId: string | null;
-          points: number | null;
-        }>(`/api/rooms/${rid}/meta`, {
-          pid,
-          guess: g,
-        }),
-      );
-      refresh();
-      if (!res.ok) {
-        toast(res.message);
-        return null;
-      }
-      return res.data;
-    },
-    [enqueue, pid, refresh, rid, toast],
-  );
-
   // Physical keyboard (desktop): letters, Backspace, arrows, Space toggles direction, Tab = next clue.
   const keyHandler = useRef<(e: KeyboardEvent) => void>(() => undefined);
   useEffect(() => {
@@ -316,77 +460,19 @@ export function BoardScreen({
     return () => window.removeEventListener("keydown", listener);
   }, []);
 
-  const pending = view.rotation.pending;
-  const cooling = now < view.rotation.cooldownUntil;
-  const canRotate = playing && view.you.isMaster && !cooling && !pending;
-  const elapsed = view.timer.startedAt ? (view.timer.endedAt ?? now) - view.timer.startedAt : 0;
-
   return (
-    <div className={s.screen} style={{ "--board-color": board.color } as React.CSSProperties}>
-      <header className={s.header}>
-        <div className={s.headerRow}>
-          <span className={s.boardEmoji} aria-label="Your board">
-            {board.emoji}
-          </span>
-          <span className={s.progress}>
-            {board.lockedCount}/{board.totalCount} · {board.percent}%
-          </span>
-          <span className={s.timer} aria-label="Game time">
-            ⏱ {formatClock(elapsed)}
-          </span>
-          <button type="button" className={s.iconBtn} onClick={onMap} aria-label="Seating map">
-            <MapIcon />
-          </button>
-        </div>
-        <div className={s.controlRow}>
-          {view.you.isMaster ? (
-            <>
-              <button
-                type="button"
-                className={s.rotateBtn}
-                disabled={!canRotate}
-                onClick={() => rotate("L")}
-                aria-label={`Rotate left: you receive ${view.seating.nextIfLeft.emoji}`}
-              >
-                ⟲ <span className={s.rotateEmoji}>{view.seating.nextIfLeft.emoji}</span>
-              </button>
-              <button
-                type="button"
-                className={s.rotateBtn}
-                disabled={!canRotate}
-                onClick={() => rotate("R")}
-                aria-label={`Rotate right: you receive ${view.seating.nextIfRight.emoji}`}
-              >
-                ⟳ <span className={s.rotateEmoji}>{view.seating.nextIfRight.emoji}</span>
-              </button>
-              <span className={ui.capt}>Capt.</span>
-              {(pending || cooling) && (
-                <span className={s.cooldown} aria-live="off">
-                  {pending ? "rotating…" : formatClock(view.rotation.cooldownUntil - now)}
-                </span>
-              )}
-              {view.rotation.canFinalCheck && (
-                <button
-                  type="button"
-                  className={s.finalBtn}
-                  disabled={!canRotate}
-                  onClick={finalCheck}
-                >
-                  Final Check
-                </button>
-              )}
-            </>
-          ) : (
-            <span className={s.cooldown}>
-              Rotation #{view.rotation.count} ·{" "}
-              {cooling
-                ? `cooldown ${formatClock(view.rotation.cooldownUntil - now)}`
-                : "waiting on the "}
-              {!cooling && <span className={ui.capt}>Capt.</span>}
-            </span>
-          )}
-        </div>
-      </header>
+    <div
+      className={`${s.screen} ${view.you.isMaster ? s.captScreen : ""}`}
+      style={{ "--board-color": board.color } as React.CSSProperties}
+    >
+      <ScreenHeader
+        view={view}
+        rid={rid}
+        pid={pid}
+        offset={offset}
+        actions={actions}
+        onMap={onMap}
+      />
 
       <Grid
         board={board}
@@ -429,14 +515,7 @@ export function BoardScreen({
         disabled={!playing}
       />
 
-      <div className={s.metaWrap}>
-        <MetaBar
-          meta={view.meta}
-          onGuess={guess}
-          canGuess={view.you.canGuess}
-          yourGuess={view.you.guess}
-        />
-      </div>
+      <GuessBar view={view} rid={rid} pid={pid} actions={actions} />
     </div>
   );
 }

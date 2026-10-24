@@ -1,7 +1,7 @@
 import type { GameCtx } from "./context";
 import { accrueActivity } from "./activity";
 import { cellKey } from "./puzzle";
-import { metaPoints, scoreGame } from "./score";
+import { metaPoints, metaPointsExact, scoreGame } from "./score";
 import { lockedCellKeys } from "./state";
 import type { BoardMvp, GameResult, MetaResult, PlayerCard, RoomState } from "./types";
 
@@ -27,17 +27,48 @@ export function obtainMetasByTiles(state: RoomState, ctx: GameCtx, now: number):
   return obtained;
 }
 
-/** Ends the game once every meta word is obtained (revised §3.12). Mutates `state`. */
-export function endGameIfComplete(state: RoomState, ctx: GameCtx, now: number): boolean {
-  if (state.status !== "playing") return false;
-  if (!allMetasObtained(state, ctx)) return false;
+function endGame(
+  state: RoomState,
+  ctx: GameCtx,
+  now: number,
+  endedBy: GameResult["endedBy"],
+): void {
   state.status = "ended";
   state.endedAt = now;
   state.pendingRotation = null;
   for (const [pid, p] of Object.entries(state.players)) {
-    state.players[pid] = accrueActivity(p, state, now, ctx.cfg);
+    state.players[pid] = accrueActivity(p, state, now, ctx.cfg, state.knockedOut[pid]);
   }
-  state.result = computeResult(state, ctx);
+  state.result = computeResult(state, ctx, endedBy);
+}
+
+/** Ends the game once every meta word is obtained (revised §3.12). Mutates `state`. */
+export function endGameIfComplete(state: RoomState, ctx: GameCtx, now: number): boolean {
+  if (state.status !== "playing") return false;
+  if (!allMetasObtained(state, ctx)) return false;
+  endGame(state, ctx, now, "metas");
+  return true;
+}
+
+/**
+ * Ends the game when its time limit has run out, as of the deadline itself: transitions run
+ * lazily, so `now` may be later. Mutates `state`.
+ */
+export function endGameIfTimeUp(state: RoomState, ctx: GameCtx, now: number): boolean {
+  if (state.status !== "playing" || state.timeUpAt === null || now < state.timeUpAt) return false;
+  endGame(state, ctx, state.timeUpAt, "time");
+  return true;
+}
+
+/**
+ * Ends the game once every player has been knocked out by a wrong guess; words not obtained score
+ * nothing. Mutates `state`.
+ */
+export function endGameIfNobodyLeft(state: RoomState, ctx: GameCtx, now: number): boolean {
+  if (state.status !== "playing") return false;
+  const pids = Object.keys(state.players);
+  if (pids.length === 0 || pids.some((pid) => state.knockedOut[pid] === undefined)) return false;
+  endGame(state, ctx, now, "knockout");
   return true;
 }
 
@@ -59,11 +90,11 @@ export function tileCredits(state: RoomState, ctx: GameCtx): Map<string, number[
 function playerCards(state: RoomState, ctx: GameCtx): PlayerCard[] {
   const credits = tileCredits(state, ctx);
   const metaNumber = new Map(ctx.puzzle.metas.map((m, i) => [m.id, i + 1]));
+  const words = ctx.puzzle.metas.length;
   return Object.entries(state.players)
     .map(([pid, p]): PlayerCard => {
       const st = state.playerStats[pid];
       const byBoard = credits.get(pid) ?? ctx.puzzle.boards.map(() => 0);
-      const g = st?.guess ?? null;
       return {
         seat: p.seat,
         name: p.name,
@@ -75,14 +106,14 @@ function playerCards(state: RoomState, ctx: GameCtx): PlayerCard[] {
         falseSuspects: st?.falseSuspects ?? 0,
         accurateSuspects: st?.accurateSuspects ?? 0,
         activeSeconds: Math.round(p.activeSeconds),
-        guess: g
-          ? {
-              text: g.text,
-              correct: g.metaId !== null,
-              metaNumber: g.metaId ? (metaNumber.get(g.metaId) ?? null) : null,
-              points: g.metaId ? metaPoints(g.rotations, ctx.cfg) : 0,
-            }
-          : null,
+        guesses: (st?.guesses ?? []).map((g) => ({
+          text: g.text,
+          correct: g.metaId !== null,
+          metaNumber: g.metaId ? (metaNumber.get(g.metaId) ?? null) : null,
+          points: g.metaId ? metaPoints(g.rotations, ctx.cfg, words) : 0,
+        })),
+        knockedOut: state.knockedOut[pid] !== undefined,
+        wrongLeft: st?.wrongLeft ?? 0,
       };
     })
     .sort((a, b) => a.seat - b.seat);
@@ -102,7 +133,11 @@ function boardMvps(state: RoomState, ctx: GameCtx, cards: PlayerCard[]): BoardMv
   });
 }
 
-export function computeResult(state: RoomState, ctx: GameCtx): GameResult {
+export function computeResult(
+  state: RoomState,
+  ctx: GameCtx,
+  endedBy: GameResult["endedBy"] = "metas",
+): GameResult {
   const started = state.timerStartedAt ?? state.createdAt;
   const ended = state.endedAt ?? started;
   const gameSeconds = Math.max(0, (ended - started) / 1000);
@@ -110,15 +145,18 @@ export function computeResult(state: RoomState, ctx: GameCtx): GameResult {
   // effPlayers is floored at 1: the team is never "less than one player" (see DECISIONS.md).
   const effPlayers = gameSeconds > 0 ? Math.max(1, activeTotal / gameSeconds) : 1;
   const nameAtSeat = new Map(Object.values(state.players).map((p) => [p.seat, p.name]));
+  const words = ctx.puzzle.metas.length;
+  let metaTotal = 0;
   const metas: MetaResult[] = ctx.puzzle.metas.map((m) => {
     const got = state.metaSolved[m.id];
     const counted = got !== undefined && got.at <= ended;
+    if (counted) metaTotal += metaPointsExact(got.rotations, ctx.cfg, words);
     const result: MetaResult = {
       id: m.id,
       answer: ctx.solution.metaAnswers[m.id],
       by: counted ? got.by : null,
       rotations: counted ? got.rotations : null,
-      points: counted ? metaPoints(got.rotations, ctx.cfg) : 0,
+      points: counted ? metaPoints(got.rotations, ctx.cfg, words) : 0,
     };
     if (counted && got.by === "guess" && got.seat !== undefined)
       result.guessedBy = nameAtSeat.get(got.seat);
@@ -130,18 +168,24 @@ export function computeResult(state: RoomState, ctx: GameCtx): GameResult {
     refPlayers: ctx.cfg.refPlayers,
     effPlayers,
     falseSuspects: state.stats.falseSuspects,
-    metaPoints: metas.reduce((sum, m) => sum + m.points, 0),
+    metaPoints: metaTotal,
   });
   const players = playerCards(state, ctx);
+  const metasObtained = metas.filter((m) => m.by !== null).length;
+  // When time runs out, the score is simply the number of meta words obtained.
+  const timeUp = endedBy === "time";
   return {
-    total: score.total,
-    grade: score.grade,
+    endedBy,
+    metasObtained,
+    total: timeUp ? metasObtained : score.total,
+    grade: timeUp ? null : score.grade,
     breakdown: score.breakdown,
     details: {
       gameSeconds: Math.round(gameSeconds),
       parSeconds: Math.round(score.parSeconds),
       effPlayers: Math.round(effPlayers * 100) / 100,
       falseSuspects: state.stats.falseSuspects,
+      wrongLeft: players.reduce((sum, p) => sum + p.wrongLeft, 0),
       metas,
     },
     players,

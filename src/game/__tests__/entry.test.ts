@@ -64,7 +64,7 @@ describe("applyEntry", () => {
   });
 
   it("is allowed during the multiplayer rotation countdown but not once the rotation is due", () => {
-    const duo = makeCtx(GAME1, { maxPlayers: 2 });
+    const duo = makeCtx(GAME1);
     let s = startedDuo(duo); // PID sits in seat 0, holding board 0
     const at = s.cooldownUntil;
     s = unwrap(requestRotation(s, duo, s.masterPid!, "L", at, () => 0)).state;

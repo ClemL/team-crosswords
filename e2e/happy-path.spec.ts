@@ -19,6 +19,14 @@ test("single player: seed → room → join → ready → solve → grade", asyn
   const hostResponses: Recorded = [];
   recordApi(host, hostResponses, { view: null });
   await host.goto("/");
+  // The setup screen offers both modes; each lists its own games.
+  await host.getByRole("radio", { name: /6×6/ }).click();
+  await expect(
+    host.getByText(/Three 6×6 boards, 6 meta words of 3 to 8 letters, par 6/),
+  ).toBeVisible();
+  await expect(host.getByRole("button", { name: "Game 10", exact: true })).toBeVisible();
+  await host.getByRole("radio", { name: /5×5/ }).click();
+  await expect(host.getByRole("radio", { name: /5×5/ })).toHaveAttribute("aria-checked", "true");
   await host.getByRole("button", { name: "Game 1", exact: true }).click();
   await host.waitForURL(/\/host\/[A-Z0-9]{4}$/);
   const rid = host.url().split("/").pop()!;
@@ -43,20 +51,20 @@ test("single player: seed → room → join → ready → solve → grade", asyn
 
   // Solve: fill the board at the seat, rotate left, repeat until every word locks.
   for (let round = 0; round < 3; round++) {
-    const board = latest.view!.board.index;
+    const board = latest.view!.board!.index;
     await typeBoard(page, board);
     // Wait until the server holds every letter of this board.
     const openCells = V1_01.boards[board].join("").replace(/#/g, "").length;
     await expect
       .poll(() =>
-        latest.view?.board.index === board ? Object.keys(latest.view.board.entries).length : -1,
+        latest.view?.board?.index === board ? Object.keys(latest.view.board.entries).length : -1,
       )
       .toBe(openCells);
     if (round === 0) {
       // Reloading mid-game returns the player to the same seat and board, with entries intact.
       await page.reload();
       await expect(page.getByRole("heading", { name: "ACROSS" })).toBeVisible();
-      await expect.poll(() => latest.view?.board.index).toBe(board);
+      await expect.poll(() => latest.view?.board?.index).toBe(board);
       const [r, c] = [V1_01.across[board][1].r, V1_01.across[board][1].c];
       await expect(
         page.getByRole("button", { name: new RegExp(`^Row ${r + 1}, column ${c + 1}, letter`) }),
@@ -71,10 +79,14 @@ test("single player: seed → room → join → ready → solve → grade", asyn
       await page.keyboard.type("Bet");
       await page.waitForTimeout(1_500); // at least one poll re-render
       await page.keyboard.type("ter");
-      await expect(field).toHaveValue("Better");
+      await expect(field).toHaveValue("BETTER");
       await page.keyboard.press("Enter");
-      await expect(page.getByText(/Meta word 4 solved: \+5\.6 pts/)).toBeVisible();
-      // One guess per game: the field is now disabled.
+      await expect(page.getByText(/Meta word D solved: \+5\.6 pts/)).toBeVisible();
+      // Alone, a right guess leaves the field open; the first wrong one closes it.
+      await expect(field).toBeEnabled();
+      await field.fill("zebra");
+      await page.keyboard.press("Enter");
+      await expect(page.getByText("Not a meta word. That was your last guess.")).toBeVisible();
       await expect(field).toBeDisabled();
       await page.keyboard.press("Escape");
     }
@@ -94,7 +106,8 @@ test("single player: seed → room → join → ready → solve → grade", asyn
   await expect(page.getByRole("heading", { name: "Your scorecard" })).toBeVisible();
   const card = page.getByRole("region", { name: "Scorecard: Clem Leung" });
   await expect(card).toContainText("Tiles filled59"); // 19 + 19 + 21 open cells
-  await expect(card).toContainText("BETTER ✓ word 4, +5.6");
+  await expect(card).toContainText("BETTER ✓ word D, +5.6 · ZEBRA ✗");
+  await expect(card).toContainText("Wrong letters passed on0");
   await expect(page.getByText(/guessed by Clem Leung, after 2 rotations/)).toBeVisible();
   await expect(page.getByText("Check", { exact: false })).toHaveCount(0);
   await expect(host.getByLabel(/^Grade /)).toBeVisible({ timeout: 20_000 });
@@ -109,4 +122,51 @@ test("single player: seed → room → join → ready → solve → grade", asyn
     }
   }
   await host.close();
+});
+
+test("6× mode: a 6×6 room shows a 6 by 6 grid and six meta words", async ({ page, request }) => {
+  await request.post("/api/admin/seed", { headers: { "x-seed-secret": "e2e-secret" } });
+  const list = (await (await request.get("/api/puzzles")).json()) as {
+    id: string;
+    mode: string;
+  }[];
+  const six = list.filter((g) => g.mode === "6x");
+  expect(six).toHaveLength(10);
+  const { rid } = (await (
+    await request.post("/api/rooms", { data: { puzzleId: six[0].id } })
+  ).json()) as { rid: string };
+  await page.goto(`/play/${rid}`);
+  await page.getByLabel("Your name").fill("Lori");
+  await page.getByRole("button", { name: "Join" }).click();
+  await expect(page.getByRole("heading", { name: /Game 1 \(6×6\)/ })).toBeVisible();
+  await page.getByRole("button", { name: "I'm ready" }).click();
+  await expect(page.getByRole("group", { name: /6 by 6$/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Meta words: 0 of 6 solved/ })).toBeVisible();
+});
+
+test("7× mode: a 7 by 7 grid, a countdown, and time's up scores the meta words obtained", async ({
+  page,
+  request,
+}) => {
+  await request.post("/api/admin/seed", { headers: { "x-seed-secret": "e2e-secret" } });
+  const list = (await (await request.get("/api/puzzles")).json()) as { id: string; mode: string }[];
+  const seven = list.filter((g) => g.mode === "7x");
+  expect(seven).toHaveLength(10);
+  const { rid } = (await (
+    await request.post("/api/rooms", { data: { puzzleId: seven[0].id } })
+  ).json()) as { rid: string };
+  await page.goto(`/play/${rid}`);
+  await page.getByLabel("Your name").fill("Lori");
+  await page.getByRole("button", { name: "Join" }).click();
+  await expect(page.getByRole("heading", { name: /Game 1 \(7×7\)/ })).toBeVisible();
+  await page.getByRole("button", { name: "I'm ready" }).click();
+  await expect(page.getByRole("group", { name: /7 by 7$/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Meta words: 0 of 7 solved/ })).toBeVisible();
+  // The test server shortens the 7-minute limit to 4.2 s (playwright.config.ts).
+  await page.getByRole("button", { name: "Seating map" }).click();
+  await expect(page.getByText(/left$/)).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByText("Game 1: time's up")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByLabel("Score 0 of 7")).toBeVisible();
+  await expect(page.getByText(/0 of 7 meta words obtained/)).toBeVisible();
 });

@@ -96,7 +96,10 @@ export type RoomStats = {
   metaWrong: number;
 };
 
-/** A player's meta guess: each player gets exactly one per game. */
+/**
+ * A player's meta guess. Alone, a player may keep guessing until one is wrong; with others, each
+ * player gets one guess and a wrong one knocks them out.
+ */
 export type PlayerGuess = {
   text: string;
   /** The meta word it matched, or null when wrong. */
@@ -112,7 +115,10 @@ export type PlayerStats = {
   rotations: number;
   falseSuspects: number;
   accurateSuspects: number;
-  guess: PlayerGuess | null;
+  /** In the order they were made. */
+  guesses: PlayerGuess[];
+  /** Wrong letters this player had typed on the board at their seat when it rotated away. */
+  wrongLeft: number;
 };
 
 /** How and when a meta word was obtained. */
@@ -153,7 +159,11 @@ export type PlayerCard = {
   falseSuspects: number;
   accurateSuspects: number;
   activeSeconds: number;
-  guess: { text: string; correct: boolean; metaNumber: number | null; points: number } | null;
+  guesses: Array<{ text: string; correct: boolean; metaNumber: number | null; points: number }>;
+  /** Knocked out by a wrong guess in multiplayer. */
+  knockedOut: boolean;
+  /** Wrong letters of theirs on the board they passed on, summed over every rotation. */
+  wrongLeft: number;
 };
 
 export type BoardMvp = {
@@ -166,14 +176,23 @@ export type BoardMvp = {
 };
 
 export type GameResult = {
+  /**
+   * How the game ended: every meta word obtained, the time limit ran out, or everyone was knocked
+   * out. When time ran out, `total` is the number of meta words obtained and there is no grade.
+   */
+  endedBy: "metas" | "time" | "knockout";
+  /** Meta words obtained, out of details.metas.length. */
+  metasObtained: number;
   total: number;
-  grade: Grade;
+  grade: Grade | null;
   breakdown: ScoreBreakdown;
   details: {
     gameSeconds: number;
     parSeconds: number;
     effPlayers: number;
     falseSuspects: number;
+    /** Wrong letters passed on at rotations, all players together. */
+    wrongLeft: number;
     metas: MetaResult[];
   };
   players: PlayerCard[];
@@ -193,6 +212,8 @@ export type RoomState = {
   masterPid: string | null;
   pendingRotation: { dir: RotationDir; at: number } | null;
   timerStartedAt: number | null;
+  /** When the time limit runs out (modes with one), set as the timer starts. */
+  timeUpAt: number | null;
   endedAt: number | null;
   /** Meta word id -> how it was obtained. The game ends when every word is obtained. */
   metaSolved: Record<string, MetaObtained>;
@@ -202,11 +223,16 @@ export type RoomState = {
   result: GameResult | null;
   /** seat index -> playerId, or null when the seat is empty. */
   seats: (string | null)[];
-  /** seat index -> board index. */
-  boardAtSeat: number[];
+  /**
+   * seat index -> board index, or null for a seat without a board: a board whose every word is
+   * locked leaves the ring at the next rotation.
+   */
+  boardAtSeat: (number | null)[];
   players: Record<string, PlayerRecord>;
   /** playerId -> game stats (separate from PlayerRecord, which polls rewrite). */
   playerStats: Record<string, PlayerStats>;
+  /** playerId -> when a wrong multiplayer guess knocked them out. */
+  knockedOut: Record<string, number>;
   masterCounts: Record<string, number>;
   ready: string[];
   boards: BoardState[];

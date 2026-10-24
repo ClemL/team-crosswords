@@ -32,12 +32,8 @@ export function createRoomState(args: {
   rng: () => number;
   cfg: GameConfig;
 }): RoomState {
-  const { rid, puzzle, now, rng, cfg } = args;
-  if (puzzle.boards.length !== cfg.seats) {
-    throw new Error(
-      `Puzzle ${puzzle.id} has ${puzzle.boards.length} boards; config expects ${cfg.seats}`,
-    );
-  }
+  const { rid, puzzle, now, rng } = args;
+  const n = puzzle.boards.length;
   const baseClues = puzzle.boards.flatMap((b) =>
     b.clues.filter((c) => c.unlock.type === "base").map((c) => c.id),
   );
@@ -52,22 +48,36 @@ export function createRoomState(args: {
     masterPid: null,
     pendingRotation: null,
     timerStartedAt: null,
+    timeUpAt: null,
     endedAt: null,
     metaSolved: {},
     boardEmojis: pickBoardEmojis(puzzle.boards.length, rng),
     finalCheckAt: null,
     result: null,
-    seats: Array.from({ length: cfg.seats }, () => null),
-    boardAtSeat: Array.from({ length: cfg.seats }, (_, i) => i),
+    seats: Array.from({ length: n }, () => null),
+    boardAtSeat: Array.from({ length: n }, (_, i) => i),
     players: {},
     masterCounts: {},
     ready: [],
     playerStats: {},
+    knockedOut: {},
     boards: puzzle.boards.map(() => ({ entries: {}, authors: {}, suspects: {} })),
     locked: [],
     unlocked: baseClues,
     stats: { falseSuspects: 0, accurateSuspects: 0, metaWrong: 0 },
   };
+}
+
+/** A player still in the game: seated and not knocked out by a wrong guess. */
+export function inGame(state: Pick<RoomState, "players" | "knockedOut">, pid: string): boolean {
+  return state.players[pid] !== undefined && state.knockedOut[pid] === undefined;
+}
+
+/** seat -> whether a player still in the game sits there. */
+export function seatedInGame(
+  state: Pick<RoomState, "seats" | "players" | "knockedOut">,
+): boolean[] {
+  return state.seats.map((pid) => pid !== null && inGame(state, pid));
 }
 
 export function seatOf(state: RoomState, pid: string): number | null {
@@ -136,6 +146,11 @@ export function allCellsFilled(state: RoomState, ctx: GameCtx): boolean {
   );
 }
 
+/** Every word on the board is locked green. */
+export function boardComplete(state: RoomState, ctx: GameCtx, board: number): boolean {
+  return ctx.puzzle.boards[board].clues.every((c) => state.locked.includes(c.id));
+}
+
 export function boardPercent(state: RoomState, ctx: GameCtx, board: number): number {
   const clues = ctx.puzzle.boards[board].clues;
   const locked = clues.filter((c) => state.locked.includes(c.id)).length;
@@ -147,7 +162,14 @@ export function boardLockedCount(state: RoomState, ctx: GameCtx, board: number):
 }
 
 export function emptyPlayerStats(): PlayerStats {
-  return { lettersTyped: 0, rotations: 0, falseSuspects: 0, accurateSuspects: 0, guess: null };
+  return {
+    lettersTyped: 0,
+    rotations: 0,
+    falseSuspects: 0,
+    accurateSuspects: 0,
+    guesses: [],
+    wrongLeft: 0,
+  };
 }
 
 /** The player's stats record, created on first use (mutates `state`). */

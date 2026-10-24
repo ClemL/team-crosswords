@@ -1,21 +1,32 @@
 import type { GameConfig } from "@/config";
 import type { GameCtx } from "./context";
 import { assignMaster, masterNeedsReplacement, pickNextMaster } from "./master";
+import { endGameIfTimeUp } from "./end";
 import { completeRotation } from "./rotation";
-import { cloneState, isActive } from "./state";
+import { cloneState, inGame, isActive } from "./state";
 import type { RoomState } from "./types";
 
 type TransitionInput = Pick<
   RoomState,
-  "status" | "pendingRotation" | "cooldownUntil" | "masterPid" | "players"
+  | "status"
+  | "pendingRotation"
+  | "cooldownUntil"
+  | "masterPid"
+  | "players"
+  | "knockedOut"
+  | "timeUpAt"
 >;
+
+function timeIsUp(s: TransitionInput, now: number): boolean {
+  return s.status === "playing" && s.timeUpAt !== null && now >= s.timeUpAt;
+}
 
 function masterIdleExpired(s: TransitionInput, now: number, cfg: GameConfig): boolean {
   if (s.status !== "playing" || s.pendingRotation) return false;
   if (now <= s.cooldownUntil + cfg.masterIdleTimeoutMs) return false;
   // Mastership can only pass if another active player exists.
   return Object.keys(s.players).some(
-    (pid) => pid !== s.masterPid && isActive(s.players[pid], now, cfg),
+    (pid) => pid !== s.masterPid && inGame(s, pid) && isActive(s.players[pid], now, cfg),
   );
 }
 
@@ -24,6 +35,7 @@ function masterIdleExpired(s: TransitionInput, now: number, cfg: GameConfig): bo
  * Needs only room meta and the players hash.
  */
 export function hasDueTransition(s: TransitionInput, now: number, cfg: GameConfig): boolean {
+  if (timeIsUp(s, now)) return true;
   if (s.status === "playing" && s.pendingRotation && s.pendingRotation.at <= now) return true;
   if (masterIdleExpired(s, now, cfg)) return true;
   return s.status !== "ended" && masterNeedsReplacement(s, now, cfg);
@@ -31,8 +43,10 @@ export function hasDueTransition(s: TransitionInput, now: number, cfg: GameConfi
 
 /**
  * Lazy transitions (§7.2), applied at the start of every route:
- * 1. a due rotation completes; 2. otherwise an idle master loses mastership;
- * 3. an inactive master loses mastership.
+ * 1. a due rotation completes; 2. the time limit runs out, ending the game; 3. otherwise an idle
+ * master loses mastership; 4. an inactive master loses mastership.
+ * A rotation due before the deadline but applied after it completes as of its due time, so its
+ * locks and meta words count; one due after the deadline never happens.
  */
 export function applyDueTransitions(
   state: RoomState,
@@ -42,9 +56,13 @@ export function applyDueTransitions(
 ): { state: RoomState; changed: boolean } {
   let s = state;
   let changed = false;
-  if (s.status === "playing" && s.pendingRotation && s.pendingRotation.at <= now) {
-    s = completeRotation(s, ctx, now, rng);
-    changed = true;
+  const pending = s.status === "playing" ? s.pendingRotation : null;
+  const late = timeIsUp(s, now);
+  if (pending && pending.at <= now) {
+    if (!late || pending.at <= s.timeUpAt!) {
+      s = completeRotation(s, ctx, late ? pending.at : now, rng);
+      changed = true;
+    }
   } else if (masterIdleExpired(s, now, ctx.cfg)) {
     const next = pickNextMaster(s, now, rng, ctx.cfg);
     if (next && next !== s.masterPid) {
@@ -53,6 +71,11 @@ export function applyDueTransitions(
       s.cooldownUntil = now; // reset the idle clock
       changed = true;
     }
+  }
+  if (timeIsUp(s, now)) {
+    if (!changed) s = cloneState(s);
+    endGameIfTimeUp(s, ctx, now);
+    return { state: s, changed: true };
   }
   if (s.status !== "ended" && masterNeedsReplacement(s, now, ctx.cfg)) {
     const next = pickNextMaster(s, now, rng, ctx.cfg);

@@ -1,17 +1,17 @@
 import type { GameResult, PlayerCard } from "@/game/types";
 import type { SeatingView } from "@/game/views";
 import { formatClock } from "@/client/usePoll";
+import { metaLabel } from "./MetaBar";
 import ui from "./ui.module.css";
 
 /** Board emoji by board index, from the seating view. */
 export function boardEmojis(seating: SeatingView): string[] {
-  const out: string[] = [];
-  for (const s of seating.seats) out[s.boardIndex] = s.emoji;
-  return out;
+  return seating.boards.map((b) => b.emoji);
 }
 
 function Scorecard({ card, emojis, you }: { card: PlayerCard; emojis: string[]; you: boolean }) {
-  const g = card.guess;
+  // Results are frozen when a game ends; ones frozen by an older build lack the newer fields.
+  const guesses = card.guesses ?? [];
   return (
     <section
       className={`${ui.scorecard} ${you ? ui.scorecardYou : ""}`}
@@ -20,6 +20,7 @@ function Scorecard({ card, emojis, you }: { card: PlayerCard; emojis: string[]; 
       <h3 className={ui.scorecardTitle}>
         {card.name}
         {you && <span className={ui.muted}> (you)</span>}
+        {card.knockedOut && <span className={ui.muted}> · knocked out</span>}
       </h3>
       <dl className={ui.stats}>
         <dt>Tiles filled</dt>
@@ -33,16 +34,21 @@ function Scorecard({ card, emojis, you }: { card: PlayerCard; emojis: string[]; 
         <dd>{card.lettersTyped}</dd>
         <dt>Rotations as Capt.</dt>
         <dd>{card.rotations}</dd>
+        <dt>Wrong letters passed on</dt>
+        <dd>{card.wrongLeft ?? 0}</dd>
         <dt>Suspect marks</dt>
         <dd>
           {card.accurateSuspects} accurate · {card.falseSuspects} false
         </dd>
-        <dt>Meta guess</dt>
+        <dt>Meta {guesses.length > 1 ? "guesses" : "guess"}</dt>
         <dd>
-          {g ? (
-            <>
-              {g.text} {g.correct ? `✓ word ${g.metaNumber}, +${g.points}` : "✗"}
-            </>
+          {guesses.length > 0 ? (
+            guesses
+              .map(
+                (g) =>
+                  `${g.text} ${g.correct && g.metaNumber ? `✓ word ${metaLabel(g.metaNumber)}, +${g.points}` : "✗"}`,
+              )
+              .join(" · ")
           ) : (
             <span className={ui.muted}>not used</span>
           )}
@@ -71,6 +77,8 @@ export function Results({
 }) {
   const d = result.details;
   const multi = result.players.length > 1;
+  // Time ran out: the score is just the number of meta words obtained, with no grade.
+  const timeUp = result.endedBy === "time";
   const cards =
     yourSeat === undefined
       ? result.players
@@ -79,41 +87,69 @@ export function Results({
         );
   return (
     <div className={ui.results}>
-      <p className={ui.grade} aria-label={`Grade ${result.grade}`}>
-        {result.grade}
-      </p>
-      <p className={ui.total}>
-        <strong>{result.total}</strong> / 100
-      </p>
+      {timeUp ? (
+        <>
+          <p className={ui.grade} aria-label={`Score ${result.total} of ${d.metas.length}`}>
+            {result.total}/{d.metas.length}
+          </p>
+          <p className={ui.total}>
+            <strong>Time&apos;s up</strong>: {result.total} of {d.metas.length} meta words obtained
+          </p>
+        </>
+      ) : (
+        <>
+          <p className={ui.grade} aria-label={`Grade ${result.grade}`}>
+            {result.grade}
+          </p>
+          <p className={ui.total}>
+            <strong>{result.total}</strong> / 100
+          </p>
+        </>
+      )}
       <table className={ui.breakdown}>
         <tbody>
-          <tr>
-            <th scope="row">
-              Time {formatClock(d.gameSeconds * 1000)}{" "}
-              <span className={ui.muted}>(par {formatClock(d.parSeconds * 1000)})</span>
-            </th>
-            <td>{result.breakdown.time} / 50</td>
-          </tr>
+          {!timeUp && (
+            <tr>
+              <th scope="row">
+                Time {formatClock(d.gameSeconds * 1000)}{" "}
+                <span className={ui.muted}>(par {formatClock(d.parSeconds * 1000)})</span>
+              </th>
+              <td>{result.breakdown.time} / 50</td>
+            </tr>
+          )}
           <tr>
             <th scope="row">Meta words</th>
-            <td>{result.breakdown.metas} / 35</td>
+            <td>
+              {timeUp ? `${result.total}/${d.metas.length}` : `${result.breakdown.metas} / 35`}
+            </td>
           </tr>
           {d.metas.map((m, i) => (
             <tr key={m.id}>
               <th scope="row" style={{ paddingLeft: 16 }}>
-                <span className={ui.muted}>{i + 1}.</span> {m.answer}{" "}
+                <span className={ui.muted}>{metaLabel(i + 1)}.</span> {m.answer}{" "}
                 <span className={ui.muted}>
-                  {m.by === "guess" ? `guessed${m.guessedBy ? ` by ${m.guessedBy}` : ""}` : "tiles"}
+                  {m.by === "guess"
+                    ? `guessed${m.guessedBy ? ` by ${m.guessedBy}` : ""}`
+                    : m.by === "tiles"
+                      ? "tiles"
+                      : "not obtained"}
                   {m.rotations !== null &&
                     `, after ${m.rotations} rotation${m.rotations === 1 ? "" : "s"}`}
                 </span>
               </th>
-              <td className={ui.muted}>{m.points}</td>
+              <td className={ui.muted}>{timeUp ? (m.by ? "✓" : "") : m.points}</td>
             </tr>
           ))}
           <tr>
+            <th scope="row">
+              Wrong letters passed on at rotations: {d.wrongLeft ?? 0}{" "}
+              <span className={ui.muted}>(not scored)</span>
+            </th>
+            <td />
+          </tr>
+          <tr>
             <th scope="row">False suspects: {d.falseSuspects}</th>
-            <td>{result.breakdown.suspects} / 15</td>
+            <td>{timeUp ? "" : `${result.breakdown.suspects} / 15`}</td>
           </tr>
         </tbody>
       </table>

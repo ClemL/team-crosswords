@@ -2,11 +2,12 @@
 
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
-import { CONFIG_V1 } from "@/config";
-import { formatClock, usePoll, useServerNow } from "@/client/usePoll";
+import { CONFIG_V1, MODES } from "@/config";
+import { formatClock, gameClock, usePoll, useServerNow } from "@/client/usePoll";
 import type { HostView } from "@/game/views";
 import { MetaWordList } from "../MetaBar";
 import { boardEmojis, Results } from "../Results";
+import { DensityToggle } from "../DensityToggle";
 import { ThemeToggle } from "../ThemeToggle";
 import ui from "../ui.module.css";
 import h from "./host.module.css";
@@ -47,11 +48,12 @@ function Ring({ view }: { view: HostView }) {
             style={{ ...seatPosition(seat.seat, n), borderColor: seat.color }}
           >
             <div className={h.tileEmoji} aria-hidden="true">
-              {seat.emoji}
+              {seat.emoji || "—"}
             </div>
             <div className={h.tileName}>
-              {idle ? "idle" : seat.playerName}
+              {idle ? "Empty" : seat.playerName}
               {seat.isMaster && <span className={ui.capt}> Capt.</span>}
+              {seat.out && <span className={ui.muted}> · out</span>}
             </div>
             <div className={ui.muted}>
               Seat {seat.seat + 1}
@@ -69,11 +71,27 @@ function Ring({ view }: { view: HostView }) {
                 style={{ width: `${seat.percent}%`, background: seat.color }}
               />
             </div>
-            <div>{seat.percent}%</div>
+            <div>{seat.boardIndex === null ? "no board" : `${seat.percent}%`}</div>
           </div>
         );
       })}
     </div>
+  );
+}
+
+/** Boards that left the ring because every word on them is locked. */
+function DoneBoards({ view }: { view: HostView }) {
+  const done = view.seating.boards.filter((b) => b.done);
+  if (done.length === 0) return null;
+  return (
+    <p className={h.footer}>
+      Done, out of the ring:{" "}
+      {done.map((b) => (
+        <span key={b.boardIndex} aria-label={`board ${b.emoji} complete`}>
+          {b.emoji} ✓{" "}
+        </span>
+      ))}
+    </p>
   );
 }
 
@@ -93,19 +111,20 @@ export function HostApp({ rid }: { rid: string }) {
 
   const pending = view.rotation.pending;
   const cooling = now < view.rotation.cooldownUntil;
-  const elapsed = view.timer.startedAt ? (view.timer.endedAt ?? now) - view.timer.startedAt : 0;
 
   return (
     <main className={h.page}>
       <div className={h.top}>
         <h1 className={h.title}>
-          {view.puzzleTitle} · Room {view.rid}
+          {view.puzzleTitle} ({MODES[view.mode].boardSize}×{MODES[view.mode].boardSize}) · Room{" "}
+          {view.rid}
         </h1>
         <ThemeToggle />
+        <DensityToggle />
         {view.status !== "lobby" && (
           <div className={h.stats}>
             <span className={h.stat}>
-              ⏱ <strong>{formatClock(elapsed)}</strong>
+              ⏱ <strong>{gameClock(view.timer, now)}</strong>
             </span>
             <span className={h.stat}>
               Rotations <strong>{view.rotation.count}</strong>
@@ -169,6 +188,7 @@ export function HostApp({ rid }: { rid: string }) {
       {view.status === "playing" && (
         <div className={ui.card} style={{ padding: 12 }}>
           <Ring view={view} />
+          <DoneBoards view={view} />
         </div>
       )}
 
@@ -184,11 +204,21 @@ export function HostApp({ rid }: { rid: string }) {
         </h2>
         {view.status === "playing" && view.players.length > 0 && (
           <p className={ui.muted} style={{ marginTop: 0 }}>
-            Guesses left (one each):{" "}
-            {view.players
-              .filter((p) => p.hasGuess)
-              .map((p) => p.name)
-              .join(", ") || "none"}
+            {view.meta.solo
+              ? view.players[0].hasGuess
+                ? "Guesses: as many as you like, until one is wrong."
+                : "No guesses left: the last one was wrong."
+              : `Guesses left (one each; a wrong one knocks you out): ${
+                  view.players
+                    .filter((p) => p.hasGuess)
+                    .map((p) => p.name)
+                    .join(", ") || "none"
+                }`}
+            {view.players.some((p) => p.out) &&
+              `. Knocked out: ${view.players
+                .filter((p) => p.out)
+                .map((p) => p.name)
+                .join(", ")}`}
           </p>
         )}
         <MetaWordList meta={view.meta} />

@@ -4,7 +4,7 @@ import { getStore } from "@/server/store";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/puzzles — [{ id, title }] */
+/** GET /api/puzzles — [{ id, title, mode, boardSize, metaWords, parMinutes }] */
 export async function GET() {
   return handle(async () => json(await listPuzzles(getStore())));
 }

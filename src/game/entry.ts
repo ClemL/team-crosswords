@@ -1,6 +1,6 @@
 import type { GameCtx } from "./context";
 import { fail, type Result } from "./errors";
-import { guardBoardAtSeat, guardPlayer, guardPlaying } from "./guards";
+import { guardBoardAtSeat, guardInGame, guardPlayer, guardPlaying } from "./guards";
 import { cellKey, isOpen } from "./puzzle";
 import { cloneState, isCellLocked, statsFor } from "./state";
 import type { RoomState } from "./types";
@@ -17,7 +17,10 @@ export function applyEntry(
   now: number,
 ): Result<{ state: RoomState }> {
   const g =
-    guardPlayer(state, pid) ?? guardPlaying(state) ?? guardBoardAtSeat(state, pid, board, now);
+    guardPlayer(state, pid) ??
+    guardPlaying(state) ??
+    guardInGame(state, pid) ??
+    guardBoardAtSeat(state, pid, board, now);
   if (g) return g;
   const pb = ctx.puzzle.boards[board];
   if (!pb || !isOpen(pb, r, c)) return fail("BAD_REQUEST", "That cell cannot be selected.");

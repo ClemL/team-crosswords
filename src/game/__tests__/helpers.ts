@@ -12,6 +12,16 @@ export const ALL_GAMES = JSON.parse(
   readFileSync(path.resolve(import.meta.dirname, "../../../data/puzzles-v1.json"), "utf8"),
 ) as PuzzleGame[];
 
+/** The 6× set: three 6×6 boards and 6 meta words per game. */
+export const SIX_GAMES = JSON.parse(
+  readFileSync(path.resolve(import.meta.dirname, "../../../data/puzzles-6x.json"), "utf8"),
+) as PuzzleGame[];
+
+/** The 7× set: three 7×7 boards and 7 meta words per game, with a time limit. */
+export const SEVEN_GAMES = JSON.parse(
+  readFileSync(path.resolve(import.meta.dirname, "../../../data/puzzles-7x.json"), "utf8"),
+) as PuzzleGame[];
+
 export const GAME1 = ALL_GAMES[0];
 export const PID = "p-1";
 export const PID2 = "p-2";
@@ -42,10 +52,7 @@ export function startedRoom(ctx: GameCtx, now: number = T0): RoomState {
 }
 
 /** Writes the solution letters of a clue straight into the state (mutates). */
-/**
- * A two-player room (multiplayer rules: cooldowns, rotation warning). Needs a ctx whose config
- * allows 2 players, e.g. makeCtx(GAME1, { maxPlayers: 2 }).
- */
+/** A two-player room (multiplayer rules: cooldowns, rotation warning, one guess each). */
 export function startedDuo(ctx: GameCtx, now: number = T0): RoomState {
   let s = createRoomState({
     rid: "DUO",

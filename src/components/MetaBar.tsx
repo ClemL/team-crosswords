@@ -3,12 +3,16 @@
 import { useState } from "react";
 import type { MetaView, MetaWordView } from "@/game/views";
 import { Modal } from "./Modal";
+import { Keyboard } from "./play/Keyboard";
 import ui from "./ui.module.css";
 
-const metaClass = (n: number) => ui[`m${((n - 1) % 5) + 1}`];
+const metaClass = (n: number) => ui[`m${((n - 1) % 7) + 1}`];
+
+/** Meta words are labeled A, B, C… (board cells already carry clue numbers). */
+export const metaLabel = (n: number): string => String.fromCharCode(64 + n);
 
 function statusText(w: MetaWordView): string {
-  if (!w.solved) return w.enumeration;
+  if (!w.solved) return "";
   const how =
     w.by === "guess" ? `guessed${w.guessedBy ? ` by ${w.guessedBy}` : ""}` : "completed by tiles";
   return `${how} after ${w.rotations} rotation${w.rotations === 1 ? "" : "s"}: +${w.points} pts`;
@@ -20,8 +24,8 @@ export function MetaWordList({ meta }: { meta: MetaView }) {
     <div className={ui.metaList}>
       {meta.words.map((w) => (
         <div key={w.id} className={`${ui.metaWord} ${metaClass(w.number)}`}>
-          <span className={ui.metaNum} aria-label={`Meta word ${w.number}`}>
-            {w.number}
+          <span className={ui.metaNum} aria-label={`Meta word ${metaLabel(w.number)}`}>
+            {metaLabel(w.number)}
           </span>
           <div className={ui.metaSlots}>
             {w.slots.map((s, i) => (
@@ -38,9 +42,9 @@ export function MetaWordList({ meta }: { meta: MetaView }) {
               </div>
             ))}
           </div>
-          <span className={`${ui.metaStatus} ${w.solved ? ui.metaStatusSolved : ""}`}>
-            {statusText(w)}
-          </span>
+          {w.solved && (
+            <span className={`${ui.metaStatus} ${ui.metaStatusSolved}`}>{statusText(w)}</span>
+          )}
         </div>
       ))}
     </div>
@@ -57,7 +61,7 @@ export function MetaChips({ meta }: { meta: MetaView }) {
           className={[ui.metaChip, metaClass(w.number), w.solved && ui.metaChipSolved]
             .filter(Boolean)
             .join(" ")}
-          aria-label={`Meta word ${w.number}: ${w.slots.map((s) => s.letter ?? "blank").join(" ")}${w.solved ? ", solved" : ""}`}
+          aria-label={`Meta word ${metaLabel(w.number)}: ${w.slots.map((s) => s.letter ?? "blank").join(" ")}${w.solved ? ", solved" : ""}`}
         >
           {w.slots.map((s) => s.letter ?? "_").join("")}
         </span>
@@ -66,24 +70,31 @@ export function MetaChips({ meta }: { meta: MetaView }) {
   );
 }
 
-type GuessResult = { correct: boolean; metaId: string | null; points: number | null };
-type YourGuess = { text: string; correct: boolean; metaNumber: number | null } | null;
+type GuessResult = {
+  correct: boolean;
+  metaId: string | null;
+  points: number | null;
+  knockedOut: boolean;
+};
 
 /**
- * Phone meta bar (§3.10, revised): a compact row of the 5 words. Tapping it opens the meta panel
- * with every word and the player's single guess, checked against every word not yet obtained.
+ * Phone meta bar (§3.10, revised): a compact row of the words. Tapping it opens the meta panel
+ * with every word and the guess field, typed on the on-screen keyboard so the phone's own keyboard
+ * never covers the words. Alone, a player guesses until a guess is wrong; with others, each player
+ * gets one guess and a wrong one knocks them out.
  */
 export function MetaBar({
   meta,
   onGuess,
   canGuess,
-  yourGuess = null,
+  out = false,
 }: {
   meta: MetaView;
   onGuess?: (guess: string) => Promise<GuessResult | null>;
-  /** False once this player has used their one guess (or the game is not running). */
+  /** False once this player may not guess any more (or the game is not running). */
   canGuess: boolean;
-  yourGuess?: YourGuess;
+  /** Knocked out by a wrong guess. */
+  out?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [guess, setGuess] = useState("");
@@ -92,8 +103,7 @@ export function MetaBar({
   const allSolved = meta.solvedCount === meta.words.length;
   const guessable = canGuess && !!onGuess && !allSolved;
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const send = async () => {
     if (!onGuess || busy || !guess.trim()) return;
     setBusy(true);
     const r = await onGuess(guess);
@@ -102,8 +112,16 @@ export function MetaBar({
     const word = meta.words.find((w) => w.id === r.metaId);
     setFeedback(
       r.correct
-        ? { ok: true, text: `✓ Meta word ${word?.number ?? ""} solved: +${r.points} pts` }
-        : { ok: false, text: "Not a meta word. Your guess is used." },
+        ? {
+            ok: true,
+            text: `✓ Meta word ${word ? metaLabel(word.number) : ""} solved: +${r.points} pts`,
+          }
+        : {
+            ok: false,
+            text: r.knockedOut
+              ? "Not a meta word. You are knocked out of the game."
+              : "Not a meta word. That was your last guess.",
+          },
     );
     setGuess("");
   };
@@ -132,29 +150,39 @@ export function MetaBar({
             <MetaWordList meta={meta} />
           </div>
           {onGuess && (
-            <form className={ui.section} onSubmit={submit}>
-              <p className={ui.muted} style={{ marginTop: 0 }}>
-                {yourGuess
-                  ? `You guessed ${yourGuess.text}: ${
-                      yourGuess.correct ? `right (word ${yourGuess.metaNumber})` : "not a meta word"
-                    }. Each player gets one guess per game.`
-                  : `You get one guess for the whole game, checked against every unsolved word; right or wrong, it is then used. Each word is worth ${meta.pointsNow} of ${meta.maxPointsPerWord} points now (10% less per rotation), whether it is guessed or its tiles are completed.`}
-              </p>
+            <form
+              className={ui.guessForm}
+              onSubmit={(e) => {
+                e.preventDefault();
+                void send();
+              }}
+            >
+              {/* inputMode="none": no system keyboard on phones; a physical keyboard still types. */}
               <input
                 className={ui.input}
                 value={guess}
-                onChange={(e) => setGuess(e.target.value)}
+                onChange={(e) => setGuess(e.target.value.toUpperCase())}
+                inputMode="none"
                 maxLength={32}
-                autoCapitalize="characters"
                 autoComplete="off"
                 spellCheck={false}
                 disabled={!guessable}
+                placeholder={
+                  guessable
+                    ? "Your guess"
+                    : out
+                      ? "Knocked out"
+                      : allSolved
+                        ? ""
+                        : "No guesses left"
+                }
                 aria-label="Meta guess"
               />
               {feedback && (
                 <p
                   role="status"
                   style={{
+                    margin: "8px 0 0",
                     color: feedback.ok ? "var(--green-text)" : "var(--red)",
                     fontWeight: 600,
                   }}
@@ -162,15 +190,13 @@ export function MetaBar({
                   {feedback.text}
                 </p>
               )}
-              <div className={ui.actions} style={{ marginTop: 12 }}>
-                <button
-                  type="submit"
-                  className={`${ui.btn} ${ui.primary}`}
-                  disabled={!guessable || busy || !guess.trim()}
-                >
-                  Submit guess
-                </button>
-              </div>
+              <Keyboard
+                onLetter={(l) => setGuess((g) => (g.length < 32 ? g + l : g))}
+                onBackspace={() => setGuess((g) => g.slice(0, -1))}
+                onEnter={() => void send()}
+                enterLabel="Guess"
+                disabled={!guessable || busy}
+              />
             </form>
           )}
         </Modal>

@@ -11,7 +11,7 @@ import type { GameCtx } from "../context";
 import type { RoomState } from "../types";
 import { GAME1, makeCtx, PID, PID2, startedDuo, T0, unwrap } from "./helpers";
 
-const ctx = makeCtx(GAME1, { maxPlayers: 2 });
+const ctx = makeCtx(GAME1);
 const rng = mulberry32(11);
 
 /** Types the solution of `board` as `pid` through the real rule function. */
@@ -42,9 +42,10 @@ describe("scorecards, board MVPs and the tiles leaderboard", () => {
     s = unwrap(applyEntry(s, ctx, PID, 0, 2, 0, "X", T0)).state;
     s = unwrap(toggleSuspect(s, ctx, PID, 0, 2, 0, true, T0)).state; // accurate (X is wrong)
     s = unwrap(applyEntry(s, ctx, PID, 0, 2, 0, "T", T0)).state;
-    s = unwrap(guessMeta(s, ctx, PID2, "zzz", T0)).state; // Kris's guess: wrong
-    s = rotateLeft(s, T0); // seat 0 gets board 1, seat 1 gets board 2
-    expect(s.boardAtSeat).toEqual([1, 2, 0]);
+    s = unwrap(guessMeta(s, ctx, PID2, "ape", T0, Math.random)).state; // Kris's one guess: right
+    // Boards 0 and 1 lock completely and leave the ring: Kris (seat 1) gets board 2, Clem none.
+    s = rotateLeft(s, T0);
+    expect(s.boardAtSeat).toEqual([null, 2, null]);
     s = typeBoard(s, ctx, PID2, 2, T0 + 30_000);
     s = rotateLeft(s, T0 + 30_000);
     expect(s.status).toBe("ended");
@@ -54,9 +55,10 @@ describe("scorecards, board MVPs and the tiles leaderboard", () => {
     const kris = r.players.find((p) => p.name === "Kris")!;
     // Open cells: board 0 has 19, board 1 has 19, board 2 has 21.
     expect(clem).toMatchObject({ seat: 0, tiles: 19, tilesByBoard: [19, 0, 0], lettersTyped: 21 });
-    expect(clem).toMatchObject({ accurateSuspects: 1, falseSuspects: 0, guess: null });
+    expect(clem).toMatchObject({ accurateSuspects: 1, falseSuspects: 0, guesses: [] });
     expect(kris).toMatchObject({ seat: 1, tiles: 40, tilesByBoard: [0, 19, 21], lettersTyped: 40 });
-    expect(kris.guess).toEqual({ text: "ZZZ", correct: false, metaNumber: null, points: 0 });
+    expect(kris.guesses).toEqual([{ text: "APE", correct: true, metaNumber: 1, points: 7 }]);
+    expect([clem.knockedOut, kris.knockedOut]).toEqual([false, false]);
     expect(clem.rotations + kris.rotations).toBe(2);
     expect(clem.rotations).toBe(1); // the Capt. role passed to the other player
     expect(r.mvps.map((m) => [m.emoji, m.names, m.tiles])).toEqual([

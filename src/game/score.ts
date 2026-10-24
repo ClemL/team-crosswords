@@ -8,7 +8,7 @@ export type ScoreInput = {
   /** Σ(active seconds of each player) / game seconds. */
   effPlayers: number;
   falseSuspects: number;
-  /** Sum of the points of the meta words (see metaPoints). */
+  /** Sum of the points of the meta words (see metaPointsExact). */
   metaPoints: number;
 };
 
@@ -28,16 +28,25 @@ export function parSeconds(parMinutes: number, refPlayers: number, effPlayers: n
   return parMinutes * 60 * Math.sqrt(refPlayers / eff);
 }
 
+type MetaScoring = {
+  metaTotalPoints: number;
+  metaDecayPerRotation: number;
+  metaMinFraction: number;
+};
+
 /**
- * Points for one meta word obtained after `rotations` rotations: full value before any rotation,
- * minus `decay` of it per rotation, never below `minFraction` of it.
+ * Unrounded points for one of `words` meta words obtained after `rotations` rotations: an even
+ * share of metaTotalPoints before any rotation, minus `decay` of it per rotation, never below
+ * `minFraction` of it. Totals add these up before rounding, so six words still make 35.
  */
-export function metaPoints(
-  rotations: number,
-  cfg: { metaWordPoints: number; metaDecayPerRotation: number; metaMinFraction: number },
-): number {
+export function metaPointsExact(rotations: number, cfg: MetaScoring, words: number): number {
   const fraction = Math.max(cfg.metaMinFraction, 1 - cfg.metaDecayPerRotation * rotations);
-  return round1(cfg.metaWordPoints * fraction);
+  return (cfg.metaTotalPoints / words) * fraction;
+}
+
+/** metaPointsExact rounded to one decimal, for display. */
+export function metaPoints(rotations: number, cfg: MetaScoring, words: number): number {
+  return round1(metaPointsExact(rotations, cfg, words));
 }
 
 export function gradeFor(total: number, input: Pick<ScoreInput, "falseSuspects">): Grade {

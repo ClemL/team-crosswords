@@ -19,13 +19,17 @@ export function randomRoomCode(): string {
   return code;
 }
 
-/** Loads the whole room in one pipelined round trip. */
+/**
+ * Loads the whole room in one pipelined round trip, assuming the usual ring size (cfg.seats). A
+ * room whose puzzle has another number of boards is read again with its own count.
+ */
 export async function loadRoom(
   store: Store,
   rid: string,
   cfg: GameConfig,
+  boardCount: number = cfg.seats,
 ): Promise<RoomState | null> {
-  const k = roomKeys(rid, cfg.seats);
+  const k = roomKeys(rid, boardCount);
   const cmds: Cmd[] = [
     { op: "get", key: k.version },
     { op: "hgetall", key: k.meta },
@@ -49,6 +53,8 @@ export async function loadRoom(
   const meta = res[1] as Record<string, string>;
   const boardAtSeat = res[3] as string | null;
   if (version === null || !meta.puzzleId || boardAtSeat === null) return null;
+  const actual = (JSON.parse(boardAtSeat) as unknown[]).length;
+  if (actual !== boardCount) return loadRoom(store, rid, cfg, actual);
   const head = 8;
   const boards: RedisShape["boards"] = k.boards.map((_, n) => ({
     entries: res[head + n * 3] as Record<string, string>,
@@ -146,7 +152,7 @@ export async function saveRoom(
   after: RoomState,
   cfg: GameConfig,
 ): Promise<{ state: RoomState; changed: boolean }> {
-  const k = roomKeys(after.rid, cfg.seats);
+  const k = roomKeys(after.rid, after.boards.length);
   const baseVersion = before?.version ?? after.version;
   const cmds = diffCommands(
     k,

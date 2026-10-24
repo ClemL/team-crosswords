@@ -43,11 +43,13 @@ export function serializeMeta(s: RoomState): Record<string, string> {
     pendingRotationDir: s.pendingRotation?.dir ?? "",
     pendingRotationAt: s.pendingRotation ? String(s.pendingRotation.at) : "",
     timerStartedAt: num(s.timerStartedAt),
+    timeUpAt: num(s.timeUpAt),
     endedAt: num(s.endedAt),
     metaSolved: JSON.stringify(s.metaSolved),
     boardEmojis: JSON.stringify(s.boardEmojis),
     finalCheckAt: num(s.finalCheckAt),
     result: s.result ? JSON.stringify(s.result) : "",
+    knockedOut: JSON.stringify(s.knockedOut),
   };
 }
 
@@ -61,8 +63,22 @@ export function parseMetaLite(meta: Record<string, string>) {
     masterPid: meta.masterPid || null,
     pendingRotation: at !== null && dir ? { dir, at } : null,
     timerStartedAt: parseNum(meta.timerStartedAt),
+    timeUpAt: parseNum(meta.timeUpAt),
     endedAt: parseNum(meta.endedAt),
+    knockedOut: meta.knockedOut
+      ? (JSON.parse(meta.knockedOut) as RoomState["knockedOut"])
+      : ({} as RoomState["knockedOut"]),
   };
+}
+
+/**
+ * Player stats as stored. Rooms saved before multiple guesses held a single `guess`, and none
+ * before wrong-letter counting have `wrongLeft`.
+ */
+function parsePlayerStats(json: string): PlayerStats {
+  const raw = JSON.parse(json) as PlayerStats & { guess?: PlayerStats["guesses"][number] | null };
+  const { guess, ...rest } = raw;
+  return { ...rest, guesses: raw.guesses ?? (guess ? [guess] : []), wrongLeft: raw.wrongLeft ?? 0 };
 }
 
 export function parsePlayers(raw: Record<string, string>): Record<string, PlayerRecord> {
@@ -120,18 +136,20 @@ export function fromRedis(rid: string, r: RedisShape): RoomState {
     masterPid: lite.masterPid,
     pendingRotation: lite.pendingRotation,
     timerStartedAt: lite.timerStartedAt,
+    timeUpAt: lite.timeUpAt,
     endedAt: lite.endedAt,
     metaSolved: r.meta.metaSolved ? (JSON.parse(r.meta.metaSolved) as RoomState["metaSolved"]) : {},
     boardEmojis: JSON.parse(r.meta.boardEmojis || "[]") as BoardStyle[],
     finalCheckAt: parseNum(r.meta.finalCheckAt),
     result: r.meta.result ? (JSON.parse(r.meta.result) as GameResult) : null,
     seats: Array.from({ length: seatCount }, (_, i) => r.seats[String(i)] || null),
-    boardAtSeat: JSON.parse(r.boardAtSeat) as number[],
+    boardAtSeat: JSON.parse(r.boardAtSeat) as (number | null)[],
     players: parsePlayers(r.players),
     masterCounts,
     playerStats: Object.fromEntries(
-      Object.entries(r.playerStats).map(([pid, json]) => [pid, JSON.parse(json) as PlayerStats]),
+      Object.entries(r.playerStats).map(([pid, json]) => [pid, parsePlayerStats(json)]),
     ),
+    knockedOut: lite.knockedOut,
     ready: [...r.ready].sort(),
     boards: r.boards.map((b) => ({
       entries: { ...b.entries },
